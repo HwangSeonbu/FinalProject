@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 상담신청과 조회 과정 중에 필요한 쿼리 xml  -->
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 4. 28.}   황선부     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.counsel.dao.CounselDAO">
+
+	<select id="studentSelectCounselList" parameterType="kr.or.ddit.vo.PagingVO" resultType="kr.or.ddit.vo.SCounselVO">
+			SELECT F.*	
+			FROM( SELECT ROWNUM RNUM, E.*
+				FROM(
+				SELECT CNSL_ID, DY_DATE, CNSL_DATE, DEPT_NAME, USER_NAME, CNSL_LO, CNSL_DAY
+	            FROM CNSL A INNER JOIN PRO B ON (A.PRO_NO = B.PRO_NO)
+	                        INNER JOIN DEPARTMENT C ON(B.DEPT_ID=C.DEPT_ID)
+	                        INNER JOIN USERS D ON(B.PRO_NO=D.USER_NO)
+                WHERE STU_NO=#{stuNo}
+                ORDER BY A.CNSL_DATE DESC
+					)E
+			)F
+			<![CDATA[
+ 			WHERE RNUM >=#{startRow} AND RNUM <=#{endRow} 
+ 	 		]]>
+	</select>
+	
+	<select id="stuCounselTotalRecord" parameterType="kr.or.ddit.vo.PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM CNSL
+		where STU_NO = #{stuNo}
+	</select>
+	
+	<select id="selectQuestion" resultType="kr.or.ddit.vo.QuestionVO">
+		SELECT *
+		FROM QUESTION
+		where QUEST_NO BETWEEN 'R1' AND 'R9'
+		ORDER BY QUEST_NO
+	</select>
+	
+	<select id="selectdepartment" resultType="kr.or.ddit.vo.DepartmentVO">
+		SELECT *
+		FROM DEPARTMENT
+		ORDER BY DEPT_NAME 
+	</select>
+	<select id="selectProfessor" parameterType="String" resultType="kr.or.ddit.vo.ProfessorVO">
+		SELECT PRO_NO
+		   , DEPT_ID
+		   , PRO_INDATE
+		   , PRO_OUTDATE
+		   , PRO_JOB
+		   , USER_NAME 
+		FROM PRO INNER JOIN USERS ON(PRO_NO=USER_NO)
+		WHERE dept_ID=#{deptId}
+	</select>
+
+	<insert id="insertReqCounsel" parameterType="kr.or.ddit.vo.CounselVO">
+		INSERT INTO CNSL (
+		    CNSL_ID
+		   ,STU_NO
+		   ,PRO_NO
+		   ,CNSL_DATE
+	) VALUES (
+		    CNSL_SEQ.NEXTVAL
+		   ,#{stuNo,jdbcType=NUMERIC}
+		   ,#{proNo,jdbcType=NUMERIC}
+		   ,SYSDATE
+	)
+
+	</insert>
+	<insert id="insertQA" parameterType="kr.or.ddit.vo.QuestionAnswerVO">
+	INSERT INTO QA (
+	    QA_NO
+	   ,QUEST_NO
+	   <if test="ansNo neq null">
+	   ,ANS_NO   
+	   </if>
+	   ,CNSL_ID
+	   ,QA_LONG
+	) VALUES (
+		QA_SEQ.NEXTVAL
+	   ,#{questNo,jdbcType=VARCHAR}
+	   <if test="ansNo neq null">
+ 	   ,#{ansNo,jdbcType=VARCHAR}	   
+	   </if>
+	   ,CNSL_SEQ.CURRVAL
+	   ,#{qaLong,jdbcType=VARCHAR}
+	)
+	</insert>
+	
+<!-- 	<resultMap type="kr.or.ddit.vo.StudentVO" id="proCounselMap" autoMapping="true"> -->
+<!-- 		<id property="userNo" column="USER_NO"/>				 -->
+<!-- 		<association property="userNo" column="USER_NO" javaType="Integer" autoMapping="true"> -->
+<!-- 			<id property="userNo" column="USER_NO"/> -->
+<!-- 		</association>	 -->
+<!-- 		<collection property="counselList" ofType="CounselVO" autoMapping="true"> -->
+<!-- 			<id property="cnslId" column="CNSL_ID"/> -->
+<!-- 		</collection> -->
+<!-- 	</resultMap> -->
+
+
+	<select id="proSelectCounselList" parameterType="kr.or.ddit.vo.PagingVO" resultType="ProCounselVO">
+	SELECT F.*
+      FROM(
+         SELECT ROWNUM RNUM, E.*
+         FROM(
+			SELECT
+			    B.CNSL_ID
+			   ,C.user_no
+			   ,D.dept_id
+			   ,A.stu_year
+			   ,A.stu_class
+			   ,A.stu_code
+			   ,A.stu_cdt_earn
+			   ,A.stu_gdu_cdt
+			   ,A.stu_gdu_date
+			   ,C.USER_NAME
+			   ,C.USER_PHONE
+			   ,D.DEPT_NAME
+			   ,B.CNSL_DAY
+			   ,TO_CHAR(B.CNSL_DATE,'YYYY-MM-DD HH:mm:ss') AS CNSL_DATE
+			   ,TO_CHAR(B.DY_DATE,'YYYY-MM-DD HH:mm:ss') AS DY_DATE		   
+			FROM
+			   CNSL B INNER JOIN STU A ON(A.USER_NO=B.STU_NO)
+			          INNER JOIN USERS C ON(A.USER_NO=C.USER_NO)
+			          INNER JOIN DEPARTMENT D ON(A.DEPT_ID=D.DEPT_ID)
+			WHERE PRO_NO = #{proNo}
+            ORDER BY B.CNSL_DATE DESC
+        ) E
+      ) F
+      <if test="startRow != null and endRow != null">
+      <![CDATA[
+         WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+      ]]>
+      </if>
+
+
+	</select>
+	
+	<select id="proCounselTotalRecord" parameterType="kr.or.ddit.vo.PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM CNSL
+		where PRO_NO = #{proNo}
+	</select>
+	
+	<select id="selectOneCounselStudent" parameterType="Integer" resultType="ProCounselVO">
+		SELECT A.*, B.* ,C.*
+		FROM STU A INNER JOIN USERS B ON(A.USER_NO=B.USER_NO)
+					INNER JOIN DEPARTMENT C ON(A.DEPT_ID=C.DEPT_ID)
+		WHERE A.USER_NO=#{userNo}
+</select>
+	
+	<select id="selectOneReqCounsel" parameterType="String" resultType="QuestionAnswerVO">
+		SELECT A.*, TO_CHAR(B.CNSL_DATE,'YYYY-MM-DD HH:mm:ss') AS CNSL_DATE, 
+					TO_CHAR(B.DY_DATE,'YYYY-MM-DD HH:mm:ss') AS DY_DATE
+		FROM QA A INNER JOIN CNSL B ON (A.CNSL_ID = B.CNSL_ID)
+		WHERE A.CNSL_ID = #{cnslId}
+		ORDER BY A.QUEST_NO
+	</select>
+	
+	<update id="updatedyDate" parameterType="CounselVO">
+		UPDATE CNSL
+		SET DY_DATE = 
+		<if test="dyDate neq null">
+		#{dyDate,jdbcType=DATE}		
+		</if>
+		<if test="dyDate eq null">
+		''
+		</if>
+		WHERE CNSL_ID=#{cnslId}
+	</update>
+	
+	<insert id="insertCounselLog" parameterType="QuestionAnswerVO">
+	INSERT INTO QA (
+		    qa_no
+		   ,quest_no
+			<if test="ansNo != null">
+		   ,ANS_NO   
+		   </if>
+		   ,cnsl_id
+		   ,qa_long
+	) VALUES (
+		    QA_SEQ.NEXTVAL
+		  ,#{questNo,jdbcType=VARCHAR}
+		   <if test="ansNo != null">
+	 	   ,#{ansNo,jdbcType=VARCHAR}	   
+		   </if>
+			,#{cnslId,jdbcType=VARCHAR}
+			,#{qaLong,jdbcType=VARCHAR}
+	)
+	</insert>
+	
+	<delete id="deleteCounselLog" parameterType="CounselVO">
+	DELETE FROM QA
+	WHERE CNSL_ID= #{cnslId} AND (QUEST_NO='L1' OR QUEST_NO='L2' OR QUEST_NO='L3')
+	</delete>
+	
+	<update id="updateMessageInfo" parameterType="CounselVO">
+	UPDATE CNSL
+	SET CNSL_DAY = #{cnslDay,jdbcType=VARCHAR}
+		,CNSL_LO = #{cnslLo,jdbcType=VARCHAR}
+	WHERE CNSL_ID = #{cnslId}
+	</update>
+
+</mapper>

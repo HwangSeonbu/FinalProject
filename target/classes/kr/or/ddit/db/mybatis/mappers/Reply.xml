@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.ReplyDAO">
+	<select id="replyCount" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM REPLY
+	</select>
+	<select id="replyList" parameterType="string" resultType="ReplyVO">
+		SELECT 
+		 	A.REPLY_NO,
+		    A.USER_NO,
+		    A.BOARD_NO,
+		    B.USER_NAME,
+		    A.REPLY_CONTENT,
+		    A.REPLY_DATE
+		FROM REPLY A
+		INNER JOIN USERS B ON A.USER_NO=B.USER_NO   
+		WHERE BOARD_NO = #{boardNo}
+		ORDER BY A.REPLY_NO DESC
+	</select>	
+	<insert id="insertReply" parameterType="ReplyVO">
+		<selectKey resultType="string" keyProperty="replyNo" order="BEFORE">
+			SELECT REPLY_SEQ.NEXTVAL
+			FROM DUAL
+		</selectKey>
+		INSERT INTO REPLY
+		(
+		    REPLY_NO,
+		    USER_NO,
+		    BOARD_NO,
+		    REPLY_CONTENT,
+		    REPLY_DATE
+		) VALUES (
+		    #{replyNo,jdbcType=VARCHAR}
+		    ,#{userNo,jdbcType=NUMERIC}
+		    ,#{boardNo,jdbcType=VARCHAR}
+		    ,#{replyContent,jdbcType=VARCHAR}
+		    ,SYSDATE
+		)
+	</insert>
+	<delete id="replyDelete" parameterType="string" >
+		DELETE 
+		FROM REPLY
+		WHERE REPLY_NO = #{replyNo}
+	</delete>
+	<update id="replyUpdate" parameterType="string">
+		UPDATE REPLY
+		SET
+			REPLY_CONTENT = #{replyContent,jdbcType=VARCHAR}
+			,REPLY_DATE = SYSDATE
+			WHERE REPLY_NO = #{replyNo}
+	</update>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.QnABoardDAO">
+<sql id="searchFrag">
+		 <where>
+        	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+        		<choose>
+        			<when test="simpleCondition.searchType eq 'NAME'">
+        				INSTR(BOARD_TITLE, #{simpleCondition.searchWord}) > 0
+        			</when>
+        			<when test="simpleCondition.searchType eq 'USERNAME'">
+        				INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+        			</when>
+        			<otherwise>
+        				INSTR(BOARD_TITLE, #{simpleCondition.searchWord}) > 0
+        				OR INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+        			</otherwise>
+        		</choose>
+        	</if>
+        </where>
+	</sql>
+<select id="selectTotalQRecord" parameterType="PagingVO" resultType="int">
+	SELECT COUNT(*)
+	FROM BOARD
+	WHERE GROUP_ID = 'A1'
+</select>
+<select id="selectQBoardList" resultType="QnABoardVO">
+	SELECT
+		A.BOARD_NO,
+   		A.USER_NO,
+    	A.BOARD_TITLE,
+    	B.USER_NAME,
+    	A.BOARD_HIT,
+    	A.BOARD_DATE
+	FROM BOARD A, USERS B
+	WHERE A.USER_NO = B.USER_NO
+	AND A.GROUP_ID = 'A1'
+</select>
+</mapper>

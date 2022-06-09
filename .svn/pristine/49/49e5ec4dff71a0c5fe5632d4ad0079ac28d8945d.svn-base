@@ -1,0 +1,12 @@
+package kr.or.ddit.board.service;
+
+import kr.or.ddit.vo.NoticeBoardVO;
+import kr.or.ddit.vo.PagingVO;
+
+public interface NoticeBoardService {
+	public void retrieveNBoardList(PagingVO<NoticeBoardVO> paging);
+	public NoticeBoardVO retrieveBoard(Integer noticeNo);
+	public void removeNBoard(Integer noticeNo);
+	public void modifyNBoard(NoticeBoardVO nBoardVO);
+	public void createNBoard(NoticeBoardVO nBoardVO);
+}

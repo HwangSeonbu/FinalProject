@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.graduate.dao.GraduateDAO">
+	<select id="">
+		SELECT
+		     A.USER_NO
+		   , A.USER_NAME
+		   , A.USER_GENDER
+		   , A.USER_PHONE
+		   , A.USER_ADDR
+		   , A.USER_MAIL
+		   , A.USER_CODE
+		   , B.STU_CODE
+		   , B.STU_GDU_DATE
+		   , C.DEPT_NAME
+		FROM
+		    USERS A, STU B, DEPARTMENT C
+		WHERE A.USER_NO=B.USER_NO
+		AND B.DEPT_ID=C.DEPT_ID
+		AND B.STU_CODE = #{stuCode}
+	</select>
+	
+</mapper>

@@ -1,0 +1,82 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>  
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %> 
+<script type="text/javascript" src="${cPath }/resources/js/ckeditor/ckeditor.js"></script>
+	<head>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	</head>
+	<script>
+		$(document).ready(function(){
+			var formObj = $("form[name='noticeForm']");
+			//삭제
+			$("#deleteBtn").on("click", function(){
+				formObj.attr("action", "${pageContext.request.contextPath }/board/noticeListView");
+				formObj.attr("method", "post");
+				formObj.submit();
+			})
+			//수정
+			$("#updateBtn").on("click", function(){
+				formObj.attr("action", "${pageContext.request.contextPath }/board/noticeEditView");
+				formObj.attr("method", "post");
+				formObj.submit();				
+			})
+			
+			$(document).on("click", ".linkBtn", function(){
+				let href = $(this).data("href");
+				if(href)
+					location.href=href;
+			}).css("cursor", "pointer");
+			
+		})
+	</script>
+	<form name="noticeForm" role="form" method="post">
+	<security:csrfInput/>
+			<input type="hidden" id="noticeNo" name="noticeNo" value="${nBoard.noticeNo }" />
+	<table class="table table-bordered">
+		<tr>
+			<th>글번호</th>
+			<td>${nBoard.noticeNo }</td>
+		</tr>
+		<tr>
+			<th>관리자번호</th>
+			<td>${nBoard.userNo }</td>
+		</tr>
+		<tr>
+			<th>이름</th>
+			<td>${nBoard.userName }</td>
+		</tr>
+		<tr>
+			<th>제목</th>
+			<td>${nBoard.noticeTitle }</td>
+		</tr>
+		<tr>
+			<th>글내용</th>
+			<td>${nBoard.noticeContent }</td>
+		</tr>
+		<tr>
+			<th>조회수</th>
+			<td>${nBoard.noticeHit }</td>
+		</tr>
+		<tr>
+			<th>작성일자</th>
+			<td>${nBoard.noticeDate }</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+			<button type="submit"  id="updateBtn" class="btn btn-primary linkBtn">수정</button>
+			<button type="submit"  id="deleteBtn" class="btn btn-primary linkBtn">삭제</button>
+			<input type="button" class="btn btn-primary linkBtn"
+					data-href="<c:url value='/board/noticeListView.do'/>"
+					value="목록으로"
+				/>  
+			</td>
+		</tr>
+	</table>
+	</form>
+<script type="text/javascript">
+	CKEDITOR.replace('noticeContent');
+</script>
+
+	
+

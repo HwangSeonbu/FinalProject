@@ -1,0 +1,21 @@
+package kr.or.ddit.adminLecture.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/lecComp")
+public class LectureCompleteController {
+
+	@RequestMapping("LectureCompleteList.do")
+	public String LectureCompleteList() {
+		
+		return "lecture/adminLecList";
+	}
+	
+	@RequestMapping("LectureCompleteForm.do")
+	public String LectureCompleteForm() {
+		
+		return "lecture/adminLecRequestComplete";
+	}
+}

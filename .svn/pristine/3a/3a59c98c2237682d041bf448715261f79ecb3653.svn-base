@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 18. 민진홍     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.scholarship.dao.StudentScholarshipDAO">
+
+	<select id="studentScholarshipApplyList" resultType="ScholarshipVO">
+	SELECT
+	    sch_no,
+	    sch_name,
+	    sch_score,
+	    sch_quali,
+	    sch_amount,
+	    sch_content
+	FROM
+    	sch
+	</select>
+	
+	<select id="studentScholarshipAleardyApply" parameterType="int" resultType="String">
+	select
+	    req_rsn
+ 	from req
+ 	where user_no = #{userNo} and req_rsn like 'E%'
+	</select>
+	
+<!-- 	신청내역 -->
+	<select id="studentScholarshipReqApplyList" parameterType="Map" resultType="Map">
+	SELECT
+    A.req_id as reqId,
+    A.user_no as userNo,
+    A.req_sms as reqSms,
+    A.req_rsn as reqRsn,
+    A.req_date as reqDate,
+    B.STS_CODE1 as reqStat,
+    C.SCH_NAME as schName
+FROM
+    req A
+    LEFT OUTER JOIN CODE B ON A.REQ_STAT = B.STS_ID
+    LEFT OUTER JOIN SCH C ON A.REQ_RSN = C.SCH_NO
+WHERE
+    A.user_no = #{userNo} and
+    A.req_rsn LIKE 'E%' and
+    A.req_sms = #{thisSemester}
+	</select>
+	
+	
+	<insert id="studentScholarshipApply" parameterType="Map" >
+	
+INSERT INTO req (
+    req_id,
+    user_no,
+    req_sms,
+    req_rsn,
+    req_date,
+    req_stat
+
+) VALUES (
+    REQ_SEQ.NEXTVAL,
+    #{userNo},
+    #{thisSemester},
+    #{schNo},
+    SYSDATE,
+    'B101'
+)
+	</insert>
+	
+	<delete id="cancelStudentScholarshipApply" parameterType="String">
+	delete from req where REQ_ID = #{reqId}
+	</delete>
+</mapper>

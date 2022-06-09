@@ -1,0 +1,18 @@
+package kr.or.ddit.counsel.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.ProCounselVO;
+@Service
+public class CounselExcelServiceImpl implements CounselExcel {
+
+	@Override
+	public List<ProCounselVO> retreiveCounselExcel(PagingVO<ProCounselVO> paging) {
+		
+		return null;
+	}
+
+}

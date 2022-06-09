@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.attendance.dao.ProfessorAttendanceDAO">
+
+	<select id="selectProLectureList" parameterType="map" resultType="LectureVO">
+		SELECT A.LEC_SEMS, A.LEC_ID, A.USER_NO
+		    , B.PLAN_NO, B.LEC_NAME
+		FROM LEC A, PLANOK B
+		WHERE A.LEC_SEMS = #{lecSems}
+		AND A.USER_NO = #{userNo}
+		AND A.LEC_ID = B.LEC_ID
+	</select>
+
+	<select id="selectLecDateList" parameterType="string" resultType="string">
+		SELECT ATTABS_DATE
+		FROM (
+		    SELECT A.ASSIGN_NO, A.PLAN_NO, A.ASSIGN_DAY
+		    FROM LEC_ASSIGN A, PLANOK B
+		    WHERE B.LEC_ID = #{lecId}
+		    AND A.PLAN_NO = B.PLAN_NO
+		) ASSIGNBASE, 
+		(
+		    SELECT 
+		        TO_CHAR(ATTABS_DATE, 'YYYYMMDD') ATTABS_DATE
+		        , TO_CHAR(ATTABS_DATE, 'DY') ATTABS_DAY
+		    FROM (
+		        SELECT 
+		            TO_DATE('20220301', 'YYYYMMDD')+LEVEL-1 "ATTABS_DATE"    
+		        FROM DUAL
+		        <![CDATA[  
+				CONNECT BY LEVEL <= (TO_DATE('20210617', 'YYYYMMDD')-TO_DATE('20210301', 'YYYYMMDD')+1)
+				]]>
+		    ) DATEBASE
+		) DATEBASE
+		WHERE ASSIGNBASE.ASSIGN_DAY IN DATEBASE.ATTABS_DAY
+		ORDER BY ATTABS_DATE
+	</select>
+	
+	<select id="selectAttabsStudentList" parameterType="AttabsEnrollVO" resultType="AttabsEnrollVO">
+		WITH ASSIGNBASE AS (
+			SELECT ASSIGN_NO, ASSIGN_DAY
+			FROM
+			(
+			    SELECT 
+			        TO_CHAR(ATTABS_DATE, 'YYYYMMDD') ATTABS_DATE
+			        , TO_CHAR(ATTABS_DATE, 'DY') ATTABS_DAY
+			    FROM (
+			        SELECT 
+			            TO_DATE('20220301', 'YYYYMMDD')+LEVEL-1 "ATTABS_DATE"    
+			        FROM DUAL
+			        <![CDATA[  
+			        CONNECT BY LEVEL <= (TO_DATE('20210617', 'YYYYMMDD')-TO_DATE('20210301', 'YYYYMMDD')+1)
+			        ]]>
+			    ) DATEBASE
+			    WHERE ATTABS_DATE = #{attabsDate}
+			) A, LEC_ASSIGN B
+			WHERE B.ASSIGN_DAY = A.ATTABS_DAY
+			AND B.PLAN_NO = #{planNo}
+			)
+			SELECT STU.*
+			    , NVL(D.ATTABS_NO, 0) ATTABS_NO, D.ATTABS_DATE, D.ATTABS_CODE
+			    , ASSIGNBASE.ASSIGN_NO, D.OJT_NO
+			FROM (
+			    SELECT A.LEC_SEMS, A.LEC_ID, A.USER_NO
+			        , B.USER_NAME, C.PLAN_NO
+			    FROM CLS A, USERS B, PLANOK C
+			    WHERE A.LEC_SEMS = #{lecSems}
+			    AND A.LEC_ID = #{lecId}
+			    AND A.USER_NO = B.USER_NO
+			    AND A.LEC_ID = C.LEC_ID) STU
+			    LEFT OUTER JOIN (SELECT *
+			    FROM ATTABS
+			    WHERE ATTABS_DATE = #{attabsDate} ORDER BY USER_NO) D 
+			    ON(STU.USER_NO = D.USER_NO AND STU.PLAN_NO = D.PLAN_NO)
+			    , ASSIGNBASE
+			ORDER BY STU.USER_NAME
+	</select>
+	
+	<update id="updateOrInsertAttabs" parameterType="AttabsEnrollVO">
+		MERGE INTO ATTABS A
+		    USING DUAL ON (A.ATTABS_NO = #{attabsNo})
+		WHEN MATCHED THEN
+		    UPDATE SET A.ATTABS_CODE = #{attabsCode}
+		WHEN NOT MATCHED THEN
+		    INSERT (ATTABS_NO, ATTABS_DATE, ATTABS_CODE, LEC_SEMS, LEC_ID
+		        , USER_NO, ASSIGN_NO, PLAN_NO)
+		    VALUES (ATTABS_SEQ.NEXTVAL, #{attabsDate}, #{attabsCode}, #{lecSems}, #{lecId}
+		        , #{userNo}, #{assignNo}, #{planNo})
+	</update>
+	
+</mapper>

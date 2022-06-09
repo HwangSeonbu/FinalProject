@@ -1,0 +1,8 @@
+package kr.or.ddit.commons.service;
+
+import kr.or.ddit.vo.SemsVO;
+
+public interface MainInformationService {
+	
+	public SemsVO retrieveSemsData();
+}

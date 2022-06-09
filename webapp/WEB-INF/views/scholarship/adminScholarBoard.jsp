@@ -1,0 +1,78 @@
+<%--
+  학생이 확인할 수 있는 장학금 안내관련 정보조회
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 2.   김재웅  	    최초작성
+* 2022. 5. 3.   고성식	    내용작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<h3 class="h3-title">장학금선정 기준</h3><hr class="hr-title">
+<table>
+	<div data-content="182">
+		<div class="table_scroll">
+			<table class="table">
+				<caption>성적장학금 : 분류, 장학명, 지급대상, 모집구분, 장학금액, 지급기준, 제출서류(매학기
+					6,12월) 신입생, 복학생, 재입학생은 별도 기간에 제출의 내용을 확인 하실 수 있습니다.</caption>
+				<colgroup>
+					<col style="width: 10%">
+					<col style="width: 16%">
+					<col style="width: auto">
+					<col style="width: 12%">
+					<col style="width: 12%">
+					<col style="width: 15%">
+					<col style="width: 15%">
+				</colgroup>
+				<thead>
+					<tr>
+						<th scope="col">분류</th>
+						<th scope="col">장학명</th>
+						<th scope="col">지급대상</th>
+						<th scope="col">모집구분</th>
+						<th scope="col">장학금액</th>
+						<th scope="col">지급기준</th>
+						<th scope="col">제출서류(매학기 6,12월)<br>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>성적우수</td>
+						<td>성적전액장학금</td>
+						<td>학과성적우수자</td>
+						<td>재학생</td>
+						<td>수업료 전액</td>
+						<td>직전학기 성적 상위 3명 자동 적용 <br>
+							(미이수 (F학점) 과목있는 경우 제외)
+						</td>
+						<td>X</td>
+					</tr>
+					<tr>
+						<td >기타</td>
+						<td >학업봉사장학금</td>
+						<td >최소 100시간 이상 최대 120시간이내,
+						 총 활동시간 계산 (정확히)</td>
+						<td >재학생</td>
+						<td>1학기당 장학금 1,000,000원 지급 </td>
+						<td ></td>
+						<td >봉사활동확인서 제출</td>
+					</tr>
+					<tr>
+						<td>기타</td>
+						<td>가족장학금</td>
+						<td>교내 가족 재학시 1명 이상 재학중일시 <br>
+						(단,	성적향상장학금과 중복수혜 불가)</td>
+						<td>재학생</td>
+						<td>신청자 등록금 50% 감면</td>
+						<td>학기에 동시 재학중일시 지급(휴학중 일시 지급불가)</td>
+						<td>주민등록등본</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</table>
+
+

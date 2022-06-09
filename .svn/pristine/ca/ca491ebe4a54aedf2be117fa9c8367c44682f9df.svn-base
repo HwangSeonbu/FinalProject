@@ -1,0 +1,58 @@
+package kr.or.ddit.adminLecture.controller;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.adminLecture.service.AdminLectureCompService;
+import kr.or.ddit.vo.LecCompTargetVO;
+import kr.or.ddit.vo.PagingVO;
+
+@Controller
+@RequestMapping("/lecComp")
+public class LectureCompleteController {
+
+	@Inject
+	AdminLectureCompService service;
+	
+	@RequestMapping("LectureCompleteList.do")
+	public String LectureCompleteList() {
+		
+		return "lecture/adminLecList";
+	}
+	
+	/**
+	 * 승인강의 대상으로 배정을 기다렸다가 강의를 개설하는 관리자 페이지로 이동
+	 * @return
+	 */
+	@RequestMapping("LectureCompleteForm.do")
+	public String LectureCompleteForm() {
+		
+		return "lecture/adminLecRequestComplete";
+	}
+	
+	@RequestMapping("LectureCompleteFormData.do")
+	public String LectureCompleteFormData(Model model) {
+		//다음학기 임시 세팅 - 세션
+		Integer nextSems = 202202;
+		
+		PagingVO<LecCompTargetVO> pagingVo = service.retrieveLecCompTargetList(nextSems);
+		model.addAttribute("pagingVo", pagingVo);
+		return "jsonView";
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

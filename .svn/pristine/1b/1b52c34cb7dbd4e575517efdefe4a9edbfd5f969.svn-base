@@ -1,0 +1,12 @@
+package kr.or.ddit.java;
+
+public class JavaCodeTest {
+
+	public static void main(String[] args) {
+		double astScore = Math.round((45/(13*5.0)*100.0)*100)/100;
+		
+		System.out.println(45.0/85.0);
+		System.out.println(Math.round(45.0/85.0*10000)/100.0);
+		System.out.println(astScore);
+	}
+}

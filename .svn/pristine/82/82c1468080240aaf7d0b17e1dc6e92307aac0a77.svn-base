@@ -1,0 +1,5 @@
+studentImages=/resources/studentImages
+attatchPath=file://D:/projectFolder
+maxUpload=102400
+maxUploadPerFile=10240
+maxInMemory=10

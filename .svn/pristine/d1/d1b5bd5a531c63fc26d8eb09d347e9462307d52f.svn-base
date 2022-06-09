@@ -1,0 +1,21 @@
+package kr.or.ddit.adminLecture.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/lecReq")
+public class LectureRequestController {
+
+	@RequestMapping("LectureRequestList.do")
+	public String LectureRequestList() {
+		
+		return "lecture/adminLecRequestList";
+	}
+	
+	@RequestMapping("LectureRequestDenialList.do")
+	public String LectureRequestDenialList() {
+		
+		return "lecture/adminLecRequestDenialList";
+	}
+}

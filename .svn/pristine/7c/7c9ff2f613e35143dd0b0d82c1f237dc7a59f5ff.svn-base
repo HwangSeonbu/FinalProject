@@ -1,0 +1,112 @@
+<%--상담 일지 조회, 작성, 수정, 삭제 (CRUD)
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 6. 황선부      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<script type="text/javascript" src="${cPath}/resources/js/ckeditor/ckeditor.js"></script>
+<form:form modelAttribute="cLog" method="post" action="${cPath }/counselLog/insert">
+	<form:hidden path="userNo"  input="text" value="${counselVO.userNo }"/>
+	<form:hidden path="cnslId" input="text" value="${counselVO.cnslId }"/>
+ <div>
+ 	<nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+	1. 상담날짜
+	</nav>
+ 	<input type="date" name="dyDate" ><br>
+ 	<nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+	 2.상담영역
+	</nav>
+	<div class="form-check">		
+	  <form:checkbox path="l1" class="form-check-input form-control form-check-input" value="B1" id="flexCheckDefault1"
+	  label="성적 및 학업의 만족도에 대한 상담을 하였음"	  
+	  />
+	  <form:errors path="l1" element="span" cssClass="error"/>
+	</div>
+	<div class="form-check">
+	<form:checkbox path="l1" class="form-check-input form-control form-check-input" value="B2" id="flexCheckDefault2"
+	  label="경제적 환경에 대한 상담을 하였음"	  
+	  />
+	  <form:errors path="l1" element="span" cssClass="error"/>
+	</div>
+	<div class="form-check">
+		<form:checkbox path="l1" class="form-check-input form-control form-check-input" value="B3" id="flexCheckDefault3"
+		  label="대학생활 적응 및 만족도에 대한 상담을 하였음"	  
+		  />
+	  	<form:errors path="l1" element="span" cssClass="error"/>
+	</div>
+	<div class="form-check">
+		<form:checkbox path="l1" class="form-check-input form-control form-check-input" value="B4" id="flexCheckDefault4"
+		  label=" 진로 및 취업에 대한 상담을 하였음"	  
+		  />
+	  	<form:errors path="l1" element="span" cssClass="error"/>
+	</div>
+	<div class="form-check">
+		<form:checkbox path="l1" class="form-check-input form-control form-check-input" value="B5" id="flexCheckDefault5"
+		  label="기타 내용에 대한 상담을 하였음"	  
+		  />
+	  	<form:errors path="l1" element="span" cssClass="error"/>
+	</div>
+ </div>
+ 
+ <div>
+	<nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+	 2.권유사항
+	</nav>
+	 <div class="form-check">
+		<form:checkbox path="l2" class="form-check-input form-control" value="B11" id="flexCheckDefault6"
+		  label="성격/적성/직업/심리검사 권유"	  
+		  />
+	  	<form:errors path="l2" element="span" cssClass="error"/>	 
+	</div>
+	<div class="form-check">
+		<form:checkbox path="l2" class="form-check-input form-control" value="B12" id="flexCheckDefault7"
+		  label="전문적인 진로/취업상담 권유"	  
+		  />
+	  	<form:errors path="l2" element="span" cssClass="error"/>    
+	</div>
+	<div class="form-check">
+		<form:checkbox path="l2" class="form-check-input form-control" value="B13" id="flexCheckDefault7"
+		  label="경력개발(자격증, 어학, 대내외활동 등)권유"	  
+		  />
+	  	<form:errors path="l2" element="span" cssClass="error"/>   
+	</div>
+	<div class="form-check">
+		<form:checkbox path="l2" class="form-check-input form-control" value="B13" id="flexCheckDefault7"
+		  label="학교 지원 프로그램 참여 권유(진로/취업지원, 학생포트폴리오 준비, 유학생지원등)"	  
+		  />
+	  	<form:errors path="l2" element="span" cssClass="error"/>
+	</div>
+	<nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+	 4.상담내용
+	</nav>
+ 	<div class="form-floating" id="editor">
+	  <form:textarea path="qaLong" rows="30" cols="80" value="qaLong" label="comments"/>
+	</div>
+	<br>
+	<div class="d-grid gap-2">
+  		<button class="btn btn-primary" type="submit">등록하기</button>
+	</div>
+ </div>
+ </form:form>
+ 
+ <script>
+//  ClassicEditor
+//  .create( document.querySelector( '#editor' ), {
+//      removePlugins: [ 'Heading' ],
+//      toolbar: [ 'bold', 'italic', 'bulletedList', 'numberedList', 'blockQuote' , 'link' ]
+//  } )
+//  .catch( error => {
+//      console.log( error );
+//  } );
+ 
+ 
+ </script>
+								      	
+   
+   
+   
+   

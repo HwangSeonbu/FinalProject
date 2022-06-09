@@ -1,0 +1,81 @@
+package kr.or.ddit.lecqna.service;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.exception.PKNotFoundException;
+import kr.or.ddit.lecboard.dao.AttachDAO;
+import kr.or.ddit.lecqna.dao.LecQnaDAO;
+import kr.or.ddit.vo.AttchVO;
+import kr.or.ddit.vo.LecqnaVO;
+import kr.or.ddit.vo.PagingVO;
+import lombok.extern.slf4j.Slf4j;
+@Service
+@Slf4j
+public class LecQnaServiceImpl implements LecQnaService {
+	@Autowired
+	private LecQnaDAO qnaDAO;
+	@Autowired
+	private AttachDAO attachDAO;
+	
+	@Value("#{appInfo.attatchPath}")
+	private File saveFolder;
+	
+	@Override
+	public void retrieveBoardList(PagingVO<LecqnaVO> paging) {
+		// TODO Auto-generated method stub
+		int totalRecord = qnaDAO.selectTotalLecqnaRecord(paging);
+		log.info("totalRecord==========>{}",totalRecord);
+		paging.setTotalRecord(totalRecord);
+		List<LecqnaVO> dataList = qnaDAO.selectLecqnaBoardList(paging);
+		paging.setDataList(dataList);
+	}
+	@Override
+	public LecqnaVO retrieveBoard(int lecboNo) {
+		LecqnaVO lecQna = qnaDAO.selectLecqnaBoard(lecboNo);
+		if(lecQna==null)
+			throw new PKNotFoundException(lecboNo+"에 해당하는 게시물 번호가 없습니다.");	
+		qnaDAO.incrementHit(lecboNo);
+		
+		return lecQna;
+	}
+	@Override
+	public ServiceResult createBoard(LecqnaVO lecqna) {
+		ServiceResult result = null;
+		int rowcnt = qnaDAO.insertLecqnaBoard(lecqna);
+	
+		if(rowcnt > 0) {
+			uploadAttatches(lecqna);
+		}
+		return rowcnt>0?ServiceResult.OK:ServiceResult.FAIL;
+	}
+	private void uploadAttatches(LecqnaVO board) {
+		AttchVO attach= board.getAttach();
+		log.info("attach=======>>>>>{}",attach);
+		if(attach==null)
+			return;
+		attachDAO.insertQnaAttach(board);
+		try {
+			attach.saveTo(saveFolder);
+		}catch(IOException e) {
+			throw new RuntimeException(e);
+		}
+		
+		
+	}
+
+	@Override
+	public AttchVO downloadAttach(int attchNo) {
+		AttchVO attch = attachDAO.selectAttach(attchNo);
+		if(attch==null) 
+			throw new PKNotFoundException(String.format("%d 번 파일이 없음", attchNo));
+		return attch;
+	}
+
+}

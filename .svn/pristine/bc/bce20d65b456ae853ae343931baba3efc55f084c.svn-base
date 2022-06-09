@@ -1,0 +1,36 @@
+package kr.or.ddit.enr.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+/**
+ * 
+ * @author 민진홍
+ * @since 2022. 5. 4.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 4.      민진홍      최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@RequestMapping("/enr")
+public class EnrollViewConroller {
+	/**
+	 * 등록금 고지서 조회
+	 * @return
+	 */
+	@RequestMapping("enrollView.do")
+	public String enrollView() {
+		return "enr/studentEnrollView";
+	}
+	
+	@RequestMapping("enrollPayList.do")
+	public String enrollPayList() {
+		return "enr/studentEnrollPayList";
+	}
+}

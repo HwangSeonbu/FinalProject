@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 9.    고성식  	  최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.scholarship.dao.AdminScholarshipDAO">
+	
+	<select id="selectScholarshipList" parameterType="map" resultType="AdminScholarshipVO">
+		SELECT *
+	    FROM (
+		        SELECT ROW_NUMBER() OVER(ORDER BY DEPT_ID, STU_YEAR ASC, STU_SCORE DESC) RNUM, A.* 
+		        FROM (
+		                SELECT  A.LEC_SEMS
+		                        , A.USER_NO
+		                        , C.USER_NAME
+		                        , D.DEPT_NAME
+		                        , D.DEPT_ID
+		                        , A.CLS_RCT AS STU_SCORE
+		                        , B.STU_YEAR
+		                        , B.STU_CLASS
+		                        , C.USER_MAIL
+		                        , C.USER_PHONE
+		                        , E.REQ_STAT
+		                        , F.STS_CODE1
+		                        , RANK() OVER(PARTITION BY D.DEPT_ID, B.STU_YEAR ORDER BY A.CLS_RCT DESC) AS STU_RANK 
+		                FROM (  
+		                            SELECT LEC_SEMS, USER_NO, ROUND(AVG(CLS_RCT),3) AS CLS_RCT
+		                            FROM CLS
+		                            WHERE LEC_SEMS = #{lecSems}
+		                            GROUP BY LEC_SEMS, USER_NO
+		                     ) A LEFT OUTER JOIN REQ E ON(A.USER_NO = E.USER_NO)
+		                     LEFT OUTER JOIN CODE F ON(E.REQ_STAT = F.STS_ID)
+		                     , STU B, USERS C, DEPARTMENT D
+		                WHERE A.USER_NO = B.USER_NO
+		                AND A.USER_NO = C.USER_NO
+		                AND B.DEPT_ID = D.DEPT_ID
+		                AND A.CLS_RCT <![CDATA[<>]]> 0 /* 0점 제외 */
+		                AND B.STU_CODE = 'C101'  /* 학생구분 : 재학생*/
+		            ) A
+		        WHERE STU_RANK BETWEEN 1 AND 3 /* 학과 학년별 3순위 */
+	        )
+	    <![CDATA[  
+		WHERE RNUM >= #{paging.startRow} AND RNUM <= #{paging.endRow}
+		]]>
+	    ORDER BY RNUM      
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="map" resultType="int">
+		SELECT COUNT(1)
+	    FROM (
+		        SELECT ROW_NUMBER() OVER(ORDER BY DEPT_ID, STU_YEAR ASC, STU_SCORE DESC) RNUM, A.* 
+		        FROM (
+		                SELECT  A.LEC_SEMS
+		                        , A.USER_NO
+		                        , C.USER_NAME
+		                        , D.DEPT_NAME
+		                        , D.DEPT_ID
+		                        , A.CLS_RCT AS STU_SCORE
+		                        , B.STU_YEAR
+		                        , B.STU_CLASS
+		                        , C.USER_MAIL
+		                        , C.USER_PHONE
+		                        , E.REQ_STAT
+		                        , F.STS_CODE1
+		                        , RANK() OVER(PARTITION BY D.DEPT_ID, B.STU_YEAR ORDER BY A.CLS_RCT DESC) AS STU_RANK 
+		                FROM (  
+		                            SELECT LEC_SEMS, USER_NO, ROUND(AVG(CLS_RCT),3) AS CLS_RCT
+		                            FROM CLS
+		                            WHERE LEC_SEMS = #{lecSems}
+		                            GROUP BY LEC_SEMS, USER_NO
+		                     ) A LEFT OUTER JOIN REQ E ON(A.USER_NO = E.USER_NO)
+		                     LEFT OUTER JOIN CODE F ON(E.REQ_STAT = F.STS_ID)
+		                     , STU B, USERS C, DEPARTMENT D
+		                WHERE A.USER_NO = B.USER_NO
+		                AND A.USER_NO = C.USER_NO
+		                AND B.DEPT_ID = D.DEPT_ID
+		                AND A.CLS_RCT <![CDATA[<>]]> 0 /* 0점 제외 */
+		                AND B.STU_CODE = 'C101'  /* 학생구분 : 재학생*/
+		            ) A
+		        WHERE STU_RANK BETWEEN 1 AND 3 /* 학과 학년별 3순위 */
+	        )
+	</select>
+	
+	<insert id="insertScholarshipSts">
+		INSERT INTO REQ (
+		    REQ_ID
+		   ,USER_NO
+		   ,REQ_SMS
+		   ,REQ_RSN
+		   ,REQ_DATE
+		   ,REQ_STAT
+		) VALUES (
+		   REQ_SEQ.NEXTVAL
+		   ,#{userNo}
+		   ,#{lecSems}
+		   ,'E001'
+		   ,SYSDATE
+		   ,'B102'
+		)
+	</insert>
+	
+</mapper>

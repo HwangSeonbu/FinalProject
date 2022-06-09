@@ -1,0 +1,72 @@
+package kr.or.ddit.ast.service;
+
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+
+import kr.or.ddit.ast.dao.AccessPeriodDAO;
+import kr.or.ddit.enumpkg.AccessActionEnum;
+import kr.or.ddit.vo.AcadscVO;
+import kr.or.ddit.vo.PageAccessVO;
+import kr.or.ddit.vo.SemsVO;
+
+@Service
+public class AccessPeriodServiceImpl implements AccessPeriodService {
+
+	@Inject
+	AccessPeriodDAO accessDao;
+	
+	@Override
+	public PageAccessVO retrieveAccessPeriod(AccessActionEnum enumClass) {
+		String acadscCont = enumClass.getActionName();
+		System.out.println("############### enumName : " + acadscCont);
+		SemsVO semsVo = (SemsVO) RequestContextHolder.getRequestAttributes()
+                .getAttribute("semsVo", RequestAttributes.SCOPE_SESSION);
+		int thisSems = semsVo.getThisSems();
+		
+		PageAccessVO accessVo = new PageAccessVO();
+		accessVo.setAction(acadscCont);
+		boolean access = false;
+		
+		AcadscVO acadscVo = new AcadscVO();
+		acadscVo.setAcadscSems(thisSems);
+		acadscVo.setAcadscCont(acadscCont);
+		acadscVo = accessDao.selectAccessPeriod(acadscVo);
+		
+		String todayDateStr = String.valueOf(LocalDate.now());
+		
+		try {
+			if(acadscVo.getAcadscNo() != null) {
+				String startDateStr = String.valueOf(acadscVo.getAcadscStart());
+				String endDateStr = String.valueOf(acadscVo.getAcadscEnd());
+				
+				int startChk = todayDateStr.compareTo(startDateStr);
+				int endChk = todayDateStr.compareTo(endDateStr);
+				
+				if(startChk >= 0 && endChk <= 0) {
+					access = true;
+				}else {
+					accessVo.setAccessPeriod("[시작일] "+startDateStr+" ~ [종료일] "+endDateStr);
+				}
+			}else {
+				accessVo.setAccessPeriod("기간이 설정되지 않았습니다. 학사관리자에게 문의하세요.");
+				access = false;
+			}
+		} catch (NullPointerException e) {
+			accessVo.setAccessPeriod("기간이 설정되지 않았습니다. 학사관리자에게 문의하세요.");
+			access = false;
+		}
+		
+		
+		accessVo.setAccess(access);
+		
+		return accessVo;
+	}
+
+}

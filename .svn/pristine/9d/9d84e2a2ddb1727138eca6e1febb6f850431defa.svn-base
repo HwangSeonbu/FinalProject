@@ -1,0 +1,60 @@
+package kr.or.ddit.homework.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.homework.service.HomeworkService;
+import kr.or.ddit.validate.InsertHwkInsertGroup;
+import kr.or.ddit.vo.HwkVO;
+import kr.or.ddit.vo.LecHomeworkVO;
+
+@Controller
+@RequestMapping("homework")
+public class HomeworkGradingInsertController {
+	@Autowired
+	private HomeworkService service;
+	@PostMapping("grading/insert")
+	public String insert(
+			@Validated(InsertHwkInsertGroup.class)@ModelAttribute("hwk")HwkVO hwk
+			,BindingResult errors
+			,Model model
+			,@RequestParam("leckwkNo")int lechwkNo
+			) {
+		HwkVO hwk2 = service.retrieveHwOne(hwk.getHwkNo());
+		//해야될 과제 정보
+		LecHomeworkVO hw = service.retrieveHomework(lechwkNo);
+		
+		model.addAttribute("hwk", hwk2);
+		model.addAttribute("hw", hw);
+		
+		String viewName = null;
+		if(!errors.hasErrors()) {			
+			ServiceResult result = service.createGradingHwk(hwk);
+			if(result.equals(ServiceResult.OK)) {
+				viewName="/homework/hwOneView";
+				model.addAttribute("message", "과제 채점이 등록되었습니다.");
+				
+			}else {
+				model.addAttribute("message", "서버 오류 입니다.");
+				
+				viewName="/homework/hwOneView";
+			}
+			
+		}else {
+			model.addAttribute("message", "채점 결과를 다시 입력하세요");
+			viewName="/homework/hwOneView";
+		}
+		
+		
+		return viewName;
+		
+	}
+}

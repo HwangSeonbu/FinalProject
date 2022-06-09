@@ -1,0 +1,9 @@
+package kr.or.ddit.adminLecture.service;
+
+import kr.or.ddit.vo.LecCompTargetVO;
+import kr.or.ddit.vo.PagingVO;
+
+public interface AdminLectureCompService {
+
+	public PagingVO<LecCompTargetVO> retrieveLecCompTargetList(PagingVO<LecCompTargetVO> vo);
+}

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.commons.dao.MainInformationDAO">
+	<select id="selectSemsData" resultType="SemsVO">
+		<![CDATA[
+		SELECT (SELECT SEMS_NO FROM SEMSDATA
+			WHERE ADD_MONTHS(SYSDATE,-6) >= SEMS_SDATE 
+			AND ADD_MONTHS(SYSDATE,-6) <= SEMS_EDATE) "PREV_SEMS"
+			, SEMS_NO "THIS_SEMS"
+			, (SELECT SEMS_NO FROM SEMSDATA
+			WHERE ADD_MONTHS(SYSDATE,6) >= SEMS_SDATE 
+			AND ADD_MONTHS(SYSDATE,6) <= SEMS_EDATE) "NEXT_SEMS"
+		FROM SEMSDATA
+		WHERE SYSDATE >= SEMS_SDATE
+		AND SYSDATE <= SEMS_EDATE
+		]]>
+	</select>
+	
+	<select id="selectMainNoticeList" parameterType="int" resultType="NoticeBoardVO">
+		SELECT * FROM(
+	    SELECT ROWNUM RNUM, A.* 
+	    FROM(
+	        SELECT Y.NOTICE_NO, Y.NOTICE_TITLE
+	            , TO_CHAR(Y.NOTICE_DATE, 'YYYY-MM-DD') "NOTICE_DATE"
+	            , (CASE WHEN N.NOREAD_NO IS NULL THEN '읽지않음'
+	                ELSE '읽음' END) "NOREAD_CLASS"
+	        FROM NOTICE Y, (SELECT * FROM NOREAD WHERE USER_NO = #{userNo}) N
+	        WHERE Y.NOTICE_NO = N.NOTICE_NO(+)
+	        ORDER BY NOTICE_NO DESC
+	    ) A	)
+	<![CDATA[
+		WHERE RNUM >= 1 AND RNUM <= 5
+	]]>
+	</select>
+
+</mapper>

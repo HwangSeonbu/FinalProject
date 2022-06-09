@@ -1,0 +1,52 @@
+package kr.or.ddit.board.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.board.dao.FreeBoardDAO;
+import kr.or.ddit.vo.FreeBoardVO;
+import kr.or.ddit.vo.PagingVO;
+
+@Service
+public class FreeBoardServiceImpl implements FreeBoardService {
+	
+	@Inject
+	public FreeBoardDAO fBoardDAO;
+
+	@Override
+	public void retrieveBoardList(PagingVO<FreeBoardVO> paging) {
+		int totalRecord = fBoardDAO.selectTotalFRecord(paging);
+		paging.setTotalRecord(totalRecord);
+		List<FreeBoardVO> dataList = fBoardDAO.selectFBoardList(paging);
+		paging.setDataList(dataList);		
+	}
+
+	@Override
+	public void createFBoard(FreeBoardVO fBoardVO) {
+		fBoardDAO.insertFBoard(fBoardVO);		
+	}
+
+	@Override
+	public FreeBoardVO retrieveBoard(String boardNo) {
+		FreeBoardVO fBoard = fBoardDAO.selectFBoard(boardNo);
+		fBoardDAO.incrementHit(boardNo);
+		return fBoard;
+	}
+
+	@Override
+	public void removeFBoard(String boardNo) {
+		fBoardDAO.deleteFBoard(boardNo);
+		
+	}
+
+	@Override
+	public void modifyFBoard(FreeBoardVO fBoardVO) {
+		fBoardDAO.updateFBoard(fBoardVO);
+		
+	}
+
+
+}

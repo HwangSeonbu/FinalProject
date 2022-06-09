@@ -1,0 +1,106 @@
+package kr.or.ddit.stomp.controller;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.util.StringUtil;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.stomp.dao.MessageDAO;
+import kr.or.ddit.stomp.service.MessageService;
+import kr.or.ddit.vo.MemberVO;
+import kr.or.ddit.vo.security.MemberVOWrapper;
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
+@Controller
+public class StompTest {
+	
+	@Inject
+	private MessageService service; 
+	
+	@Inject
+	private MessageDAO dao;
+
+	@GetMapping("/stompEcho")
+	public String stompTest1() {
+		return "/stomp/stompEcho";
+	}
+	
+	@GetMapping("/stompPush")
+	public String stompTest2() {
+		return "/stomp/stompPush";
+	}
+	
+	@GetMapping("/stompDM")
+	public String stompTest3() {
+		return "/stomp/stompOneToOne";
+	}
+	
+	@GetMapping("/messageUserList2")
+	public String stompTest4() {
+		return "/stomp/messageUserList";
+	}
+	
+	
+	/**
+	 * 친구목록
+	 * @param authentication
+	 */
+	@GetMapping("/messageUserList")
+	@ResponseBody
+	public List<MemberVO> messageUserList(Authentication authentication,Model model,@RequestParam(value="userTypeList", required=false) Map<String,Object> userTypeList) {
+		MemberVO authMember
+		= ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		int userNo = authMember.getUserNo();
+		if(userTypeList != null) {
+			log.info("유저타입 들어오냐 ~~~~~~~~~~~~~~~~~~~~~~ ?@@@@@@@@@@@@@@@@@ userType : {}", userTypeList);
+		}
+		List<MemberVO> messageUserList = dao.messageUserList(userNo);
+//		model.addAttribute("messageList",messageList);
+		
+		return messageUserList;	
+	}
+	
+	/**
+	 * 받은메시지
+	 * @param authentication
+	 */
+	@GetMapping("/messageList")
+	@ResponseBody
+	public List<Map<String,Object>> messageList(Authentication authentication,Model model) {
+		MemberVO authMember
+		= ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		int userNo = authMember.getUserNo();
+		List<Map<String,Object>> messageList = dao.messageList(userNo);
+//		model.addAttribute("messageList",messageList);
+		
+		return messageList;
+	
+	
+	}
+	/**
+	 * 메세지보내기
+	 * @param map
+	 * @param authentication
+	 * @return
+	 */
+	@PostMapping("/sendMessage")
+	@ResponseBody
+	public Map<String,Object> sendMessage(@RequestBody Map<String,Object> map, Authentication authentication) {
+		MemberVO authMember
+		 = ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		map.put("senderNo", authMember.getUserNo());
+		service.MessageSend(map);
+		return map;
+	}
+}

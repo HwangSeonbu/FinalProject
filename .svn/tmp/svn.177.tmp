@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 6. 민진홍     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.sugang.dao.LearningLecturesDAO">
+
+<!-- 꼼수쓰려다가 실패함 -->
+<!-- <resultMap id="classMap" type="ClassVO" autoMapping="true"> -->
+<!--    <id property="lecId" column="LEC_ID" /> -->
+<!--         <association property="PlanVO"  javaType="kr.or.ddit.vo.ClassPlanVO" autoMapping="true"> -->
+<!--              <result property="planNo"  column="PLAN_NO" />   -->
+<!--         </association> -->
+<!--         <association property="LectureVO"  javaType="kr.or.ddit.vo.ClassLectureVO" autoMapping="true"> -->
+<!--              <result property="planNo"  column="PLAN_NO" />   -->
+<!--         </association> -->
+<!-- </resultMap> -->
+
+
+
+<select id="selectLearningLecturesList" resultType="map" parameterType="int">
+	WITH example as(
+	SELECT A.LEC_ID,
+	D.SJT_GRADE,
+	D.SJT_NAME,
+	D.SJT_MAJOR,
+	D.SJT_CREDIT,
+	E.USER_NAME,
+	A.LEC_PERS,
+	C.PLAN_LIMIT,
+	F.ASSIGN_DAY||F.ASSIGN_TIME as lec_time,
+	A.LEC_SEMS,
+    G.DEPT_NAME,
+    F.GWAN_NAME,
+    F.ROOM_NO
+	FROM LEC A
+	INNER JOIN PLANOK B ON A.LEC_ID = B.LEC_ID
+	INNER JOIN PLAN C ON B.PLAN_NO = C.PLAN_NO
+	INNER JOIN SJT D ON C.SJT_ID = D.SJT_ID
+	INNER JOIN USERS E ON C.USER_NO = E.USER_NO
+	INNER JOIN LEC_ASSIGN F ON C.PLAN_NO = F.PLAN_NO
+    INNER JOIN DEPARTMENT G ON C.DEPT_ID = G.DEPT_ID
+    INNER JOIN CLS H ON A.LEC_ID = H.LEC_ID AND H.USER_NO = #{userNo}
+	GROUP BY A.LEC_ID, D.SJT_GRADE, D.SJT_NAME, D.SJT_MAJOR, D.SJT_CREDIT, 
+E.USER_NAME, A.LEC_PERS, C.PLAN_LIMIT, F.ASSIGN_DAY||F.ASSIGN_TIME, F.ASSIGN_TIME, 
+F.ASSIGN_TIME, A.LEC_SEMS, G.DEPT_NAME, F.GWAN_NAME,F.ROOM_NO
+	)
+	select A.LEC_ID,
+	A.SJT_GRADE,
+	A.SJT_NAME,
+	A.SJT_MAJOR,
+	A.SJT_CREDIT,
+	A.USER_NAME,
+	A.LEC_PERS,
+	A.PLAN_LIMIT,
+	LISTAGG(A.lec_time, ',') WITHIN GROUP (ORDER BY A.lec_time) AS lec_time,
+	A.LEC_SEMS,
+    A.DEPT_NAME,
+    A.GWAN_NAME,
+    A.ROOM_NO,
+    (SELECT C.LEC_ID FROM CART C WHERE C.USER_NO = #{userNo} AND C.LEC_ID = A.LEC_ID) as CART_ID 
+	from example A
+GROUP BY
+	A.LEC_ID, A.SJT_GRADE, A.SJT_NAME, A.SJT_MAJOR, A.SJT_CREDIT, 
+    A.USER_NAME, A.LEC_PERS, A.PLAN_LIMIT, A.LEC_SEMS, A.DEPT_NAME, A.GWAN_NAME, A.ROOM_NO
+</select>
+
+
+</mapper>

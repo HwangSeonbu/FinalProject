@@ -1,0 +1,18 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class TempFinalMenuVO {
+
+	private String finalMenuName;
+	private String finalMenuURI;
+	public TempFinalMenuVO(String finalMenuName, String finalMenuURI) {
+		super();
+		this.finalMenuName = finalMenuName;
+		this.finalMenuURI = finalMenuURI;
+	}
+	
+}

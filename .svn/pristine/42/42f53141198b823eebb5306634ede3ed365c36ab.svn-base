@@ -1,0 +1,72 @@
+package kr.or.ddit.vo;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.HtmlUtils;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+/**질의응답 게시판 VO
+ * @author 황선부
+ * @since 2022. 5. 19.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 19.      황선부       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Data
+@EqualsAndHashCode(of="lecboNo")
+public class LecqnaVO implements Serializable {
+	private Integer lecboNo;
+	private Integer lecSems;
+	private String lecId;
+	private Integer proNo;
+	private String lecboInfo;
+	private String lecboTitle;
+	private String lecboContent;
+	private Integer lecboHit;
+	private String lecboDate;
+	private String lecboPass;
+	private Integer stuNo;
+	
+	private String stuName;
+	private String proName;
+	private Integer lecboLike;
+	
+	private AttchVO attach;
+	
+	
+	private String userName;
+	
+	//댓글추가해야함
+	
+	//htmlUnescaping
+	public String getContentDisplay() {
+		return HtmlUtils.htmlUnescape(this.lecboContent);
+	}
+	
+	private int startAttNo;//첫번째 첨부파일 번호
+	//업데이트시
+	//지울려고 하는 파일
+	private int delAttNo;	
+	//신규로 올릴 파일
+	private MultipartFile boFile;
+	
+	public void setBoFile(MultipartFile boFile) {
+		if(boFile==null || boFile.isEmpty()) return;
+		
+		this.boFile = boFile;
+		
+		this.attach = new AttchVO(boFile);
+			
+	}
+
+}

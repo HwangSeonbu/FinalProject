@@ -1,0 +1,89 @@
+<%--
+* 강의 공지사항 게시판 상세페이지
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 16.   황선부      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<style>
+.table{
+	width: 1200px;
+}
+#title{
+	font-weight: bold;
+	font-size: x-large;
+	text-align: center;
+}
+.column{
+	font-weight: bold;
+	text-align: center;
+}
+table td:first-child{
+	width: 150px;
+}
+/* table td:second-child{ */
+/* 	text-align: left; */
+/* } */
+</style>
+    <h3>강의 공지 사항</h3>
+   <a>home</a>><a href="${cPath}/lecBoard/notice">목록</a>><a href="#">새 글</a >
+    <hr>
+  <table class="table table-bordered">
+  	<thead class="table-light">
+  		<tr>
+  			<td id="title" colspan="2">${board.lecboTitle}</td>
+  		</tr>
+  	</thead>
+  	<tbody>
+  		<tr>
+  			<td class="column">
+  			작성자
+  			</td>
+  			<td>
+  			${board.userName }
+  			</td>
+  		</tr>
+  		<tr>
+  			<td class="column">
+  			등록일
+  			</td>
+  			<td>
+  			${board.lecboDate }
+  			</td>
+  		</tr>
+  		<tr>
+  			<td class="column">
+  			조회수
+  			</td>
+  			<td>
+  			${board.lecboHit }
+  			</td>
+  		</tr>
+  		<tr>
+  			<td class="column">
+  			첨부파일
+  			</td>
+  			<td>
+  			
+  			</td>
+  		</tr>
+  		<tr>
+  			<td colspan="2">
+  			${board.lecboContent }
+  			</td>
+  		</tr>
+  	</tbody>
+  </table>
+  <hr>
+  <button id="list">목록</button>
+  
+  <script>
+  $("#list").on("click",function(){
+	  location.href="${cPath}/lecBoard/notice";
+  })
+  
+  </script>

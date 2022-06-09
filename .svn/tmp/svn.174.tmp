@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 9.    고성식  	  최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.scholarship.dao.AdminScholarshipDAO">
+	
+	<select id="selectScholarshipList" parameterType="PagingVO" resultType="AdminScholarshipVO">
+		 WITH TEMP AS (
+        SELECT A.* , ROWNUM RNUM
+        FROM 
+            (SELECT
+                A.USER_NO
+		        , C.USER_NAME
+		        , D.DEPT_NAME
+		        , ROUND(SUM(A.CLS_PCT)/COUNT(A.USER_NO), 3) AS STU_SCORE
+		        , B.STU_YEAR
+		        , B.STU_CLASS
+		        , C.USER_MAIL
+		        , C.USER_PHONE
+		        , RANK() OVER(PARTITION BY D.DEPT_NAME,B.STU_YEAR 
+		            ORDER BY (ROUND(SUM(A.CLS_PCT)/COUNT(A.USER_NO), 3)) DESC) AS STU_RANK 
+		    FROM CLS A, STU B, USERS C, DEPARTMENT D
+		    WHERE A.USER_NO = B.USER_NO
+		    AND A.USER_NO = C.USER_NO
+		    AND B.DEPT_ID = D.DEPT_ID
+		    AND CLS_PCT IS NOT NULL
+		    GROUP BY 
+            A.USER_NO
+		    , B.STU_YEAR
+		    , B.STU_CLASS
+		    , C.USER_NAME
+		    , D.DEPT_NAME
+		    , C.USER_MAIL
+		    , C.USER_PHONE
+		)A
+        WHERE STU_RANK BETWEEN 1 AND 3
+    )
+    SELECT * 
+    FROM TEMP
+    <![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+	]]>
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		WITH TEMP AS (
+		SELECT
+		        A.USER_NO
+		        , C.USER_NAME
+		        , D.DEPT_NAME
+		        , ROUND(SUM(A.CLS_PCT)/COUNT(A.USER_NO), 3) AS STU_SCORE
+		        , B.STU_YEAR
+		        , B.STU_CLASS
+		        , C.USER_MAIL
+		        , C.USER_PHONE
+		        ,RANK() OVER(PARTITION BY D.DEPT_NAME,B.STU_YEAR 
+		            ORDER BY (ROUND(SUM(A.CLS_PCT)/COUNT(A.USER_NO), 3)) DESC) AS STU_RANK
+		    FROM CLS A, STU B, USERS C, DEPARTMENT D
+		    WHERE A.USER_NO = B.USER_NO
+		    AND A.USER_NO = C.USER_NO
+		    AND B.DEPT_ID = D.DEPT_ID
+		    AND CLS_PCT IS NOT NULL
+		    GROUP BY A.USER_NO
+		    , B.STU_YEAR
+		    , B.STU_CLASS
+		    , C.USER_NAME
+		    , D.DEPT_NAME
+		    , C.USER_MAIL
+		    , C.USER_PHONE
+		)
+		SELECT COUNT(*)
+		FROM TEMP
+		WHERE STU_RANK BETWEEN 1 AND 3
+	</select>
+	
+</mapper>

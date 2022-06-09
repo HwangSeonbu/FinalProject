@@ -1,0 +1,97 @@
+<%--강의 게시판 메인페이지
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 13.      황선부      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+		  <div class="container-fluid">
+		    <div class="collapse navbar-collapse" id="navbarText">  
+		      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+		        <li class="nav-item dropdown">
+		            <security:authorize access="hasRole('ROLE_STUDENT')">
+		            </security:authorize>
+		            
+					         <ul>${lec.SJT_NAME}</ul>
+						         <c:if test="${lecId eq lec.LEC_ID }">
+							          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+							        	${lec.SJT_NAME}
+							          </a>			         
+						         </c:if>
+			<%-- 			         <c:if test="${lecId != lec.LEC_ID }"> --%>
+							          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+					<%-- 		            <c:if test="${ }"></c:if> --%>
+							            <li><a class="dropdown-item" href="${cPath }/lecBoard/main?lecSems=${lec.SEMS_DATE}&lecId=${lec.LEC_ID }">${lec.SJT_NAME }</a></li>
+					<!-- 		            <li><hr class="dropdown-divider"></li> -->
+							          </ul>       
+			<%-- 			         </c:if> --%>
+
+
+		            <security:authorize access="hasRole('ROLE_PROFESSOR')">
+
+								<li class="nav-item dropdown">
+		        		 <c:forEach items="${lecList}" var="lec" varStatus="status">
+						        <c:if test="${lecId eq lec.LEC_ID }">
+						          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+						            ${lec.SJT_NAME}
+						          </a>						        		
+						        </c:if>
+		            			<c:if test="${lecId ne lec.LEC_ID }">
+						          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+						            <li><a class="dropdown-item" href="${cPath }/lecBoard/main?lecSems=${lec.SEMS_DATE}&lecId=${lec.LEC_ID }">${lec.SJT_NAME }</a></li>
+						            <li><hr class="dropdown-divider"></li>
+						          </ul>		            			
+		            			</c:if>
+		            
+						        
+		      			</c:forEach>
+						        </li>
+		            </security:authorize>
+		        </li>
+		        <li class="nav-item">
+		          <a class="nav-link active" aria-current="page" href="${cPath }/lecBoard/main">Home</a>
+		        </li>
+		        <li class="nav-item">
+		          <a class="nav-link" href="${cPath }/lecBoard/notice">강의공지</a>
+		        </li>
+		        <li class="nav-item">
+		          <a class="nav-link" href="${cPath }/lecBoard/qna">질문과 답변</a>
+		        </li>
+		        <li class="nav-item">
+		          <a class="nav-link" href="${cPath }/homework">과제 게시판</a>
+		        </li>
+		      </ul>
+		      <span class="navbar-text">
+		        문화인류학
+		      </span>
+		    </div>
+		  </div>
+	</nav>
+
+<!--   <div class="collapse navbar-collapse" id="navbarText"> -->
+<!-- 	<ul class="nav nav-tabs"> -->
+<!-- 	  <li class="nav-item"> -->
+<%-- 	    <a class="nav-link active" aria-current="page" href="${cPath }/lecBoard/main">메인페이지</a> --%>
+<!-- 	  </li> -->
+<!-- 	  <li class="nav-item"> -->
+<%-- 	    <a class="nav-link" href="${cPath }/lecBoard/notice">강의 공지</a> --%>
+<!-- 	  </li> -->
+<!-- 	  <li class="nav-item"> -->
+<%-- 	    <a class="nav-link" href="${cPath }/lecBoard/qna">질문과 답변</a> --%>
+<!-- 	  </li> -->
+<!-- 	  <li class="nav-item"> -->
+<%-- 	    <a class="nav-link" href="${cPath }/homework">과제 게시판</a> --%>
+<!-- 	  </li> -->
+<!-- 	  <li> -->
+<!-- 	  </li> -->
+<!-- 	</ul> -->
+<!--       <span class="navbar-text"> -->
+<!--      	  문화인류학 -->
+<!--       </span> -->
+<!--     </div> -->

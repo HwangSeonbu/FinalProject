@@ -1,0 +1,60 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>    
+
+<div class="position-relative bg-white sideDiv">
+	<div class="sidebar pe-3 pb-2">
+		<nav class="navbar bg-light navbar-light">
+			<a href="${pageContext.request.contextPath }/tempMain.do" class="navbar-brand mx-4 mb-3">
+				<h5 class="text-primary" >대덕인재대학교</h5>
+			</a>
+			<div class="d-flex align-items-center ms-4 mb-4">
+			    <div class="position-relative">
+					<div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
+				</div>
+				<div class="ms-2">
+					<h6 class="mb-0">${userName}</h6>
+					<span style="font-size: 10px; font-weight: 900 ">${userDepartment } ${userGrade }</span>
+				</div>
+			</div>
+<!-- 사이드 메뉴 비동기 생성 시작-->
+			<div class="navbar-nav w-100" id="sideMenuArea">
+				<c:if test="${not empty sideMenuListSession}">
+					<c:forEach items="${sideMenuListSession }" var="sideMenu">
+					  <c:set var="finalMenuList" value="${sideMenu.finalMenuList }"/>
+						<div class="nav-item dropdown">
+						
+						  <c:if test="${not empty finalMenuList}">
+						  	<a href='#' class='nav-link dropdown-toggle' data-bs-toggle='dropdown'>
+						  	  <i class='bi bi-lock me-2'></i>
+						  	  ${sideMenu.sideMenuName }
+						  	</a>
+						  	<div class='dropdown-menu bg-transparent border-0'>
+						  	  <c:forEach items="${finalMenuList }" var="finalMenu">
+						  		<a href="${pageContext.request.contextPath }/${finalMenu.finalMenuURI}" class="dropdown-item">
+						  		${finalMenu.finalMenuName }
+						  		</a>
+						  	  </c:forEach>
+						  	</div>
+						  </c:if>
+						  
+						  <c:if test="${empty finalMenuList}">
+						  	<a href="${pageContext.request.contextPath }/${sideMenu.sideMenuURI}" class='nav-link dropdown-toggle'>
+						  	  <i class='bi bi-lock me-2'></i>
+						  	  ${sideMenu.sideMenuName }
+						  	</a>
+						  </c:if>
+						  
+						</div>
+					</c:forEach>
+				</c:if>	
+			</div>
+<!-- 사이드 메뉴 비동기 생성 끝-->
+		</nav>
+	</div>
+</div>
+
+
+
+
+

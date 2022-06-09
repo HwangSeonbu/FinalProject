@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.AcadScheduleBoardDAO">
+	<select id="acadScheduleBoardList" resultType="CalendarVO">
+		SELECT *
+		FROM ACADSC
+		WHERE ACADSC_DIV = #{B1}
+	</select>
+</mapper>

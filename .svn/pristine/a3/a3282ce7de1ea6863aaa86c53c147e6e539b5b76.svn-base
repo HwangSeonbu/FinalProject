@@ -1,0 +1,13 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+
+@Data
+public class MenuTopVO {
+
+	private String roleId;
+	private String topmenuId;
+	private String topmenuText;
+	private Integer topmenuOrder;
+	private String topmenuType;
+}

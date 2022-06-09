@@ -1,0 +1,53 @@
+<%--
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 11.      이유정      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+<script type="text/javascript" src="${cPath }/resources/js/ckeditor/ckeditor.js"></script>
+<form:form modelAttribute="qBoard" 
+	action="${cPath }/board/qnaSave" method="post">
+	
+
+<security:csrfInput/>
+<table class="table table-bordered">
+	<tr>
+		<th>학번/사번</th>
+		<td>
+			<form:input path="userNo" class="form-control" />
+		</td>
+	</tr>
+	<tr>
+		<th>글제목</th>
+		<td>
+			<form:input path="boardTitle" class="form-control" />
+		</td>
+	</tr>
+	<tr>
+		<th>내용</th>
+		<td>
+			<form:textarea path="boardContent" class="form-control" />
+		</td>
+	</tr>
+	<tr>
+		<td colspan="2">
+			<input type="submit" value="저장" class="btn btn-primary"
+				onClick="location.href='${pageContext.request.contextPath }/board/qnaSave'"
+			/>
+			<input type="button" value="목록으로" class="btn btn-secondary linkBtn"
+				onClick="location.href='${pageContext.request.contextPath }/board/qnaBoardList.do'"
+			/>
+		</td>	
+	</tr>
+</table>
+</form:form>
+<script type="text/javascript">
+	CKEDITOR.replace('boardContent');
+</script>

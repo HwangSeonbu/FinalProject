@@ -1,0 +1,74 @@
+package kr.or.ddit.lecqna.controller;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.lecqna.service.LecQnaService;
+import kr.or.ddit.vo.ClassVO;
+import kr.or.ddit.vo.LecNoticeBoardVO;
+import kr.or.ddit.vo.LecqnaVO;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.QnABoardVO;
+import kr.or.ddit.vo.SimpleSearchVO;
+
+@RequestMapping("/lecBoard/qna")
+@Controller
+public class LecQnaRetrieveController {
+	@Inject
+	private LecQnaService service;
+	
+	@GetMapping
+	public String boardListview() {
+		return "lecQna/lecQnaList";
+	}
+	@ResponseBody
+	@GetMapping(produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	public PagingVO<LecqnaVO> pagingList(
+			@RequestParam(value="page", required=false, defaultValue="1") int currentPage
+			, @ModelAttribute("simpleCondition") SimpleSearchVO simpleCondition 			
+			,HttpServletRequest req
+			) {
+		HttpSession session = req.getSession();
+		ClassVO classVO = (ClassVO) session.getAttribute("classVO");
+		LecqnaVO lecqna = new LecqnaVO();
+		lecqna.setLecSems(classVO.getLecSems());
+		lecqna.setLecId(classVO.getLecId());
+		
+		PagingVO<LecqnaVO> paging = new PagingVO<>(10, 5);
+		paging.setDetailCondition(lecqna);
+		
+		paging.setCurrentPage(currentPage);
+		paging.setSimpleCondition(simpleCondition);
+		service.retrieveBoardList(paging);
+		
+		return paging;
+
+
+	}
+	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

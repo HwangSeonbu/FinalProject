@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecqna.dao.LecQnaDAO">
+	<sql id="searchFrag">
+		
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				<where>
+					<choose>
+						<when test="simpleCondition.searchType eq 'TITLE'">
+							INSTR(A.LECBO_TITLE, #{simpleCondition.searchWord})>0
+						</when>
+						<when test="simpleCondition.searchType eq 'CONTENT'">
+							INSTR(A.LECBO_CONTENT, #{simpleCondition.searchWord})>0
+						</when>
+						<otherwise>
+							(INSTR (A.LECBO_TITLE, #{simpleCondition.searchWord})>0
+							OR INSTR(A.LECBO_CONTENT, #{simpleCondition.searchWord})>0)
+						</otherwise>
+					</choose>
+				</where>
+			</if>
+		</sql>
+	
+	
+	
+	
+	<select id="selectTotalLecqnaRecord" parameterType="int" resultType="LecqnaVO">
+		SELECT COUNT(*)
+		FROM LECQNA
+		WHERE LEC_ID=#{lecId} and LEC_SEMS=(SELECT SEMS_NO
+						        				FROM SEMSDATA
+											       <![CDATA[
+							 				        WHERE SYSDATE >= SEMS_SDATE 
+							 				        AND SYSDATE <= SEMS_EDATE)
+							 				        ]]> )
+	</select>
+	
+	<select id="selectLecqnaBoardList" parameterType="PagingVO" resultType="LecqnaVO" >
+  	SELECT E.*	
+            FROM( SELECT ROWNUM RNUM, D.*
+				FROM(                                                  
+		SELECT
+		    A.lecbo_no
+		   ,A.lec_sems
+		   ,A.lec_id
+		   ,A.pro_no
+		   ,A.lecbo_info
+		   ,A.lecbo_title
+		   ,A.lecbo_content
+		   ,A.lecbo_hit
+		   ,A.lecbo_date
+		   ,A.lecbo_pass
+		   ,A.stu_no
+           ,A.LECBO_LIKE		   
+		   ,(SELECT B.USER_NAME
+		     FROM USERS B
+		     WHERE B.USER_NO=A.PRO_NO) AS PRO_NAME
+		    ,(SELECT C.USER_NAME
+		    FROM USERS C
+		    WHERE C.USER_NO=A.STU_NO) AS STU_NAME
+		FROM LECQNA A
+		<include refid="searchFrag"/>
+       ORDER BY lecbo_no DESC
+					)D
+			)E 
+            <![CDATA[
+ 			WHERE RNUM >=#{startRow} AND RNUM <=#{endRow} 
+ 	 		]]>
+	</select>
+	
+	
+</mapper>
+

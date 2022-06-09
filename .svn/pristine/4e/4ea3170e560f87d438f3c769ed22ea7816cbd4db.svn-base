@@ -1,0 +1,29 @@
+package kr.or.ddit.lecqna.dao;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.LecqnaVO;
+import kr.or.ddit.vo.PagingVO;
+
+@Mapper
+public interface LecQnaDAO {
+	
+	/**
+	 * @param paging
+	 * @return
+	 */
+	public int selectTotalLecqnaRecord(PagingVO<LecqnaVO> paging);
+	
+	/**
+	 * @param paging
+	 * @return
+	 */
+	public List<LecqnaVO> selectLecqnaBoardList(PagingVO<LecqnaVO> paging);
+	
+	
+	
+	
+	
+}

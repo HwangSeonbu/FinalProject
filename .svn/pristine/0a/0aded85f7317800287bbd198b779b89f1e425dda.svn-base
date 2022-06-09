@@ -1,0 +1,14 @@
+package kr.or.ddit.vo;
+
+import java.util.List;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+@Data
+@EqualsAndHashCode(of= {"lecId"})
+public class LectureJ {
+	private int lecSems;
+	private String lecId;
+	private String lecName;
+	private List<StudentJ> students; //해당교과의 수강자 리스트
+}

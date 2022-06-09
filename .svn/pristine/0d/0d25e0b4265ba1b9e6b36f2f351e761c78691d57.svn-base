@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd">
+
+<!-- 	<context:component-scan base-package="kr.or.ddit" use-default-filters="false"> -->
+<!-- 		<context:include-filter type="annotation"  -->
+<!-- 			expression="org.springframework.stereotype.Controller"/> -->
+<!-- 		<context:include-filter type="annotation"  -->
+<!-- 			expression="org.springframework.web.bind.annotation.ControllerAdvice"/> -->
+<!-- 		<context:include-filter type="annotation"  -->
+<!-- 			expression="kr.or.ddit.commons.annotations.ViewPreparerBean"/>	 -->
+<!-- 	</context:component-scan> -->
+	
+<!-- 	include-filter 상위에 있어야 함. -->
+<!-- 	exclude-filter 하위에 있어야 함. 중복되서 사용을 하면 에러 메시지가 출력이됨...간혹... -->
+	<context:component-scan base-package="kr.or.ddit, egovframework">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+        <context:include-filter type="annotation" 
+			expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+    </context:component-scan>
+    
+	<mvc:annotation-driven validator="validator" />
+	
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource" 
+		p:basenames="kr.or.ddit.msgs.message,kr.or.ddit.msgs.ErrorMessages"
+	/>
+	
+	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean" 
+		p:validationMessageSource-ref="messageSource"
+	/>
+	
+<!-- 	정적 자원 일괄 관리 -->
+	<mvc:resources location="/resources/" mapping="/resources/**" cache-period="0" />
+
+	
+	<bean id="IRVR" class="org.springframework.web.servlet.view.InternalResourceViewResolver" 
+		p:prefix="/WEB-INF/views/"
+		p:suffix=".jsp"
+	/>
+	
+	<bean class="org.springframework.web.servlet.view.tiles3.TilesConfigurer" 
+		p:definitions="/WEB-INF/tiles/*-definitions.xml"
+		p:preparerFactoryClass="org.springframework.web.servlet.view.tiles3.SpringBeanPreparerFactory"
+	/>
+	
+	<bean class="org.springframework.web.servlet.view.tiles3.TilesViewResolver" 
+		p:order="2"
+	/>
+	
+	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver" 
+		p:order="1"
+	/>
+<!-- 	view layer -->
+	<bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView" />
+	<bean id="boardDownloadView" class="kr.or.ddit.board.view.BoardDownloadView" />
+	
+<!-- 	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver"  -->
+<!-- 		p:cookieName="langCookie" -->
+<!-- 		p:cookiePath="/" -->
+<!-- 		p:cookieMaxAge="#{60*60*24*7}" -->
+<!-- 	/> -->
+
+
+
+
+	<mvc:interceptors>
+		<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor" 
+			p:paramName="lang"
+		/>
+	</mvc:interceptors>
+	
+	
+	
+	
+	
+	    <!-- setting Locale Locale Interceptor 설정하기  -->
+    <bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"
+        p:paramName="lang" />
+
+    <bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver" />
+    
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+        <property name="interceptors">
+            <list>
+                <ref bean="localeChangeInterceptor"/>
+            </list>
+        </property>
+    </bean>
+	
+	
+	
+<!-- 모든 post요청시 캐시삭제?뒤로가기막으려구함 민진홍-->
+<mvc:interceptors> 
+<bean id="webContentInterceptor" class="org.springframework.web.servlet.mvc.WebContentInterceptor">
+ <property name="cacheSeconds" value="0"/>
+ <property name="useExpiresHeader" value="true"/>
+ <property name="useCacheControlHeader" value="true"/>
+ <property name="useCacheControlNoStore" value="true"/>
+</bean>
+</mvc:interceptors>
+
+</beans>

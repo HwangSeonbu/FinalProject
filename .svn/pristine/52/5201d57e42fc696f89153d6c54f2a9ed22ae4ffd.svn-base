@@ -1,0 +1,12 @@
+<%--
+ 학사관리자의 졸업생현황 조회
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 2.   김재웅	      최초작성
+* 2022. 5. 11.	고성식	      졸업생 리스트 출력
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<h2>학사관리자>졸업생조회</h2><hr>

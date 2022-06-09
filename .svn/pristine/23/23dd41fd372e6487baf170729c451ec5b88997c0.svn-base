@@ -1,0 +1,27 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(of="proNo")
+public class ProfessorLectureVO {
+
+	private String deptId;
+	private String colName;
+	private String sjtId;
+	private String deptName;
+	private String sjtGrade;
+	private String userName;
+	private String lecId;
+	private String planNo;
+	private String proJob;
+	private String userPhone;
+	private String sjtCredit;
+	private String lecName;
+	private String sjtMajor;
+	private Integer proNo;
+	private String gwanName;
+	private Integer roomNo;
+	private String assignDt;
+}

@@ -1,0 +1,121 @@
+<%--
+	학사일정게시판
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 29.      김재웅      최초작성
+* 2022. 5. 4.      이유정      수정
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<body>
+	<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+  <div class="container-fluid">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link active" href="#">2022</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">전체</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">1월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">2월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">3월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">4월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">5월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">6월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">7월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">8월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">9월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">10월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">11월</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">12월</a>
+      </li>
+      
+    </ul>
+  </div>
+</nav>
+<body>
+<table class="table table-bordered">
+	<tr>
+		<td class="monthName">1월</td>
+		<td>01.01 > 신정</td>
+	</tr>
+	<tr>
+		<td class="monthName">2월</td>
+		<td>일졍!</td>
+	</tr>
+	<tr>
+		<td class="monthName">3월</td>
+		<td>일졍!</td>
+	</tr>
+	<tr>
+		<td class="monthName">4월</td>
+		<td>일졍!</td>
+	</tr>
+	<tr>
+		<td class="monthName">5월</td>
+		<td>일졍!</td>
+	</tr>
+	<tr>
+		<td class="monthName">6월</td>
+		<td>일졍!</td>
+	</tr>
+	<tr>
+		<td class="monthName">7월</td>
+		<td>일졍!</td>
+	</tr>
+	<tr>
+		<td class="monthName">8월</td>
+		<td>일졍!</td>
+	</tr>
+	<tr>
+		<td class="monthName">9월</td>
+		<td>일졍!</td>
+	</tr>
+	<tr>
+		<td class="monthName">10월</td>
+		<td>일졍!</td>
+	</tr>
+	<tr>
+		<td class="monthName">11월</td>
+		<td>일졍!</td>
+	</tr>
+	<tr>
+		<td class="monthName">12월</td>
+		<td>일졍!</td>
+	</tr>
+</table>
+	<button type="submit"  id="writeBtn" class="btn btn-primary linkBtn">일정등록</button>
+</body>
+<style>
+.monthName{
+	width: 150px;
+	text-align: center;
+}
+</style>

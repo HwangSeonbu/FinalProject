@@ -1,0 +1,84 @@
+<%--
+* [[개정이력(Modification Information)]]
+* 수정일                 		수정자     			 수정내용
+* ----------  		---------  	-----------------
+* 2022. 5. 3.		고성식    		 최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<script src="${cPath }/resources/js/jspdf/html2canvas.js"></script>
+<script src="${cPath }/resources/js/jspdf/jspdf.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+<div id="contAreaBox">
+	<form name="inputForm" method="post" onsubmit="return _onSubmit();"
+		action="${cPath}/fileUpload.do" enctype="multipart/form-data"
+		class="form-horizontal">
+		<div class="panel">
+			<div class="panel-body">
+				<h4>신입생등록</h4>
+				<hr>
+				<div>
+				 </div>
+				<div class="card mb-3 " style="max-width: 100%; text-align: center;">
+					<div class="col-xs-12 col-sm-12 alert alert-warning text-center"
+						style="margin-bottom: 0; text-align: center;">양식파일을 다운로드 하시고
+						파일내에 있는 모든 항목들을 채워서 업로드하셔야 정상적으로 등록됩니다.</div>
+				</div>
+			</div>
+		</div>
+	</form>
+	<form id="form1" name="file" method="post" enctype="multipart/form-data" onsubmit="return false">
+		<input type="file" name="file" id="uploadFile" class="btn btn-outline-secondary"/> 
+		<a href="javascript:void(0);" onclick="excelUploadProcess()" class="btn btn-outline-secondary">신입생등록</a>
+	</form>
+	<div id="result"></div>
+</div>
+
+<br>
+<a href="${cPath }/resources/excelTemplate/신입생일괄등록파일양식.xlsx" download="" class="btn btn-outline-secondary" style="float: right">양식파일다운로드</a>
+<a href="#" onclick="javascript:history.go(-1);" class="btn btn-outline-secondary" >이전화면으로</a>
+
+<script>
+function excelUploadProcess(){
+	
+// 	var excelList = new FormData(document.getElementById('form1'));
+	
+// 	$.ajax({
+// 		url: "${cPath}/student/studentForm.do",
+// 		enctype: 'multipart/form-data',
+// 		data: {file : excelList},
+// 		processData: false,
+// 		contentType: false,
+// 		type: "POST",
+// 		success: function(data){
+// 			alert("짜자잔");
+			
+// 			console.log(data);
+// 			document.getElementById('result').innerHTML = JSON.stringify(data);
+// 		}
+// 	});
+
+
+	var form = $('#form1')[0];
+    var formData = new FormData(form);
+ 
+    $.ajax({
+        url : "${cPath}/student/studentForm.do",
+        type : "POST",
+        data : formData,
+        contentType : false,
+        processData : false        
+    }).done(function(data){
+        callback(data);
+        alert("짜자잔");
+        console.log(data);
+    });
+
+}
+
+
+</script>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 4. 26.  고성식     최초작성          -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.dao.StudentDAO">
+	<sql id="searchFrag">
+		<where>
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+			<choose>
+				<when test="simpleCondition.searchType eq 'USERNAME'">
+					B.USER_NAME LIKE '%'||#{simpleCondition.searchWord}||'%'
+				</when>
+				<when test="simpleCondition.searchType eq 'DEPTNAME'">
+					INSTR(C.DEPT_NAME, #{simpleCondition.searchWord}) > 0
+				</when>
+				<when test="simpleCondition.searchType eq 'USERNO'">
+					INSTR(A.USER_NO, #{simpleCondition.searchWord}) > 0
+				</when>
+				<otherwise>
+					B.USER_NAME LIKE '%'||#{simpleCondition.searchWord}||'%'
+					OR INSTR(C.DEPT_NAME, #{simpleCondition.searchWord}) > 0
+					OR INSTR(A.USER_NO, #{simpleCondition.searchWord}) > 0
+				</otherwise>
+			</choose>
+		</if>
+		</where>
+	</sql>
+	
+	<select id="selectStudentList" parameterType="PagingVO" resultType="StudentVO">
+		SELECT B.*
+		FROM(
+    		SELECT A.*, ROWNUM RNUM
+    		FROM(
+				    SELECT 
+				            A.USER_NO
+						    , C.DEPT_NAME
+						    , B.USER_NAME
+						    , A.STU_YEAR
+						    , A.STU_CLASS
+						    , B.USER_GENDER
+						    , B.USER_REG1
+						    , B.USER_PHONE
+						    , B.USER_MAIL
+					FROM STU A
+					INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+					INNER JOIN DEPARTMENT C ON A.DEPT_ID=C.DEPT_ID
+					<include refid="searchFrag" />
+        			ORDER BY A.USER_NO
+        	)A
+        )B
+		<![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM STU A
+				INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+				INNER JOIN DEPARTMENT C ON A.DEPT_ID=C.DEPT_ID
+		<include refid="searchFrag" />
+	</select>
+	
+	<select id="studentList" >
+	SELECT B.*
+    FROM(
+    	SELECT A.*, ROWNUM RNUM
+    	FROM(
+		    SELECT 
+	              A.user_no
+                  ,A.dept_id
+                  ,A.stu_year
+                  ,A.stu_class
+                  ,A.stu_code
+                  ,A.stu_cdt_earn
+                  ,A.stu_gdu_cdt
+                  ,A.stu_gdu_date
+                  ,B.user_pass
+                  ,B.user_name
+                  ,B.user_gender
+                  ,B.user_phone
+                  ,B.user_addr
+                  ,B.user_reg1
+                  ,B.user_reg2
+                  ,B.user_mail
+                  ,B.user_savename
+                  ,B.user_date
+                  ,B.user_code
+                  ,C.dept_name
+                  ,C.col_name
+			FROM STU A
+			INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+			INNER JOIN DEPARTMENT C ON A.DEPT_ID=C.DEPT_ID
+   			ORDER BY A.USER_NO
+       	)A
+        WHERE A.USER_NO = #{userNo}
+    )B
+	
+	</select>
+	
+	
+<!-- 	<resultMap type="StudentVO" id="studentMap" autoMapping="true"> -->
+<!-- 		<id property="userNo" column="USER_NO"/> -->
+<!-- 		<collection property="userList" ofType="UserVO" autoMapping="true"> -->
+<!-- 			<id property="userNo" column="USER_NO"/> -->
+<!-- 		</collection> -->
+<!-- 	</resultMap> -->
+		
+</mapper>

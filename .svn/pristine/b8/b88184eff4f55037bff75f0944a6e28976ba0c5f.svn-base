@@ -1,0 +1,53 @@
+<%--강의 공지 게시판 리스트 조회
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 14.   황선부      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<table class="table table-bordered">
+	<thead class="thead thead-dark">
+		<tr>
+			<th>일련번호</th>
+			<th>글제목</th>
+			<th>작성자</th>
+			<th>작성일</th>
+			<th>조회수</th>
+		</tr>
+	</thead>
+	<tbody id="listBody">
+
+	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan="6">
+				<div id="pagingArea"></div>
+				<h4>검색용 UI</h4>
+				<div id="searchDIV" class="border border-warning form-inline">
+					<select name="searchType" class="form-control mr-2">
+						<option value>전체</option>
+						<option value="TITLE">제목</option>
+						<option value="WRITER">작성자</option>
+						<option value="CONTENT">내용</option>
+					</select> <input type="text" name="searchWord" class="form-control mr-2" />
+					<input type="button" value="검색" id="searchBtn"
+						class="btn btn-primary" />
+				</div>
+			</td>
+		</tr>
+	</tfoot>
+</table>
+<div class="border border-primary">
+	<h4>Hidden Form</h4>
+	<form id="searchForm">
+		<input type="text" name="page" /> <input type="text" name="searchType" />
+		<input type="text" name="searchWord" />
+	</form>
+</div>
+<script type="text/javascript">
+
+</script>
+<%-- <script type="text/javascript" src="${cPath }/resources/js/board/boardList.js"></script> --%>

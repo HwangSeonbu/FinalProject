@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- [[개정이력(Modification Information)]] -->
+<!-- 수정일 수정자 수정내용 -->
+<!-- ========== ====== ============== -->
+<!-- 2022. 5. 13. 고성식 최초작성 -->
+<!-- Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.enr.dao.AdminEnrollDAO">
+	
+	<select id="selectEnrollList" parameterType="map" resultType="AdminEnrollVO">
+		SELECT B.*
+		FROM(        
+            SELECT A.*,ROWNUM RNUM
+			FROM
+                (SELECT
+                    A.USER_NO
+                    ,A.USER_NAME
+                    ,C.COL_NAME
+                    ,B.STU_YEAR
+                    ,B.STU_CLASS
+                    ,C.DEPT_NAME
+                    ,C.DEPT_ENR
+                    ,A.USER_PHONE
+                    ,A.USER_MAIL
+                    ,E.ENR_ID
+                FROM USERS A, STU B, DEPARTMENT C, (SELECT * FROM ENR WHERE ENR_SEMS = 202202) E
+                WHERE A.USER_NO=B.USER_NO
+                AND B.DEPT_ID = C.DEPT_ID
+                AND B.STU_CODE = 'C101'
+                AND A.USER_NO = E.USER_NO(+)
+                AND E.ENR_ID IS NULL
+                ORDER BY C.DEPT_ID, B.STU_YEAR, A.USER_NO
+                )A
+        )B
+		<![CDATA[  
+			WHERE RNUM >= #{paging.startRow} AND RNUM <= #{paging.endRow}
+		]]>               
+	</select>
+	
+	<select id="selectEnrollTotalRecord" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM(        
+            SELECT A.*,ROWNUM RNUM
+			FROM
+                (SELECT
+                    A.USER_NO
+                    ,A.USER_NAME
+                    ,C.COL_NAME
+                    ,B.STU_YEAR
+                    ,B.STU_CLASS
+                    ,C.DEPT_NAME
+                    ,C.DEPT_ENR
+                    ,A.USER_PHONE
+                    ,A.USER_MAIL
+                    ,E.ENR_ID
+                FROM USERS A, STU B, DEPARTMENT C, (SELECT * FROM ENR WHERE ENR_SEMS = 202202) E
+                WHERE A.USER_NO=B.USER_NO
+                AND B.DEPT_ID = C.DEPT_ID
+                AND B.STU_CODE = 'C101'
+                AND A.USER_NO = E.USER_NO(+)
+                AND E.ENR_ID IS NULL
+                ORDER BY C.DEPT_ID, B.STU_YEAR, A.USER_NO
+                )A
+        )
+	</select>
+	
+	<insert id="insertEnroll">
+		INSERT INTO ENR (
+		    ENR_ID
+		   ,USER_NO
+		   ,ENR_SEMS
+		   ,ENR_AMT
+		   ,ENR_DUE
+		   ,ENR_DATE
+		   ,ENR_PAY
+		   ,SCH_NO
+		   ,ENR_YN
+		) VALUES (
+		    ENR_SEQ.NEXTVAL
+		   ,#{userNo}
+		   ,#{enrSems}
+		   ,#{enrAmt}
+		   ,SYSTIMESTAMP + 7
+		   ,#{enrDate}
+		   ,#{enrPay}
+		   ,#{schNo}
+		   ,'N101'
+		)
+	</insert>
+	
+	<select id="selectFinalEnrollList" parameterType="map" resultType="AdminEnrollVO">
+		SELECT B.*
+		FROM(        
+            SELECT A.*,ROWNUM RNUM
+			FROM
+                (SELECT
+                    A.USER_NO
+                    ,A.USER_NAME
+                    ,C.COL_NAME
+                    ,B.STU_YEAR
+                    ,B.STU_CLASS
+                    ,C.DEPT_NAME
+                    ,C.DEPT_ENR
+                    ,A.USER_PHONE
+                    ,A.USER_MAIL
+                    ,E.SCH_NO
+                    ,E.ENR_ID
+                    ,E.ENR_YN
+                    ,F.STS_CODE1
+                FROM USERS A, STU B, DEPARTMENT C, (SELECT * FROM ENR WHERE ENR_SEMS = #{enrSems}) E, CODE F
+                WHERE A.USER_NO=B.USER_NO
+                AND B.DEPT_ID = C.DEPT_ID
+                AND B.STU_CODE = 'C101'
+                AND A.USER_NO = E.USER_NO(+)
+                AND E.ENR_YN = F.STS_ID
+                AND E.ENR_ID IS NOT NULL
+                ORDER BY C.DEPT_ID, B.STU_YEAR, A.USER_NO
+                )A
+        )B
+        <![CDATA[  
+			WHERE RNUM >= #{paging.startRow} AND RNUM <= #{paging.endRow}
+		]]> 
+	</select>
+	
+	<select id="selectFinalEnrollTotalRecord" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM(        
+            SELECT A.*,ROWNUM RNUM
+			FROM
+                (SELECT
+                    A.USER_NO
+                    ,A.USER_NAME
+                    ,C.COL_NAME
+                    ,B.STU_YEAR
+                    ,B.STU_CLASS
+                    ,C.DEPT_NAME
+                    ,C.DEPT_ENR
+                    ,A.USER_PHONE
+                    ,A.USER_MAIL
+                    ,E.SCH_NO
+                    ,E.ENR_ID
+                    ,E.ENR_YN
+                    ,F.STS_CODE1
+                FROM USERS A, STU B, DEPARTMENT C, (SELECT * FROM ENR WHERE ENR_SEMS = #{enrSems}) E, CODE F
+                WHERE A.USER_NO=B.USER_NO
+                AND B.DEPT_ID = C.DEPT_ID
+                AND B.STU_CODE = 'C101'
+                AND A.USER_NO = E.USER_NO(+)
+                AND E.ENR_YN = F.STS_ID
+                AND E.ENR_ID IS NOT NULL
+                ORDER BY C.DEPT_ID, B.STU_YEAR, A.USER_NO
+                )A
+        )
+	</select>
+	
+</mapper>

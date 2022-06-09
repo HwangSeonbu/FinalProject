@@ -1,0 +1,80 @@
+package kr.or.ddit.adminLecture.controller;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.adminLecture.service.AdminLectureCompService;
+import kr.or.ddit.vo.LecCompTargetVO;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.SemsVO;
+
+@Controller
+@RequestMapping("/lecComp")
+public class LectureCompleteController {
+
+	@Inject
+	AdminLectureCompService service;
+	
+	/**
+	 * 개설완료된 강의만 보는 기본 페이지로 이동
+	 * @return
+	 */
+	@RequestMapping("LectureCompleteList.do")
+	public String LectureCompleteList() {
+		
+		return "lecture/adminLecList";
+	}
+	
+	/**
+	 * 개설완료된 강의페이지에 데이터 뿌리기
+	 * @return
+	 */
+	@RequestMapping("LectureCompleteListData.do")
+	public String LectureCompleteListData(Model model, HttpSession session) {
+		SemsVO semsVo = (SemsVO) session.getAttribute("semsVo");
+		Integer nextSems = semsVo.getNextSems();
+		
+		PagingVO<LecCompTargetVO> pagingVo = service.retrieveLecCompTargetList(nextSems);
+		model.addAttribute("pagingVo", pagingVo);
+		return "jsonView";
+	}
+	
+	
+	
+	/**
+	 * 승인강의 대상으로 배정을 기다렸다가 강의를 개설하는 관리자 페이지로 이동
+	 * @return
+	 */
+	@RequestMapping("LectureCompleteForm.do")
+	public String LectureCompleteForm() {
+		
+		return "lecture/adminLecRequestComplete";
+	}
+	
+	@RequestMapping("LectureCompleteFormData.do")
+	public String LectureCompleteFormData(Model model, HttpSession session) {
+		SemsVO semsVo = (SemsVO) session.getAttribute("semsVo");
+		Integer nextSems = semsVo.getNextSems();
+		
+		PagingVO<LecCompTargetVO> pagingVo = service.retrieveLecCompTargetList(nextSems);
+		model.addAttribute("pagingVo", pagingVo);
+		return "jsonView";
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

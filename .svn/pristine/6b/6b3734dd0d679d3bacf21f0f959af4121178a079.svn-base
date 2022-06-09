@@ -1,0 +1,33 @@
+package kr.or.ddit.request.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.RequestVO;
+import kr.or.ddit.vo.SRequestVO;
+
+/**
+ * 학생의 휴복학 신청 serviceimpl
+ * @author 작성자명
+ * @since 2022. 5. 4.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 4.    고성식			최초 작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+public interface RequestService {
+	/**
+	 * 휴학신청리스트
+	 * @param paging
+	 * @return
+	 */
+	public List<SRequestVO> retrieveStudentLeaveRequestList(PagingVO<SRequestVO> paging);
+	
+}

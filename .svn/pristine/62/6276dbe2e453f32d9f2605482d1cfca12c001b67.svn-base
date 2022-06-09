@@ -1,0 +1,255 @@
+<%--
+ 학생이 로그인 하여 자신이 수강 중인 과목을 조회하여 해당 과목의 출석을 조회하는  jsp
+* [[개정이력(Modification Information)]]
+* 수정일                     수정자              수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 26.   주창규             최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<h3 class="h3-title">강의별 출결현황 조회</h3><hr class="hr-title">
+<style>
+	#titleTable {z
+	    height: auto;
+}
+th {
+  text-align: center;
+  vertical-align : middle;
+}
+</style>
+
+<div class="my-info-img">
+	<img class="rounded-circle me-lg-2"
+		src="${pageContext.request.contextPath }/resources/img/user.jpg"
+		alt="" style="width: 150px; height: 150px;">
+</div>
+<div class="col-xs-7 col-sm-7" style="vertical-align: middle;">
+	<ul class="my-info-list">
+		<li><strong>학번</strong>${student.userNo}</li>
+		<li><strong>성명</strong>${student.userName }</li>
+		<li><strong>학부</strong>${student.colName }</li>
+		<li><strong>전공</strong>${student.deptName }</li>
+		<li><strong>학년</strong>${student.stuYear }</li>
+	</ul>
+</div>
+<select name="semsdataSelection" id="semsdataSelectionId">
+	<option></option>
+</select>
+<table class="table table-bordered" id = "titleTable">
+	<thead class="thead-dark">
+		<tr id ="titleTr">
+			<th>학년</th>
+			<th>과목명</th>
+			<th>교수명</th>
+			<th>총 출석횟수(출석/지각/조퇴)</th>
+			<th>결석횟수</th>
+			<th colspan="2">1주</th>
+			<th colspan="2">2주</th>
+			<th colspan="2">3주</th>
+			<th colspan="2">4주</th>
+			<th colspan="2">5주</th>
+			<th colspan="2">6주</th>
+			<th colspan="2">7주</th>
+			<th colspan="2">8주</th>
+			<th colspan="2">9주</th>
+			<th colspan="2">10주</th>
+			<th colspan="2">11주</th>
+			<th colspan="2">12주</th>
+			<th colspan="2">13주</th>
+			<th colspan="2">14주</th>
+			<th colspan="2">15주</th>
+			<th colspan="2">16주</th>
+			<th></th>	
+		</tr>
+	</thead>
+	<tbody id="attBody">
+		<c:set var="subjectList" value="${student.subjectList }" />
+		<c:forEach items="${subjectList }" var="subject">
+			<tr>
+				<td>${subject.sjtGrade }</td>
+				<td>${subject.lecName }</td>
+				<td>${subject.proName }</td>
+				<td>
+					${subject.attendanceCountVo.totalCount} (
+					${subject.attendanceCountVo.attendanceCount} /
+					${subject.attendanceCountVo.earlyLeaveCount} /
+					${subject.attendanceCountVo.tardinessCount} )
+				</td>
+				<td>${subject.attendanceCountVo.absentCount}</td>
+				
+				<c:forEach  begin="1" end="32" step="1" varStatus="status">
+				
+				<c:set var="lecturePeriodList" value="${subject.lecturePeriodList }" />
+						<c:if test="${not empty lecturePeriodList[status.count-1]}">
+							<td>${lecturePeriodList[status.count-1].attabsCode}</td>
+						</c:if>
+					<c:if test="${empty lecturePeriodList[status.count-1]}">
+						<td>-</td>
+					</c:if>
+					<c:if test="${status.last }">
+						<td>
+							<button type="button" class="btn btn-primary" data-lecture-period-list="${lecturePeriodList}"> 보기 </button>
+						</td> 
+					</c:if>
+				</c:forEach>
+			</tr>
+			</c:forEach>
+	</tbody>
+	<tfoot>
+	
+	</tfoot>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">상세 출석현황</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+      	<table class="table table-bordered" id = "titleTable">
+			<thead class="thead-dark">
+				<tr id ="titleTr">
+					<th>주수</th>
+					<th>강의일</th>
+					<th>출석현황</th>
+				</tr>
+			</thead>
+			<tbody id ="modalBody">
+			</tbody>
+			<tfoot>
+			</tfoot>
+		</table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let semsdataSelection = $("#semsdataSelectionId");
+let attBody = $("#attBody");
+
+$(".btn").on("click",function(){
+	let lecturePeriodList = $(this).data("lecturePeriodList");
+    $("#detailModal").modal('show');
+ });
+ 
+function startAjax(){
+	$.ajax({
+		url :"${cPath}/studentAttendance/semsdataForm",
+		method : "get",
+		dataType : "json",
+		success : function(resp) {
+			semsdataSelection.empty();
+			let semsdataList = resp.semsdata;
+			let firstLecSems = ${student.lecSems } +""
+			let options = [];
+			options.push($("<option>").attr("value","")
+					.attr("selected", false)
+					.text(firstLecSems.substr(0,4)+"년"+firstLecSems.substr(5,6)+"학기"));
+			
+			$(semsdataList).each(function(index,semsdata ){
+				let option = $("<option>").attr("value",semsdata)
+										  .text(semsdata.substr(0,4)+"년"+semsdata.substr(5,6)+"학기");
+				options.push(option);
+					});
+			
+			semsdataSelection.append(options);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+startAjax(); 
+ 
+semsdataSelection.on("change",function(){
+	let semsdata = $(this).val();
+	if(semsdata == ""){
+		alert("데이터가  존재하지 않습니다!");
+	}else{
+		attendance(semsdata); //년도 학기
+	}
+});
+
+function attendance(semsdata){
+	$.ajax({
+		url :"${pageContext.request.contextPath}/studentAttendance/attendanceList",
+		method : "get",
+		data : {semsdata:semsdata},
+		dataType : "json",
+		success : function(resp) {
+			attBody.empty();
+			let attBodyVo = resp.student;
+			let attList = attBodyVo.subjectList;
+			let trTags = [];
+			if(attList && attList.length > 0){
+					let trTag = $("<tr>");
+					let num = 0;
+					$.each(attList, function(idx,att){
+						trTags.push(trTag);
+						trTag = $("<tr>");
+						trTag.append($("<td>").html(att.sjtGrade)
+							,$("<td>").html(att.lecName)
+							,$("<td>").html(att.proName)
+							,$("<td>").html(att.attendanceCountVo.totalCount+"("
+											+ att.attendanceCountVo.attendanceCount +"/"
+											+  att.attendanceCountVo.earlyLeaveCount + "/"
+											+  att.attendanceCountVo.tardinessCount+")"
+											)
+							,$("<td>").html(att.attendanceCountVo.absentCount)
+						);
+						num = 5;
+						$.each(att.lecturePeriodList, function(idx,lecp){
+							trTag.append(//lecp.attabsCode
+								$("<td>").html(lecp.attabsCode)
+							);
+							num++;
+						});
+						if(num>0){
+							num = 38 - num;
+						}
+						for(let i = 1; i < num; i++ ){
+		 					trTag.append($("<td>").html("-"));
+		 				}
+			 			console.log("num = ", num);
+						let modalBtn = '<button type="button" class="btn btn-primary" data-lecture-period-list="${lecturePeriodList}"> 보기 </button>'
+						trTag.append($("<td>").html(modalBtn));
+					});
+				}else{
+					let trTag = $("<tr>").append($("<td>").attr("colspan", "38").text("검색자료가없습니다"));
+					trTags.push(trTag);
+					}
+					attBody.append(trTags);
+				},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+
+
+
+
+
+
+
+
+
+
+
+
+</script>

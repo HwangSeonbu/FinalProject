@@ -1,0 +1,33 @@
+package kr.or.ddit.student.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 학생 등록에 필요한 업로드용 컨트롤러
+ * @author 작성자명
+ * @since 2022. 5. 4.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 4.     고성식   	   최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@Slf4j
+public class StudentInsertFileUploadController {
+	private String saveFolderPath = "D:\\saveStudentFolder";
+	
+	@RequestMapping(value="fileUpload.do")
+	public String fileUpload() {
+		
+		return "redirect:/studentFrom.jsp";
+	}
+}
+

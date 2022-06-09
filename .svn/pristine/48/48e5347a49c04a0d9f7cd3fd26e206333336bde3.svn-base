@@ -1,0 +1,133 @@
+<%--
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 3.      이유정      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+<%@ page import="java.util.List" %>
+<%@ page import="kr.or.ddit.vo.CalendarVO" %>
+<head>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<meta charset='utf-8' />
+<link href='${pageContext.request.contextPath }/resources/css/fullcalendar/main.css' rel='stylesheet' />
+<script src='${pageContext.request.contextPath }/resources/js/fullcalendar/main.js'></script>
+<!--  드래그 이벤트  -->
+ <div id='external-events'>
+      <p>
+        <strong>일정 추가</strong>
+      </p>
+
+      <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>
+        <div class='fc-event-main'>미팅</div>
+      </div>
+      <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>
+        <div class='fc-event-main'>시험</div>
+      </div>
+      <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>
+        <div class='fc-event-main'>휴식</div>
+      </div>
+      <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>
+        <div class='fc-event-main'>개강</div>
+      </div>
+      <div class='fc-event fc-h-event fc-daygrid-event fc-daygrid-block-event'>
+        <div class='fc-event-main'>종강</div>
+      </div>
+      <p>
+        <input type='checkbox' id='drop-remove' />
+        <label for='drop-remove'>추가 후 삭제</label>
+      </p>
+</div>
+<!--   캘린더 부분 본체 -->
+    <div id='calendar'></div>
+    
+<script>
+ function calendarList() {
+	   $.ajax({
+	  		url: '${pageContext.request.contextPath }/calendar/calendarForm.do',
+	  		type: 'GET',
+	  		dataType:'json',
+	  		success: function(resp){
+	  			var dataList = resp.dataList;
+	  			console.log(dataList);
+	  			
+	  			
+	   			var calendarEl = document.getElementById('calendar');
+	   		    var Draggable = FullCalendar.Draggable;
+	   		    
+	   		  	var containerEl = document.getElementById('external-events');
+			    var calendarEl = document.getElementById('calendar');
+			  	var checkbox = document.getElementById('drop-remove');
+	  			
+			   
+			   
+	   			//일정목록 출력 
+	  			var events = dataList.map(function(item) {
+	  				return {
+							title : item.acadscCont,
+							start : item.acadscStart
+						}
+	  			});
+	   			
+	   			//드래그 기능 
+	  			 new Draggable(containerEl, {
+	  			     itemSelector: '.fc-event',
+	  			     eventData: function(eventEl) {
+	  			       return {
+	  			         title: eventEl.innerText
+	  			       };
+	  			     }
+	  			   });
+	   			
+	  				//시간과 헤더
+					var calendar = new FullCalendar.Calendar(calendarEl, {
+						events : events,
+					     
+						  headerToolbar: {
+						       left: 'prev,next today',
+						       center: 'title',
+						       right: 'dayGridMonth,timeGridWeek,timeGridDay'
+						     },
+						     
+						     //일정등록
+						     select: function (arg) {
+						     var title = prompt('일정등록: 수정해야됨');
+				             if (title) {
+				                   calendar.addEvent({
+				                       title: arg.acadscCont,
+				                       start: arg.acadscStart,
+				                       end: arg.acadscEnd,
+				                       allDay: arg.allDay
+				                      })
+				                  }
+				                 calendar.unselect()
+						 },
+						 
+						 	//달력의 잡다한 기능 
+						     selectable : true, // 달력 일자 드래그 설정가능
+						     locale: 'ko',
+						     editable: true,
+						     droppable: true, // this allows things to be dropped onto the calendar
+						     drop: function(info) {
+						       // is the "remove after drop" checkbox checked?
+						       if (checkbox.checked) {
+						         // if so, remove the element from the "Draggable Events" list
+						         info.draggedEl.parentNode.removeChild(info.draggedEl);
+						       }
+						     }
+						  
+					});
+					calendar.render();
+					//--
+	  		},
+	  	});
+	   
+} ;
+calendarList();
+</script>

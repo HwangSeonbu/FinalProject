@@ -1,0 +1,36 @@
+package kr.or.ddit.scholarship.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * 관리자 메뉴 : 성적우수장학생 선정, 기타장학생선정
+ * @author 김재웅
+ * @since 2022. 4. 28.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 28.      작성자명       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@RequestMapping("/setScholar")
+public class AdminScholarshipSetController {
+
+	
+	@RequestMapping("setCreditScholarStudent.do")
+	public String setCreditScholarStudent() {
+		
+		return "scholarship/adminSetCrdtScholar";
+	}
+	
+	@RequestMapping("setExtraScholarStrudent.do")
+	public String setExtraScholarStrudent() {
+		
+		return "scholarship/adminSetExtScholar";
+	}
+}

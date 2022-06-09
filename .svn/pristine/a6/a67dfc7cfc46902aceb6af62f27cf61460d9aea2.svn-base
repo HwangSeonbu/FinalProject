@@ -1,0 +1,46 @@
+package kr.or.ddit.attendance.service;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.attendance.dao.ProfessorAttendanceDAO;
+import kr.or.ddit.vo.AttabsEnrollVO;
+import kr.or.ddit.vo.LectureVO;
+
+@Service
+public class ProfessorAttendanceServiceImpl implements ProfessorAttendanceService {
+
+	@Inject
+	ProfessorAttendanceDAO dao;
+	
+	@Override
+	public List<LectureVO> retrieveProLectureList(Map<String, Integer> paramMap) {
+		// TODO Auto-generated method stub
+		return dao.selectProLectureList(paramMap);
+	}
+
+	@Override
+	public List<String> retrieveLecDateList(String lecId) {
+		
+		return dao.selectLecDateList(lecId);
+	}
+
+	@Override
+	public List<AttabsEnrollVO> retrieveAttabsStudentList(Map<String, Object> paramMap) {
+		
+		AttabsEnrollVO vo = new AttabsEnrollVO();
+		vo.setLecId(String.valueOf(paramMap.get("lecId")));
+		vo.setLecSems(Integer.parseInt(String.valueOf(paramMap.get("lecSems"))));
+		vo.setPlanNo(Integer.parseInt(String.valueOf(paramMap.get("planNo"))));
+		vo.setAttabsDate(String.valueOf(paramMap.get("attabsDate")));
+		
+		List<AttabsEnrollVO> studentList = dao.selectAttabsStudentList(vo);
+		
+		return studentList;
+	}
+
+}

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 학생이 자신의 수강과목 출석현황을 보기 위해 사용되는 xml  -->
+<!-- 교수가 자신의 강의를 수강 중인 학생의 출석현황을 보기 위해 사용 되는 xml -->
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 4. 28.     주창규     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.attendance.dao.AttendanceDAO">
+
+
+<!-- 로그인한 학생의 정보 조회 -->
+   <select id="selectStudentDetail" parameterType="int" resultType="StudentVO">
+      SELECT  A.USER_NO 
+              , A.USER_NAME 
+              , C.COL_NAME 
+              , C.DEPT_NAME
+              , B.STU_YEAR 
+              , B.STU_CODE 
+      FROM USERS A, STU B, DEPARTMENT C
+      WHERE   A.USER_NO = #{userNo}
+              AND A.USER_NO = B.USER_NO
+              AND B.DEPT_ID = C.DEPT_ID
+   </select>
+   
+<!--  (학생) 수강과목의 목록 조회 -->
+   <select id="selectStudentLecture" parameterType="StudentVO" resultType="SubjectVO">
+      SELECT A.STU_YEAR
+	         , D.LEC_NAME 
+	         , D.PRO_NAME
+	         , D.LEC_ID
+             , I.SJT_GRADE
+	  FROM STU A  INNER JOIN CLS B ON (A.USER_NO = B.USER_NO)
+	              INNER JOIN LEC C ON (B.LEC_ID = C.LEC_ID)
+	              INNER JOIN PLANOK D ON(C.LEC_ID = D.LEC_ID)
+	              INNER JOIN PLAN E ON(D.PLAN_NO = E.PLAN_NO)
+	              INNER JOIN PRO G ON(E.USER_NO = G.PRO_NO)
+	              INNER JOIN USERS H ON(G.PRO_NO = H.USER_NO)
+                  INNER JOIN SJT I ON(E.SJT_ID = I.SJT_ID)
+      WHERE A.USER_NO = #{userNo}
+        AND B.LEC_SEMS = #{lecSems}
+   </select>
+   
+<!-- 한 학생이 수강 중인 하나의 강의에 대한 주차별 출석 현황 -->
+   <select id="selectStudentLecturePeriod" parameterType="StudentVO" resultType="LecturePeriodVO">
+     SELECT ceil(count(*)/7) AS period
+             , B.ATTABS_DATE
+             , B.LEC_NAME
+             , (SELECT STS_CODE1 FROM CODE WHERE STS_ID = ATTABS_CODE) AS ATTABS_CODE
+            , B.LEC_ID
+            , B.USER_NAME
+            , B.SJT_GRADE
+      FROM CALENDAR A, 
+          (
+          SELECT DISTINCT ATTABS_DATE AS ATTABS_DATE   
+                 , ATTABS_CODE
+                 , E.LEC_NAME
+                 , E.LEC_ID
+                 , A.USER_NAME
+                 , G.SJT_GRADE
+          FROM    USERS A INNER JOIN ATTABS B ON(A.USER_NO = B.USER_NO)
+                   INNER JOIN CLS C ON(B.LEC_ID = C.LEC_ID)
+                   INNER JOIN LEC D ON(C.LEC_ID = D.LEC_ID)
+                   INNER JOIN PLANOK E ON(D.LEC_ID = E.LEC_ID)
+                   INNER JOIN PLAN F ON(E.PLAN_NO = F.PLAN_NO)
+                   INNER JOIN PLANOK E ON(D.LEC_ID = E.LEC_ID)
+                   INNER JOIN SJT G ON(E.SJT_ID = G.SJT_ID)
+          WHERE A.USER_NO = #{userNo}
+                AND E.LEC_ID = #{lecId}
+          ORDER BY B.ATTABS_DATE
+          )B
+      where A.solar_date between #{startDate}
+            and B.ATTABS_DATE group by B.ATTABS_DATE, B.ATTABS_CODE, B.LEC_NAME, B.LEC_ID, B.USER_NAME, B.SJT_GRADE
+            ORDER BY ATTABS_DATE
+</select>
+<!-- 한 학생의 출결상태 카운트 -->  
+<select id="selectStudentAttendanceCount" parameterType="StudentVO" resultType="AttendanceCountVO">
+    WITH SAMPLE AS (
+	   SELECT ATTABS_CODE
+	   FROM ATTABS A INNER JOIN STU B ON(A.USER_NO = B.USER_NO)
+	                 INNER JOIN PLAN C ON(A.PLAN_NO = C.PLAN_NO)
+	                 INNER JOIN PLANOK D ON(C.PLAN_NO = D.PLAN_NO)
+	   WHERE A.USER_NO = #{userNo}
+	         AND D.LEC_ID = #{lecId}
+	)
+	SELECT DISTINCT
+	   (SELECT COUNT(*) FROM SAMPLE ) AS totalCount
+	   ,(SELECT COUNT(*) FROM SAMPLE WHERE ATTABS_CODE = 'D101')  AS attendanceCount
+	   , (SELECT COUNT(*) FROM SAMPLE WHERE ATTABS_CODE = 'D102') AS absentCount
+	   , (SELECT COUNT(*) FROM SAMPLE WHERE ATTABS_CODE = 'D103') AS earlyLeaveCount
+	   , (SELECT COUNT(*) FROM SAMPLE WHERE ATTABS_CODE = 'D104') AS tardinessCount
+	FROM SAMPLE
+</select>
+
+<!-- 한 학생의 출결상태 카운트 map -->  
+<select id="selectStudentAttendanceCountMap" parameterType="map" resultType="map">
+    SELECT ATTBASE.*, E.LEC_NAME FROM (
+		 WITH SAMPLE AS (
+		      SELECT ATTABS_CODE
+		      FROM ATTABS A INNER JOIN STU B ON(A.USER_NO = B.USER_NO)
+		                    INNER JOIN PLAN C ON(A.PLAN_NO = C.PLAN_NO)
+		                    INNER JOIN PLANOK D ON(C.PLAN_NO = D.PLAN_NO)
+		      WHERE A.USER_NO = #{userNo}
+	         AND D.LEC_ID = #{lecId}
+		   )
+		   SELECT DISTINCT
+		      (SELECT COUNT(*) FROM SAMPLE ) AS totalCount
+		      ,(SELECT COUNT(*) FROM SAMPLE WHERE ATTABS_CODE = 'D101')  AS attendanceCount
+		      , (SELECT COUNT(*) FROM SAMPLE WHERE ATTABS_CODE = 'D102') AS absentCount
+		      , (SELECT COUNT(*) FROM SAMPLE WHERE ATTABS_CODE = 'D103') AS earlyLeaveCount
+		      , (SELECT COUNT(*) FROM SAMPLE WHERE ATTABS_CODE = 'D104') AS tardinessCount
+		   FROM SAMPLE
+		) ATTBASE , PLANOK E 
+		WHERE E.LEC_ID = #{lecId}
+</select>
+<!-- 개강 날 조회 -->
+<select id="selectStartDate" parameterType="int" resultType="int">
+	SELECT TO_CHAR(ACADSC_START, 'YYYYMMDD') AS START_DATE
+	FROM ACADSC
+	WHERE ACADSC_DIV = 'B3'
+	AND ACADSC_SEMS = #{acadscSems}
+	AND ACADSC_CONT LIKE (
+	    SELECT STS_CODE1
+	    FROM CODE
+	    WHERE STS_GID = 'S1'
+	    AND STS_ID = 'S101')
+</select>
+
+
+
+
+</mapper>

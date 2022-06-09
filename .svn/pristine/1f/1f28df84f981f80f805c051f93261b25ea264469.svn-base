@@ -1,0 +1,52 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**교수 학생상담 조회 테이블 사용.
+ * @author 황선부
+ * @since 2022. 5. 9.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 9.      황선부       최초작성  <- 이부분 작성하면서 코딩 진행해주세요~
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Data
+@NoArgsConstructor
+public class ProCounselVO {	
+	private Integer userNo;
+	private String userPass;
+	private String userName;
+	private String userGender;
+	private String userPhone;
+	private String userAddr;
+	private String userReg1;
+	private String userReg2;
+	private String userMail;
+	private String userSavename;
+	private String userDate;
+	private String userCode;
+	
+	private Integer stuYear;
+	private String stuClass;
+	private String stuCode;
+	private String stuCdtEarn;
+	private String stuGduCdt;
+	private String stuGduDate;
+	
+	private String cnslId;
+	private String deptId;
+	private String deptName;
+	private String cnslDate;
+	private String dyDate;
+	private String cnslDay;
+	
+	private String l3;
+
+  
+}

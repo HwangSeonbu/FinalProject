@@ -1,0 +1,103 @@
+package kr.or.ddit.adminLecture.controller;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.adminLecture.service.AdminLecturePlanService;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.PlanEditVO;
+import kr.or.ddit.vo.PlanVO;
+
+/**
+ * 학사관리자가 교수가 제출한 강의계획을 처리, 조회하는 컨트롤러
+ * @author 김재웅
+ * @since 2022. 5. 12.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 12.      김재웅       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@RequestMapping("/lecReq")
+public class LectureRequestController {
+
+	@Inject
+	AdminLecturePlanService service;
+	
+	
+	/**
+	 * 학사관리자의 강의계획제출현황 기본 페이지 이동
+	 * @return
+	 */
+	@RequestMapping("LectureRequestList.do")
+	public String LectureRequestList(Model model) {
+		
+		return "lecture/adminLecRequestList";
+	}
+	
+	/**
+	 * 강의계획현황을 페이징 처리 및 검색 적용하여 데이터 뿌리기
+	 * @param model
+	 * @param detailCondition 검색조건
+	 * @param currentPage 페이지
+	 * @return
+	 */
+	@RequestMapping("LectureRequestListData.do")
+	public String LectureRequestListData(Model model, @ModelAttribute PlanEditVO detailCondition
+			,@RequestParam(value="page", required=false, defaultValue="1") int currentPage) {
+		
+		PagingVO<PlanEditVO> pagingVo = new PagingVO<>(10, 5);
+		
+		//학기 임시 세팅 - 세션
+		detailCondition.setPlanSems(202202);
+		pagingVo.setCurrentPage(currentPage);
+		pagingVo.setDetailCondition(detailCondition);
+		
+		service.retrieveSubmitPlanList(pagingVo);
+		
+		model.addAttribute("pagingVo", pagingVo);
+		
+		return "jsonView";
+	}
+	
+	/**
+	 * 모달창용 강의계획 하나 데이터 뿌리기
+	 * @param model
+	 * @param planNo
+	 * @return
+	 */
+	@RequestMapping("LectureRequestOneData.do")
+	public String LectureRequestOneData(Model model, @RequestParam Integer planNo) {
+		PlanEditVO submitPlanVo = service.retrieveSubmitPlanOne(planNo);
+		model.addAttribute("submitPlanVo", submitPlanVo);
+		return "jsonView";
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@RequestMapping("LectureRequestDenialList.do")
+	public String LectureRequestDenialList() {
+		
+		return "lecture/adminLecRequestDenialList";
+	}
+}

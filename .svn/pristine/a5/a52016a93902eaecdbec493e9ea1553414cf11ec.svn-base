@@ -1,0 +1,143 @@
+package kr.or.ddit.counsel.controller;
+
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
+
+import javax.faces.application.ResourceDependencies;
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import kr.or.ddit.counsel.service.CounselService;
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.validate.UpdateGroup;
+import kr.or.ddit.vo.CounselVO;
+import kr.or.ddit.vo.ProCounselVO;
+import lombok.extern.slf4j.Slf4j;
+/**상담일지 view, update, delete controller
+ * @author 황선부
+ * @since 2022. 5. 9.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 9.      작성자명       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Slf4j
+@Controller
+public class CounselLogViewController {
+	@Inject
+	private CounselService service;
+
+	@ModelAttribute("divergence")//분기점
+	public String divergence() {
+		return "VIEW";
+	}
+	
+//	@ModelAttribute("cLog")
+//	public CounselVO counsel() {
+//		CounselVO counsel = new CounselVO();
+//		 
+//		 return counsel;
+//	}
+	
+	@PostMapping("/counselLogView")
+	public String CounselOneStudent(//insertForm
+			@RequestParam("userNo") Integer userNo
+			,@RequestParam("cnslId") String cnslId
+			,Model model
+			) {//상담완료현황 조회
+		
+		log.info("==============userNo========================{}",userNo);
+		ProCounselVO counselVO = service.retreiveOneCounselStudent(userNo);
+		Map<String, Object> qaMap = service.retreiveOneReqCounsel(cnslId);
+		List<String> aList = service.retreiveOneLogCounsel(cnslId, counselVO);
+		
+		log.info("aaaaaaaaaaaaaaaaaaaaa{}",counselVO.getL3());
+		
+		CounselVO counsel = new CounselVO();
+		counsel.setL3(counselVO.getL3());
+		//cnslDate
+		
+		
+		counselVO.setCnslDate(qaMap.get("cnslDate")+"");
+		
+		
+		
+		counselVO.setCnslId(cnslId);
+		model.addAttribute("counselVO", counselVO);
+		model.addAttribute("aList", aList);
+		
+		model.addAttribute("qaMap", qaMap);
+		model.addAttribute("cLog",counsel);
+		
+		
+		for(String answer: aList) {
+			log.info("==============={}",answer);	
+		}
+		return "counsel/counselOne";
+	}
+	@PostMapping("/counselLogView/counselUpdate")
+	public String updateCounselLog(
+			@Validated(UpdateGroup.class) @ModelAttribute("cLog")CounselVO counsel
+			,BindingResult errors
+			,Model model
+			,RedirectAttributes redirectAttribute
+			) {
+		String viewName = null;
+		if(!errors.hasErrors()) {
+			ServiceResult result = service.modifyCounselLog(counsel);
+			if(ServiceResult.OK.equals(result)) {
+				viewName="redirect:../respCounsel/requestView";
+				redirectAttribute.addFlashAttribute("message", "상담 일지가 수정되었습니다.");
+				//model.addAttribute("message", "상담 일지가 등록되었습니다.");
+				
+			}else {
+				model.addAttribute("message", "서버 오류 입니다. 잠시 후에 다시 시도하세요.");
+				viewName="counsel/counselOne";
+			}
+		}else {
+			model.addAttribute("message", "입력사항을 선택하세요(상담내용은 차후 입력가능)");
+			viewName="counsel/counselOne";
+		}
+		
+		return viewName;
+	}
+	
+	@PostMapping("/counselDelete")
+	public String deleteCounselLog(
+			String cnslId
+			,RedirectAttributes redirectAttribute
+			,Model model
+			) {
+		
+		ServiceResult result = service.deleteCounselLog(cnslId);
+		String viewName=null;
+		
+		if(ServiceResult.OK.equals(result)) {
+			viewName="redirect:/respCounsel/requestView";
+			redirectAttribute.addFlashAttribute("message", "상담 일지가 삭제되었습니다.");
+			//model.addAttribute("message", "상담 일지가 등록되었습니다.");
+			
+		}else {
+			model.addAttribute("message", "서버 오류 입니다. 잠시 후에 다시 시도하세요.");
+			viewName="counsel/counselOne";
+		}
+	
+		return viewName;
+		
+	}
+	
+}

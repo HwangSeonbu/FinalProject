@@ -1,0 +1,165 @@
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일      		  수정자  	   수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 6.   고성식  	   최초작성             -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<script type="text/javascript" src="${cPath }/resources/js/jquery.form.min.js"></script>
+<h4>성적우수장학생선정</h4>
+<hr>
+<div class="container-fluid">
+	<br> <br>
+	<div class="card shadow mb-4">
+		<div class="card-header py-3">
+			<div id="content">
+				<div class="section_top"></div>
+				<div class="section_cont">
+					<div class="board_area">
+						<form id="joinapplication" method="post" overflow-x
+							style="overflow: auto;">
+							<input type="hidden" name="clubid" value="30000177"> <input
+								type="hidden" name="page" value="1"> <input
+								type="hidden" name="perPage" value="30">
+
+							<div class="board_action">
+								<div class="action_in">
+									선택 회원을&nbsp;
+									<button type="submit" class="btn btn-primary btn-sm"
+										onclick="agreeMem();" id="memberaccept">성적우수장학생선정</button>
+								</div>
+							</div>
+							<table border="1" cellspacing="0" class="tbl_lst_type"
+								style="width: 100%;">
+								<colgroup>
+									<col width="50">
+									<!-- 체크박스 -->
+									<col width="100">
+									<!-- 학번 -->
+									<col width="100">
+									<!-- 이름 -->
+									<col width="100">
+									<!-- 학과 -->
+									<col width="150">
+									<!-- 전학기성적금액 -->
+									<col width="150">
+									<!-- 등록금액 -->
+									<col width="100">
+									<!-- 전화번호 -->
+									<col width="150">
+									<!-- 이메일 -->
+									<col width="80">
+									<!-- 장학생선정상태 -->
+								</colgroup>
+								<thead style="text-align: center;">
+									<tr>
+										<th scope="col" class="frst"><input type="checkbox"
+											id="chkalltop" title="선택"
+											class="check _click(ManageJoinApplication|AllJoinMember)"></th>
+										<th scope="col"><strong class="line_r">학번</strong></th>
+										<th scope="col"><strong class="line_r">이름</strong></th>
+										<th scope="col"><strong class="line_r">학과</strong></th>
+										<th scope="col"><strong class="line_r">전학기성적</strong></th>
+										<th scope="col"><strong class="line_r">학년</strong></th>
+										<th scope="col"><strong class="line_r">반</strong></th>
+										<th scope="col"><strong class="line_r">핸드폰번호</strong></th>
+										<th scope="col"><strong class="line_r">이메일</strong></th>
+										<th scope="col"><strong class="line_r">순위</strong></th>
+
+									</tr>
+								</thead>
+									<tbody id="listBody">
+									</tbody>
+								<tfoot>
+									<tr>
+										<td colspan="9">
+											<div id="pagingArea">
+											</div>
+											<div id="searchDIV">
+											</div>
+											<div>
+												<select>
+													<option value>전체</option>
+													<option value="USERNAME">이름</option>
+													<option value="USERNO">학번</option>
+												</select>
+												<input type="text" name="searchWord" />
+												<input type="button" value="검색"/>												
+											</div>
+										</td>
+									</tr>
+								</tfoot>	
+							</table>
+						</form>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+<form id="searchForm">
+	<input type="text" name="page" />
+	<input type="hidden" name="searchType" />
+	<input type="hidden" name="searchWord" />
+</form>
+<script>
+	$("#chkalltop").click(function() {
+		if($("#chkalltop").is(":checked")) $("input[name=chk]").prop("checked", true);
+		else $("input[name=chk]").prop("checked", false);
+	});
+
+
+const VIEWURLPTRN = "${cPath}/setScholar/setCreditScholarStudent.do";
+let listBody = $("#listBody");
+let pagingArea = $("#pagingArea");
+
+let searchForm = $("#searchForm").ajaxForm({
+	dataType:"json"
+	, success:function(paging){
+		listBody.empty();
+// 		pagingArea.empty();
+		searchForm[0].page.value="";
+		
+		let scholarshipList = paging.dataList;
+		let trTags = [];
+		if(scholarshipList && scholarshipList.length > 0){
+			$.each(scholarshipList, function(idx, scholarship){
+// 				let viewURL = VIEWURLPTRN.replace("%V", studentRequest.userNo);
+				let trTag = $("<tr>")
+// 									.addClass("linkBtn")
+// 									.data("href", viewURL)
+									.append(
+												$("<td>").append($("<input>").attr("type", "checkbox").attr("name", "chk"))
+												, $("<td>").html(scholarship.userNo)
+												, $("<td>").html(scholarship.userName)
+												, $("<td>").html(scholarship.deptName)	
+												, $("<td>").html(scholarship.stuScore)
+												, $("<td>").html(scholarship.stuYear) 
+												, $("<td>").html(scholarship.stuClass)
+												, $("<td>").html(scholarship.userPhone)
+												, $("<td>").html(scholarship.userMail)
+												, $("<td>").html(scholarship.stuRank)
+									);
+				trTags.push(trTag);
+			});
+		}else{
+			let trTag = $("<tr>").html(
+							$("<td>").attr("colspan", "9")
+									 .html("조건에 맞는 상품이 없음.")
+						);
+			trTags.push(trTag);
+		} // if end
+		
+		listBody.append(trTags);
+		pagingArea.html(paging.pagingHTMLBS)
+		
+	} // success end
+	, resetForm : false
+}).submit();	
+	
+	
+	
+	
+</script>

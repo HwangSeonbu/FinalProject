@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.ast.dao.AssessmentDAO">
+	<select id="selectAstTargetLecList" parameterType="map" resultType="AstLecVO">
+		SELECT A.LEC_ID
+		    , B.USER_NO
+		    , C.PLAN_NO, C.PRO_NAME, P.DEPT_ID
+		    , E.COL_NAME, E.DEPT_NAME, C.LEC_NAME
+		    , D.PLAN_SMRY, D.SJT_ID, D.PLAN_TCNT, D.PLAN_EVAL
+		    , F.SJT_CREDIT, F.SJT_MAJOR
+		    , (SELECT COUNT(*) FROM AST
+		    	WHERE LEC_SEMS = #{lecSems}
+		        AND AST_DIV = '강의'
+		        AND LEC_ID = A.LEC_ID
+		        AND USER_NO = #{userNo}) "AST_CNT"
+		    , (SELECT AST_DATE FROM AST 
+		    	WHERE LEC_SEMS = #{lecSems}
+		    	AND AST_DIV = '강의' 
+		    	AND LEC_ID = A.LEC_ID 
+		    	AND USER_NO = #{userNo}) "AST_DATE"
+		FROM CLS A, LEC B, PRO P, PLANOK C, PLAN D, DEPARTMENT E
+		    , SJT F
+		WHERE A.LEC_SEMS = #{lecSems}
+		AND A.USER_NO = #{userNo}
+		AND A.LEC_ID = B.LEC_ID
+		AND B.LEC_STS != '폐강'
+		AND B.USER_NO = P.PRO_NO
+		AND A.LEC_ID = C.LEC_ID
+		AND C.PLAN_NO = D.PLAN_NO
+		AND P.DEPT_ID = E.DEPT_ID
+		AND D.SJT_ID = F.SJT_ID
+		ORDER BY SJT_MAJOR DESC	
+	</select>
+	
+	<select id="selectAstTargetProList" parameterType="map" resultType="AstProVO">
+		SELECT E.*
+		    , (SELECT COUNT(*) FROM AST
+		        WHERE LEC_SEMS = #{lecSems}
+		        AND AST_DIV = '교수'
+		        AND PRO_NO = E.USER_NO
+		        AND USER_NO = #{userNo}) "AST_CNT"
+		    , (SELECT AST_DATE FROM AST
+		        WHERE LEC_SEMS = #{lecSems}
+		        AND AST_DIV = '교수'
+		        AND PRO_NO = E.USER_NO
+		        AND USER_NO = #{userNo}) "AST_DATE"
+		FROM(
+		    SELECT USER_NO, DEPT_ID, COL_NAME, DEPT_NAME, PRO_JOB, USER_GENDER, USER_NAME
+		        , LISTAGG(LEC_NAME, ' | ') WITHIN GROUP (ORDER BY LEC_NAME) LEC_NAME
+		    FROM(
+		        SELECT B.USER_NO
+		            , P.DEPT_ID
+		            , D.COL_NAME, D.DEPT_NAME
+		            , P.PRO_JOB, U.USER_GENDER
+		            , C.LEC_NAME
+		            , U.USER_NAME
+		        FROM CLS A, LEC B, PRO P, PLANOK C, DEPARTMENT D, USERS U
+		        WHERE A.LEC_SEMS = #{lecSems} 
+		        AND A.USER_NO = #{userNo}
+		        AND A.LEC_ID = B.LEC_ID
+		        AND B.LEC_STS != '폐강'
+		        AND B.USER_NO = P.PRO_NO
+		        AND A.LEC_ID = C.LEC_ID
+		        AND B.USER_NO = U.USER_NO
+		        AND P.DEPT_ID = D.DEPT_ID
+		    )
+		    GROUP BY USER_NO, DEPT_ID, COL_NAME, DEPT_NAME, PRO_JOB, USER_GENDER, USER_NAME
+		) E
+	</select>
+	
+	<select id="selectAstTargetLecOne" parameterType="string" resultType="LectureVO">
+		SELECT A.LEC_ID, A.PLAN_NO, A.PRO_NAME, A.LEC_NAME
+		    , B.PLAN_YEAR, B.PLAN_LIMIT, B.PLAN_TCNT, B.PLAN_SMRY
+		    , C.LEC_PERS, C.MRATE, C.FRATE, C.HWRATE, C.ATTRATE
+		FROM PLANOK A, PLAN B, LEC C
+		WHERE A.LEC_ID = #{lecId}
+		AND C.LEC_ID = #{lecId}
+		AND A.PLAN_NO = B.PLAN_NO
+	</select>
+	
+	
+	<resultMap type="ProfessorLectureVO" id="lectureMap" autoMapping="true">
+		<id property="proNo" column="PRO_NO"/>
+		<collection property="mylecList"  ofType="LectureVO" autoMapping="true">
+			<id property="lecId" column="LEC_ID"/>
+		</collection>
+	</resultMap>
+	<select id="selectAstTargetProOne" parameterType="map" resultMap="lectureMap">
+		SELECT A.USER_NO "PRO_NO", A.USER_NAME, A.USER_GENDER, A.USER_PHONE, A.USER_MAIL
+		    , B.PRO_JOB, B.DEPT_ID
+		    , C.COL_NAME, C.DEPT_NAME
+		    , D.LEC_ID
+		    , E.LEC_NAME
+		    , (CASE
+		        WHEN D.LEC_ID IN (SELECT LEC_ID FROM CLS
+		                            WHERE LEC_SEMS = #{lecSems}
+		                            AND USER_NO = #{stuNo}) THEN 'Y'
+		        ELSE 'N' END) "MYLEC"
+		FROM USERS A, PRO B, DEPARTMENT C, LEC D
+		    , PLANOK E
+		WHERE A.USER_NO = #{proNo}
+		AND USER_CODE = 'A103'
+		AND A.USER_NO = B.PRO_NO
+		AND B.DEPT_ID = C.DEPT_ID
+		AND D.USER_NO = A.USER_NO
+		AND D.LEC_SEMS = #{lecSems}
+		AND D.LEC_STS = '개강'
+		AND D.LEC_ID = E.LEC_ID
+	</select>
+	
+	<insert id="insertAssessment" parameterType="AstVO">
+		INSERT INTO AST(AST_NO, AST_SCORE, AST_DATE, AST_DIV, LEC_ID, LEC_SEMS
+		    , USER_NO, AST_ETC, PRO_NO, AST_ANSWER)
+		VALUES(AST_SEQ.NEXTVAL, #{astScore}, SYSDATE, #{astDiv}
+		    , #{lecId,jdbcType=VARCHAR}
+		    , #{lecSems}, #{userNo}, #{astEtc}
+		    , #{proNo,jdbcType=NUMERIC}, #{astAnswer})
+	</insert>
+	
+	
+	<sql id="orderByClause">
+		<trim prefix="ORDER BY">
+			<if test="orderBy neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(orderBy)">
+		   		<choose>
+		   			<when test="orderBy eq 'DESC'">
+		    			AST_RATE DESC, USER_NAME
+		   			</when>
+		   			<when test="orderBy eq 'ASC'">
+		    			AST_RATE ASC, USER_NAME
+		   			</when>
+		   			<otherwise>
+		   				USER_NAME
+		   			</otherwise>
+		   		</choose>
+		   	</if>
+		   	<if test="orderBy eq null or orderBy eq ''">
+		   		USER_NAME
+		   	</if>
+		</trim>
+	</sql>
+	
+	<select id="selectProAstResultList" parameterType="OrderVO" resultType="AstResultVO">
+		SELECT V.* 
+			, CASE WHEN V.LEC_REALPERS != 0 THEN ROUND(V.AST_PERS/LEC_REALPERS*100, 2)
+			ELSE #{exceptRate} END "AST_RATE"
+		FROM(
+			WITH PROBASE AS (
+			    SELECT P.USER_NO, P.USER_NAME, P.USER_GENDER, P.PRO_INDATE
+			        , P.PRO_JOB, P.LEC_CNT, P.COL_NAME, P.DEPT_NAME
+			        , P.LEC_TOTALPERS
+			        , COUNT(DISTINCT Q.USER_NO) "LEC_REALPERS"
+			    FROM(
+			        SELECT A.USER_NO, A.USER_NAME, A.USER_GENDER
+			                , B.PRO_INDATE, B.PRO_JOB 
+			                , E.COL_NAME, E.DEPT_NAME
+			                , COUNT(C.LEC_ID) "LEC_CNT", NVL(SUM(C.LEC_PERS),0) "LEC_TOTALPERS"
+			        FROM USERS A, PRO B
+			            LEFT OUTER JOIN (SELECT *
+			                                FROM LEC
+			                                WHERE LEC_SEMS = #{thisSems}
+			                                AND LEC_STS != '폐강') C ON(B.PRO_NO = C.USER_NO)
+			            , DEPARTMENT E
+			        WHERE A.USER_CODE = 'A103'
+			        AND A.USER_NO = B.PRO_NO
+			        AND B.DEPT_ID = E.DEPT_ID
+			        GROUP BY A.USER_NO, A.USER_NAME, A.USER_GENDER
+			            , B.PRO_INDATE, B.PRO_JOB, E.COL_NAME, E.DEPT_NAME
+			        ORDER BY A.USER_NAME
+			    ) P LEFT OUTER JOIN (SELECT PRO_NO, USER_NO 
+			        FROM(
+			            SELECT A.USER_NO "PRO_NO", B.USER_NO 
+			            FROM LEC A
+			                INNER JOIN (SELECT * FROM CLS WHERE LEC_SEMS = #{thisSems}
+			                            ) B ON(A.LEC_ID = B.LEC_ID)
+			            WHERE A.LEC_SEMS = #{thisSems}
+			            AND A.LEC_STS != '폐강')) Q ON(P.USER_NO = Q.PRO_NO)
+			    GROUP BY P.USER_NO, P.USER_NAME, P.USER_GENDER, P.PRO_INDATE
+			        , P.PRO_JOB, P.LEC_CNT, P.LEC_TOTALPERS, P.COL_NAME, P.DEPT_NAME
+			    ORDER BY P.USER_NAME
+			)
+			SELECT PROBASE.USER_NO, PROBASE.USER_NAME, PROBASE.USER_GENDER
+			        , TO_CHAR(TO_DATE(PROBASE.PRO_INDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') "PRO_INDATE"
+			        , PROBASE.COL_NAME, PROBASE.DEPT_NAME
+			        , PROBASE.PRO_JOB, PROBASE.LEC_CNT, PROBASE.LEC_TOTALPERS
+			        , PROBASE.LEC_REALPERS
+			        , COUNT(AST.AST_NO) "AST_PERS"
+			FROM PROBASE LEFT OUTER JOIN (
+			    SELECT *
+			    FROM AST
+			    WHERE LEC_SEMS = #{thisSems}
+			    AND AST_DIV = '교수'
+			) AST ON(PROBASE.USER_NO = AST.PRO_NO)
+			GROUP BY PROBASE.USER_NO, PROBASE.USER_NAME, PROBASE.USER_GENDER
+			        , TO_CHAR(TO_DATE(PROBASE.PRO_INDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD')
+			        , PROBASE.PRO_JOB, PROBASE.LEC_CNT, PROBASE.LEC_TOTALPERS
+			        , PROBASE.COL_NAME, PROBASE.DEPT_NAME
+			        , PROBASE.LEC_REALPERS
+			ORDER BY PROBASE.USER_NAME
+		) V
+		<include refid="orderByClause" />
+	</select>
+	
+	<select id="selectLecAstResultList" parameterType="OrderVO" resultType="AstResultVO">
+		SELECT V.* 
+			, CASE WHEN V.LEC_REALPERS != 0 THEN ROUND(V.AST_PERS/LEC_REALPERS*100, 2)
+			ELSE #{exceptRate} END "AST_RATE"
+		FROM(
+			WITH LECBASE AS (
+				SELECT 
+				    A.LEC_ID, A.USER_NO, A.LEC_PERS "LEC_TOTALPERS"
+				    , B.USER_NAME, C.DEPT_ID
+				    , D.COL_NAME, D.DEPT_NAME
+				    , E.LEC_NAME
+				    , COUNT(F.LEC_ID) "LEC_REALPERS"
+				FROM LEC A LEFT OUTER JOIN (SELECT * 
+				                FROM CLS WHERE LEC_SEMS = #{thisSems}) F ON(A.LEC_ID = F.LEC_ID)
+				    , USERS B, PRO C, DEPARTMENT D
+				    , PLANOK E
+				WHERE A.LEC_SEMS = #{thisSems}
+				AND LEC_STS != '폐강'
+				AND A.USER_NO = B.USER_NO
+				AND B.USER_NO = C.PRO_NO
+				AND C.DEPT_ID = D.DEPT_ID
+				AND A.LEC_ID = E.LEC_ID
+				GROUP BY A.LEC_ID, A.USER_NO, A.LEC_PERS
+				    , B.USER_NAME, C.DEPT_ID, D.COL_NAME, D.DEPT_NAME, E.LEC_NAME
+				)
+				SELECT LECBASE.LEC_ID, LECBASE.USER_NO, LECBASE.LEC_TOTALPERS
+				    , LECBASE.USER_NAME, LECBASE.DEPT_ID
+				    , LECBASE.COL_NAME, LECBASE.DEPT_NAME
+				    , LECBASE.LEC_NAME, LECBASE.LEC_REALPERS
+				    , COUNT(F.AST_NO) AST_PERS
+				FROM LECBASE LEFT OUTER JOIN (SELECT * 
+				                    FROM AST
+				                    WHERE LEC_SEMS = #{thisSems}
+				                    AND AST_DIV = '강의') F ON(LECBASE.LEC_ID = F.LEC_ID)
+				GROUP BY LECBASE.LEC_ID, LECBASE.USER_NO, LECBASE.LEC_TOTALPERS
+				    , LECBASE.USER_NAME, LECBASE.DEPT_ID
+				    , LECBASE.COL_NAME, LECBASE.DEPT_NAME
+				    , LECBASE.LEC_NAME, LECBASE.LEC_REALPERS
+		) V
+		<include refid="orderByClause" />
+	</select>
+	<!-- pro or lec's detail result after assessment -->
+	
+	<select id="selectProAstCompResult" parameterType="int" resultType="AstResultVO">
+		SELECT USER_NO, USER_GENDER, PRO_JOB, USER_NAME, LEC_CNT
+		    , LEC_REALPERS, AST_PERS
+		    , (CASE WHEN LEC_REALPERS = 0 THEN '-'
+		        WHEN AST_PERS = 0 THEN '0.0%'
+		        ELSE ROUND(AST_PERS/LEC_REALPERS*100,2)||'%' END) "AST_COMPRATE"
+		    , (CASE WHEN AST_PERS = 0 THEN 0 
+		        WHEN AST_SCORE = 0 THEN 0 
+		        ELSE ROUND(AST_SCORE/AST_PERS,2) END) "AST_SCORE"
+		FROM(
+		    WITH PROBASE AS (
+		                SELECT P.USER_NO, P.USER_NAME, P.USER_GENDER, P.PRO_INDATE
+		                    , P.PRO_JOB, P.LEC_CNT, P.COL_NAME, P.DEPT_NAME
+		                    , P.LEC_TOTALPERS
+		                    , COUNT(DISTINCT Q.USER_NO) "LEC_REALPERS"
+		                FROM(
+		                    SELECT A.USER_NO, A.USER_NAME, A.USER_GENDER
+		                            , B.PRO_INDATE, B.PRO_JOB 
+		                            , E.COL_NAME, E.DEPT_NAME
+		                            , COUNT(C.LEC_ID) "LEC_CNT", NVL(SUM(C.LEC_PERS),0) "LEC_TOTALPERS"
+		                    FROM USERS A, PRO B
+		                        LEFT OUTER JOIN (SELECT *
+		                                            FROM LEC
+		                                            WHERE LEC_SEMS = #{thisSems}
+		                                            AND LEC_STS != '폐강') C ON(B.PRO_NO = C.USER_NO)
+		                        , DEPARTMENT E
+		                    WHERE A.USER_CODE = 'A103'
+		                    AND A.USER_NO = B.PRO_NO
+		                    AND B.DEPT_ID = E.DEPT_ID
+		                    GROUP BY A.USER_NO, A.USER_NAME, A.USER_GENDER
+		                        , B.PRO_INDATE, B.PRO_JOB, E.COL_NAME, E.DEPT_NAME
+		                    ORDER BY A.USER_NAME
+		                ) P LEFT OUTER JOIN (SELECT PRO_NO, USER_NO 
+		                    FROM(
+		                        SELECT A.USER_NO "PRO_NO", B.USER_NO 
+		                        FROM LEC A
+		                            INNER JOIN (SELECT * FROM CLS WHERE LEC_SEMS = #{thisSems}
+		                                        ) B ON(A.LEC_ID = B.LEC_ID)
+		                        WHERE A.LEC_SEMS = #{thisSems}
+		                        AND A.LEC_STS != '폐강')) Q ON(P.USER_NO = Q.PRO_NO)
+		                GROUP BY P.USER_NO, P.USER_NAME, P.USER_GENDER, P.PRO_INDATE
+		                    , P.PRO_JOB, P.LEC_CNT, P.LEC_TOTALPERS, P.COL_NAME, P.DEPT_NAME
+		                ORDER BY P.USER_NAME
+		            )
+		            SELECT PROBASE.USER_NO, PROBASE.USER_NAME, PROBASE.USER_GENDER
+		                    , TO_CHAR(TO_DATE(PROBASE.PRO_INDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD') "PRO_INDATE"
+		                    , PROBASE.COL_NAME, PROBASE.DEPT_NAME
+		                    , PROBASE.PRO_JOB, PROBASE.LEC_CNT, PROBASE.LEC_TOTALPERS
+		                    , PROBASE.LEC_REALPERS
+		                    , COUNT(AST.AST_NO) "AST_PERS"
+		                    , SUM(AST.AST_SCORE) "AST_SCORE"
+		            FROM PROBASE LEFT OUTER JOIN (
+		                SELECT *
+		                FROM AST
+		                WHERE LEC_SEMS = #{thisSems}
+		                AND AST_DIV = '교수'
+		            ) AST ON(PROBASE.USER_NO = AST.PRO_NO)
+		            GROUP BY PROBASE.USER_NO, PROBASE.USER_NAME, PROBASE.USER_GENDER
+		                    , TO_CHAR(TO_DATE(PROBASE.PRO_INDATE, 'YYYY-MM-DD'), 'YYYY-MM-DD')
+		                    , PROBASE.PRO_JOB, PROBASE.LEC_CNT, PROBASE.LEC_TOTALPERS
+		                    , PROBASE.COL_NAME, PROBASE.DEPT_NAME
+		                    , PROBASE.LEC_REALPERS
+		            ORDER BY PROBASE.USER_NAME
+		)
+	</select>
+	
+	<select id="selectLecAstCompResult" parameterType="int" resultType="AstResultVO">
+		SELECT LEC_ID, USER_NO, LEC_TOTALPERS, USER_NAME, DEPT_ID , COL_NAME, DEPT_NAME, LEC_NAME,LEC_REALPERS, AST_PERS 
+		    , (CASE WHEN LEC_REALPERS = 0 THEN '-' 
+		        WHEN AST_PERS = 0 THEN '0.0%' 
+		        ELSE ROUND(AST_PERS/LEC_REALPERS*100,2)||'%' END) "AST_COMPRATE" 
+		    , (CASE WHEN AST_PERS = 0 THEN 0 
+		        WHEN AST_SCORE = 0 THEN 0 
+		        ELSE ROUND(AST_SCORE/AST_PERS,2) END) "AST_SCORE" 
+		 FROM ( 
+		    WITH LECBASE AS ( 
+		        SELECT A.LEC_ID, A.USER_NO, A.LEC_PERS "LEC_TOTALPERS" , B.USER_NAME, C.DEPT_ID 
+		        , D.COL_NAME, D.DEPT_NAME ,E.LEC_NAME 
+		        , COUNT(F.LEC_ID) "LEC_REALPERS" 
+		        FROM LEC A LEFT OUTER JOIN (
+		                SELECT * FROM CLS 
+		                WHERE LEC_SEMS = #{thisSems}) F ON(A.LEC_ID = F.LEC_ID) 
+		            , USERS B, PRO C, DEPARTMENT D , PLANOK E 
+		        WHERE A.LEC_SEMS = #{thisSems} AND LEC_STS != '폐강' AND A.USER_NO = B.USER_NO AND B.USER_NO = C.PRO_NO 
+		        AND C.DEPT_ID = D.DEPT_ID AND A.LEC_ID = E.LEC_ID 
+		        GROUP BY A.LEC_ID, A.USER_NO, A.LEC_PERS , B.USER_NAME, C.DEPT_ID, D.COL_NAME, D.DEPT_NAME, E.LEC_NAME 
+		    ) 
+		    SELECT LECBASE.LEC_ID, LECBASE.USER_NO, 
+		        LECBASE.LEC_TOTALPERS , LECBASE.USER_NAME, LECBASE.DEPT_ID , LECBASE.COL_NAME, LECBASE.DEPT_NAME 
+		        , LECBASE.LEC_NAME, LECBASE.LEC_REALPERS , COUNT(F.AST_NO) AST_PERS , SUM(F.AST_SCORE) "AST_SCORE"
+		    FROM LECBASE  LEFT OUTER JOIN (
+		                SELECT * FROM AST 
+		                WHERE LEC_SEMS = #{thisSems} AND AST_DIV = '강의') F ON(LECBASE.LEC_ID = F.LEC_ID) 
+		    GROUP BY LECBASE.LEC_ID, LECBASE.USER_NO, LECBASE.LEC_TOTALPERS , LECBASE.USER_NAME, 
+		        LECBASE.DEPT_ID , LECBASE.COL_NAME, LECBASE.DEPT_NAME , LECBASE.LEC_NAME, LECBASE.LEC_REALPERS 
+		    )
+	</select>
+	
+	<select id="selectLecAstDetailResult" parameterType="AstVO" resultType="AstVO">
+		SELECT AST_NO, AST_SCORE, TO_CHAR(AST_DATE, 'YYYY-MM-DD') "AST_DATE"
+		    , AST_DIV, LEC_ID, LEC_SEMS, USER_NO, AST_ETC, AST_ANSWER 
+		FROM AST 
+		WHERE LEC_SEMS = #{lecSems} 
+		AND AST_DIV = '강의'
+		AND LEC_ID = #{lecId}
+	</select>
+	
+	<select id="selectProAstDetailResult" parameterType="AstVO" resultType="AstVO">
+		SELECT AST_NO, AST_SCORE, TO_CHAR(AST_DATE, 'YYYY-MM-DD') "AST_DATE"
+				    , AST_DIV, LEC_ID, LEC_SEMS, USER_NO, AST_ETC, AST_ANSWER 
+		FROM AST 
+		WHERE LEC_SEMS = #{lecSems}  
+		AND AST_DIV = '교수'
+		AND PRO_NO = #{proNo}
+	</select>
+</mapper>

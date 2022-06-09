@@ -1,0 +1,122 @@
+<%--
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 23.      작성자명      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<style>
+.table{
+	width: 1200px;
+}
+#title{
+	font-weight: bold;
+	font-size: x-large;
+	text-align: center;
+}
+.column{
+	font-weight: bold;
+	text-align: center;
+}
+table td:first-child{
+	width: 150px;
+}
+#deleteForm{
+	display: inline;
+}
+/* table td:second-child{ */
+/* 	text-align: left; */
+/* } */
+</style>
+    <h3>과제 보기</h3>
+
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="#">home</a></li>
+    <li class="breadcrumb-item"><a href="${cPath}/lecBoard/notice">목록</a></li>
+    <li class="breadcrumb-item active" aria-current="page">새글</li>
+  </ol>
+</nav>
+    <hr>
+  <table class="table table-bordered">
+  	<thead class="table-light">
+  		<tr>
+  			<td class="column">
+  			과제명
+  			</td>
+  			<td>
+  			${homework.lechwkName }
+  			</td>
+  		</tr>
+  	</thead>
+  	<tbody>
+  		<tr>
+  			<td class="column">
+  			과제 등록일
+  			</td>
+  			<td>
+  			${homework.registDate }
+  			</td>
+  		</tr>
+  		<tr>
+  			<td class="column">
+  			과제 마감일
+  			</td>
+  			<td>
+  			${homework.lechwkDate }
+  			</td>
+  		</tr>
+  		<tr>
+  			<td class="column">
+  			조회수
+  			</td>
+  			<td>
+  			${homework.hit }
+  			</td>
+  		</tr>
+  		<tr>
+  			<td colspan="2">
+  			${homework.htmlContent }	
+  			</td>
+
+  		</tr>
+  		<tr>
+  			<td class="column">
+  			첨부파일
+  			</td>
+  			<td>
+		  		<c:forEach items="${board.attchList }" var="attach" varStatus="vs">
+		  			<c:url value="/lecBoard/notice/${board.lecboNo }/attach/${attach.attchNo }"  var="downloadURL"></c:url>
+					<a href="${downloadURL }">${attach.attchFname }</a>  		
+			  		<c:if test="${not vs.last}">
+			  			<hr>
+			  		</c:if>
+		  		</c:forEach>		
+  			</td>
+  		</tr>
+  		<tr>
+  			<td colspan="2">
+  			${board.lecboContent }
+  			</td>
+  		</tr>
+  	</tbody>
+  	
+  	<tfoot>
+  	<tr>
+	  	<th>
+	  		FOOTER
+	  	</th> 	
+  	</tr>
+  	</tfoot>
+  </table>
+  
+  <script>
+  $("#list").on("click",function(){
+	  location.href="${cPath}/lecBoard/notice";
+  })
+  
+  </script>

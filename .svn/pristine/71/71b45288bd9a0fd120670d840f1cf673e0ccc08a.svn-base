@@ -1,0 +1,104 @@
+<%--
+교수의 강의리스트를 시간표형식으로 조회 jsp
+(제목을 클릭하면 점수 비중을 설정하는 jsp로 이동한다)
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 28.      김재웅      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<h3 class="h3-title">강의시간표</h3><hr class="hr-title">
+<!-- https://a1010100z.tistory.com/86 -->
+<table class="table table-bordered ">
+ <thead >
+    <tr class="text-center">
+     <th scope="col" style="width:150px" >시간</th>
+     <th scope="col" style="width:300px">월</th>
+     <th scope="col" style="width:300px">화</th>
+     <th scope="col" style="width:300px">수</th>
+     <th scope="col" style="width:300px">목</th>
+     <th scope="col" style="width:300px">금</th>
+   </tr>
+ </thead>
+ <tbody class="text-center">
+   <tr>
+     <th scope="row">1교시</th>
+ 	<td id="월1"></td>
+ 	<td id="화1"></td>
+ 	<td id="수1"></td>
+ 	<td id="목1"></td>
+ 	<td id="금1"></td>
+   </tr>
+   <tr>
+     <th scope="row">2교시</th>
+ 	<td id="월2"></td>
+ 	<td id="화2"></td>
+ 	<td id="수2"></td>
+ 	<td id="목2"></td>
+ 	<td id="금2"></td>
+   </tr>
+   <tr>
+     <th scope="row">3교시</th>
+ 	<td id="월3"></td>
+ 	<td id="화3"></td>
+ 	<td id="수3"></td>
+ 	<td id="목3"></td>
+ 	<td id="금3"></td>
+   </tr>
+   <tr>
+     <th scope="row">4교시</th>
+ 	<td id="월4"></td>
+ 	<td id="화4"></td>
+ 	<td id="수4"></td>
+ 	<td id="목4"></td>
+ 	<td id="금4"></td>
+   </tr>
+   <tr>
+     <th scope="row">5교시</th>
+ 	<td id="월5"></td>
+ 	<td id="화5"></td>
+ 	<td id="수5"></td>
+ 	<td id="목5"></td>
+ 	<td id="금5"></td>
+   </tr>
+   <tr>
+     <th scope="row">6교시</th>
+ 	<td id="월6"></td>
+ 	<td id="화6"></td>
+ 	<td id="수6"></td>
+ 	<td id="목6"></td>
+ 	<td id="금6"></td>
+   </tr>
+ </tbody>
+</table>
+
+<script>
+let listBody = $("#listBody");
+
+$.ajax({
+	url : "${pageContext.request.contextPath}/lecView/lectureTimeTableDataView.do",
+	method : "get",
+	dataType : "json",
+	success : function(resp) {
+
+		let proLectureList = resp.proLectureList;
+		
+		if(proLectureList && proLectureList.length > 0){
+			$.each(proLectureList, function(idx, lecture){
+				let assignDt = "#"+lecture.assignDt;
+				$(assignDt).append(lecture.lecName).append("<br>")
+						   .css("background-color", "skyblue");
+			});
+		}else{} // if end
+	},
+	error : function(jqXHR, textStatus, errorThrown) {
+		console.log(jqXHR);
+		console.log(textStatus);
+		console.log(errorThrown);
+	}
+});
+
+
+</script>

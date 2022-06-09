@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.AcadScheduleBoardDAO">
+	<select id="acadScheduleBoardList" resultType="CalendarVO">
+		SELECT
+		    ACADSC_NO,
+		    ACADSC_CONT,
+		    TO_CHAR(ACADSC_START, 'yyyy-mm-dd')ACADSC_START,
+		    TO_CHAR(ACADSC_END, 'yyyy-mm-dd')ACADSC_END,
+		    ACADSC_DIV,
+		    ACADSC_SEMS 
+		FROM ACADSC
+		WHERE ACADSC_DIV = 'B1'
+		ORDER BY ACADSC_START ASC
+	</select>
+	<insert id="insertAcadSchedule" parameterType="CalendarVO">
+		<selectKey resultType="int" keyProperty="acadscNo" order="BEFORE">
+			SELECT ACADSC_SEQ.NEXTVAL
+			FROM DUAL
+		</selectKey>
+	INSERT INTO ACADSC (
+		    ACADSC_NO,
+		    ACADSC_CONT,
+		    ACADSC_START,
+		    ACADSC_END,
+		    ACADSC_DIV
+	) VALUES (
+			#{acadscNo,jdbcType=NUMERIC}
+			,#{acadscCont,jdbcType=VARCHAR}
+			,#{acadscStart,jdbcType=VARCHAR}
+			,#{acadscEnd,jdbcType=VARCHAR}
+			,'B1'
+	)
+	</insert>
+	<resultMap type="CalendarVO" id="acadscMap" autoMapping="true">
+		<id property="acadscNo" column="ACADSC_NO"/>	
+	</resultMap>
+	<select id="selectSchedule" parameterType="int" resultMap="acadscMap">
+		SELECT
+		    ACADSC_NO,
+		    ACADSC_CONT,
+		    TO_CHAR(ACADSC_START, 'yyyy-mm-dd')ACADSC_START,
+		    TO_CHAR(ACADSC_END, 'yyyy-mm-dd')ACADSC_END,
+		    ACADSC_DIV,
+		    ACADSC_SEMS 
+		FROM ACADSC
+		WHERE ACADSC_DIV = 'B1'
+		AND ACADSC_NO = #{acadscNo}
+	</select>
+	<update id="updateSchedule" parameterType="CalendarVO">
+		UPDATE ACADSC
+		SET
+			ACADSC_NO = #{acadscNo,jdbcType=NUMERIC}
+			,ACADSC_CONT = #{acadscCont,jdbcType=VARCHAR}
+			,ACADSC_START = #{acadscStart,jdbcType=VARCHAR}
+			,ACADSC_END = #{acadscEnd,jdbcType=VARCHAR}
+			,ACADSC_DIV = 'B1'
+		WHERE ACADSC_NO = #{acadscNo}	
+	</update>
+	<delete id="deleteSchedule" parameterType="int">
+		DELETE FROM ACADSC
+		WHERE ACADSC_NO = #{acadscNo}	
+	</delete>
+</mapper>

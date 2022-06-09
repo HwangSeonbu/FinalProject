@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.adminLecture.dao.AdminLectureDAO">
+
+
+	<sql id="searchSubmitCondition">
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="detailCondition neq null">
+				AND A.PLAN_SEMS = #{detailCondition.planSems}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.colName)">
+				AND D.COL_NAME = #{detailCondition.colName}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.deptId)">
+				AND A.DEPT_ID = #{detailCondition.deptId}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.sjtMajor)">
+				AND B.SJT_MAJOR LIKE #{detailCondition.sjtMajor}||'%'
+			</if>
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND 
+	    		<choose>
+	    			<when test="simpleCondition.searchType eq 'userName'">
+	    				INSTR(C.USER_NAME, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<when test="simpleCondition.searchType eq 'sjtName'">
+	    				INSTR(B.SJT_NAME, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<when test="simpleCondition.searchType eq 'planSmry'">
+	    				INSTR(A.PLAN_SMRY, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<otherwise>
+	    				INSTR(C.USER_NAME, #{simpleCondition.searchWord}) > 0
+	    				OR INSTR(B.SJT_NAME, #{simpleCondition.searchWord}) > 0
+	    				OR INSTR(A.PLAN_SMRY, #{simpleCondition.searchWord}) > 0
+	    			</otherwise>
+	    		</choose>
+	    	</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.planSts)">
+				AND A.PLAN_STS = #{detailCondition.planSts}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isBlank(detailCondition.planSts)">
+				AND A.PLAN_STS IN ('B102', 'B103', 'B105')
+			</if>
+		</trim>
+	</sql>
+
+	<select id="selectSubmitPlanTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM PLAN A LEFT OUTER JOIN SJT B ON(A.SJT_ID = B.SJT_ID)
+		        INNER JOIN USERS C ON(A.USER_NO = C.USER_NO)
+		        INNER JOIN DEPARTMENT D ON(A.DEPT_ID = D.DEPT_ID)
+		        LEFT OUTER JOIN CODE F ON(A.PLAN_STS = F.STS_ID)
+		<include refid="searchSubmitCondition" />
+	</select>
+	
+
+	<select id="selectSubmitPlanList" parameterType="PagingVO" resultType="PlanEditVO">
+		SELECT RNUMSETVIEW.*
+		FROM(
+		    SELECT ROWNUM RNUM, BASEVIEW.*
+		    FROM (
+		        SELECT A.PLAN_NO, F.STS_CODE1 "PLAN_STS", A.USER_NO, A.SJT_ID, A.PLAN_YEAR
+		            , A.PLAN_LIMIT, A.PLAN_TCNT, A.PLAN_EVAL, A.PLAN_DENLRSN
+		            , A.PLAN_SMRY, A.PLAN_SEMS, A.DEPT_ID 
+		            , B.SJT_NAME, B.SJT_CREDIT, B.SJT_MAJOR, B.SJT_GRADE
+		            , C.USER_NAME, D.COL_NAME, D.DEPT_NAME
+		        FROM PLAN A LEFT OUTER JOIN SJT B ON(A.SJT_ID = B.SJT_ID)
+		                INNER JOIN USERS C ON(A.USER_NO = C.USER_NO)
+		                INNER JOIN DEPARTMENT D ON(A.DEPT_ID = D.DEPT_ID)
+		                LEFT OUTER JOIN CODE F ON(A.PLAN_STS = F.STS_ID)
+		        <include refid="searchSubmitCondition" />
+		        ORDER BY A.PLAN_STS DESC, A.PLAN_NO
+		    ) BASEVIEW
+		) RNUMSETVIEW
+		<![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+	
+	
+	<resultMap type="PlanEditVO" id="submitPlanMap" autoMapping="true">
+		<id property="planNo" column="PLAN_NO"/>
+		<collection property="wPlanList" ofType="WplanVO" autoMapping="true">
+			<id property="wplanNo" column="WPLAN_NO"/>
+		</collection>
+	</resultMap>
+	<select id="selectSubmitPlanOne" parameterType="int" resultMap="submitPlanMap">
+		SELECT A.PLAN_NO, F.STS_CODE1 "PLAN_STS", A.USER_NO, A.SJT_ID, A.PLAN_YEAR
+		    , A.PLAN_LIMIT, A.PLAN_TCNT, A.PLAN_EVAL, A.PLAN_DENLRSN
+		    , A.PLAN_SMRY, A.PLAN_SEMS, A.DEPT_ID 
+		    , B.SJT_NAME, B.SJT_CREDIT, B.SJT_MAJOR, B.SJT_GRADE
+		    , C.USER_NAME, D.COL_NAME, D.DEPT_NAME
+		    , E.WPLAN_NO, E.WPLAN_W, E.WPLAN_CONT
+		FROM PLAN A LEFT OUTER JOIN SJT B ON(A.SJT_ID = B.SJT_ID)
+		        INNER JOIN USERS C ON(A.USER_NO = C.USER_NO)
+		        INNER JOIN DEPARTMENT D ON(A.DEPT_ID = D.DEPT_ID)
+		        LEFT OUTER JOIN WPLAN E ON(A.PLAN_NO = E.PLAN_NO)
+		        LEFT OUTER JOIN CODE F ON(A.PLAN_STS = F.STS_ID)
+		WHERE A.PLAN_NO = #{planNo}
+		ORDER BY E.WPLAN_W		
+	</select>
+	
+	<update id="updateSubmitPlanSts" parameterType="PlanVO">
+		UPDATE PLAN
+		    SET
+		        PLAN_STS = 'B103'
+		        , PLAN_DENLRSN = #{planDenlrsn}
+		WHERE
+		    PLAN_NO = #{planNo}
+	</update>
+	
+	<update id="updateSubmitApprove" parameterType="int">
+		UPDATE PLAN
+		    SET
+		        PLAN_STS = 'B102'
+		WHERE
+		    PLAN_NO = #{planNo}
+	</update>
+	
+	<insert id="insertLectureAssign" parameterType="int">
+		INSERT INTO LEC_ASSIGN(ASSIGN_NO, PLAN_NO)
+			VALUES (LEC_ASSIGN_SEQ.NEXTVAL, #{planNo})
+	</insert>
+	
+	<insert id="insertPlanok" parameterType="PlanEditVO">
+		INSERT INTO PLANOK(LEC_ID, PLAN_NO, PRO_NO, PRO_NAME, LEC_NAME, SJT_ID)
+    	VALUES((#{planSems}||LPAD(PLANOK_SEQ.NEXTVAL, 5, '0'))
+    		,  #{planNo}, #{userNo}, #{userName}, #{sjtName}, #{sjtId})
+	</insert>
+</mapper>

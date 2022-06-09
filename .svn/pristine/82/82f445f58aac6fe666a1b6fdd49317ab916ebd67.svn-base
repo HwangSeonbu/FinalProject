@@ -1,0 +1,56 @@
+<%--
+교수가  성적을 입력하는 jsp
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 27.      작성자명      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<pre>
+1. 년도, 학기, 강의명(강의코드)를 입력 후  조회를 누른다.
+2. 해당 조건에 맞는  과목에 대한 수강생들 목록이 테이블 형식으로 모두 조회가 된다.
+3. 중간/기말/과제 점수는 직접 입력 (비동기화)
+4. 출석 점수는  출석부의 데이터틑 조회하여 자동으로 점수로 계산되어 입력된다.
+5. 모든 입력 칸에 데이터 종합 점수로 학점을 부여한다.
+</pre>
+
+<div class="container mt-3">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>NO</th>
+        <th>강의명</th>
+        <th>학번</th>
+        <th>성명</th>
+        <th>학년</th>
+        <th>중간고사</th>
+        <th>기말고사</th>
+        <th>과제성적</th>
+        <th>출결성적</th>
+        <th>백분위 점수</th>
+        <th>최종성적</th>
+      </tr>
+    </thead>
+    <tbody>
+		<c:forEach items="${subject }" var="subject">
+		    <tr>
+		        <td>${subject.rnum}</td>
+		        <td>${subject.sjtName }</td>
+		        <td>${subject.userNo }</td>
+		        <td>${subject.userName }</td>
+		        <td>${subject.stuYear }</td>
+		        <td>${subject.clsMexam }</td>
+		        <td>${subject.clsFexam }</td>
+		        <td>${subject.clsHwk }</td>
+		        <td>${subject.clsAttabs }</td>
+		        <td>${subject.clsPct }</td>
+		        <td>${subject.clsCrdt }</td>
+		      </tr>
+		</c:forEach>
+    </tbody>
+  </table>
+</div>

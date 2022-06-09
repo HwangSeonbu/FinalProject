@@ -1,0 +1,46 @@
+package kr.or.ddit.request.dao;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.StudentRequestVO;
+
+/**
+ * 휴복학 신청 신청
+ * @author 고성식
+ * @since 2022. 5. 4.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 4.    고성식 	  	    최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Mapper
+public interface StudentRequestDAO {
+	/**
+	 * 학생 휴학 요청 리스트
+	 * @param paging
+	 * @return
+	 */
+	public List<StudentRequestVO> selectStudentLeaveRequestList(PagingVO<StudentRequestVO> paging);
+	
+	/**
+	 * 검색 조건에 맞는 요청 조회
+	 * @param paging
+	 * @return
+	 */
+	public int selectTotalRecord(PagingVO<StudentRequestVO> paging);
+	
+	/**
+	 * 학생 복학 요청 리스트
+	 * @param paging
+	 * @return
+	 */
+	public List<StudentRequestVO> selectStudentReturnRequestList(PagingVO<StudentRequestVO> paging);
+}

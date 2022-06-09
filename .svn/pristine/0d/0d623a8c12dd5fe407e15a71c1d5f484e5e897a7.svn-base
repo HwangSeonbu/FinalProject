@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 13.  고성식	     최초작성             -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.request.dao.RequestDAO">
+
+	<select id="selectStudentRequestList" parameterType="PagingVO" resultType="RequestVO">
+		WITH TEMP AS(    
+	    SELECT A.*, ROWNUM RNUM
+	     FROM
+	        (SELECT
+	            A.REQ_ID
+	           ,A.USER_NO
+	           ,A.REQ_SMS
+	           ,A.REQ_RSN
+	           ,A.REQ_START
+	           ,A.REQ_END
+	           ,A.REQ_DENL
+	           ,A.REQ_DATE
+	           ,A.REQ_STAT
+	           ,B.USER_NAME
+	           ,B.USER_PHONE
+	           ,B.USER_MAIL
+	           ,C.DEPT_ID
+	           ,C.STU_YEAR
+	           ,C.STU_CLASS
+	           ,C.STU_CODE
+	           ,D.DEPT_NAME
+	           ,D.COL_NAME
+	        FROM REQ A
+	        INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+	        INNER JOIN STU C ON B.USER_NO=C.USER_NO
+	        INNER JOIN DEPARTMENT D ON C.DEPT_ID=D.DEPT_ID
+	        )A
+	        WHERE A.REQ_RSN = 'A001'
+	    )
+	    SELECT *
+	    FROM TEMP
+	    <![CDATA[
+		WHERE RNUM >=#{startRow} AND RNUM <=#{endRow} 
+ 		]]>
+	</select>
+	<select id="selectStudentTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM REQ A
+		INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+		INNER JOIN STU C ON B.USER_NO=C.USER_NO
+		INNER JOIN DEPARTMENT D ON C.DEPT_ID=D.DEPT_ID
+		WHERE A.REQ_RSN = 'A001'
+	</select>
+	
+	
+	
+</mapper>

@@ -1,0 +1,15 @@
+package kr.or.ddit.board.dao;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.AttchVO;
+import kr.or.ddit.vo.NoticeBoardVO;
+
+@Mapper
+public interface AttchDAO {
+	public int insertAttches(NoticeBoardVO nBoard);
+	public AttchVO selectAttch(String attchNo);
+	public void incrementDowncoutn(String attchNo);
+	public int deleteAttches(NoticeBoardVO nBoard);
+	public void uploadAttchs(NoticeBoardVO nBoard);
+}

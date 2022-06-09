@@ -1,0 +1,56 @@
+package kr.or.ddit.homework.controller;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.homework.service.HomeworkService;
+import kr.or.ddit.vo.ClassVO;
+import kr.or.ddit.vo.LecHomeworkVO;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.SimpleSearchVO;
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
+@Controller
+public class HomeWorkListController {
+	@Autowired
+	private HomeworkService service;
+	
+	@RequestMapping("/homework")
+	public String homeWorkList(
+			@RequestParam(value="page", required=false, defaultValue="1") int currentPage
+			,@ModelAttribute("simpleCondition") SimpleSearchVO simpleCondition
+			,Model model
+			,HttpSession session
+			){
+		ClassVO cls = (ClassVO) session.getAttribute("classVO");
+		log.info("cls.getLecId{}",cls.getLecId());
+		LecHomeworkVO detailCondition = new LecHomeworkVO();
+		detailCondition.setLecId(cls.getLecId());
+		
+		PagingVO<LecHomeworkVO>paging = new PagingVO<>(10, 5);
+		paging.setCurrentPage(currentPage);
+		paging.setSimpleCondition(simpleCondition);
+		paging.setDetailCondition(detailCondition);
+		
+		List<LecHomeworkVO>hwList = service.retrieveHomeworkList(paging);
+		
+		model.addAttribute("board", hwList);
+		
+		model.addAttribute("paging", paging);
+		
+		return "homework/hwboard";
+	}
+	@RequestMapping("boardOne")
+	public String homeWorkOne() {
+	
+		return "homework/hwboard";
+	}
+}

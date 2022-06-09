@@ -1,0 +1,16 @@
+package kr.or.ddit.vo;
+
+import java.util.List;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(of="ansNo")
+public class AnswerVO {
+	private String ansNo;
+	private String ansConent;
+	private Integer ansScore;
+	
+	private List<QuestionAnswerVO> qaVO;
+}

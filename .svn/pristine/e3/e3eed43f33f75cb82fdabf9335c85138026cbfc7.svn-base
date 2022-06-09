@@ -1,0 +1,70 @@
+package kr.or.ddit.vo;
+
+import java.io.Serializable;
+import java.util.List;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**CNSL테이블 객체를 담을 VO
+ * @author 황선부
+ * @since 2022. 4. 28.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 28.      황선부       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Data
+@EqualsAndHashCode(of= "cnslId")
+public class CounselVO implements Serializable {
+	private int rnum;
+	
+	private String cnslId;
+	private int stuNo;
+	private Integer proNo;
+	private String cnslDate;
+	private String dyDate;
+	private String cnslDay;
+	private String cnslLo;
+	
+	private StudentVO stuVO;	
+	private ProfessorVO proVO;
+	
+	//상담설문
+	private String r1;
+	private String r2;
+	private String r3;
+	private String r4;
+	private String r5;
+	private String r6;
+	private String r7;
+	private String r8;
+	private String qaLong;
+	
+	//상담일지
+	private List<String> l1;
+	private List<String> l2;
+	
+	
+	private String deptName;
+	private int userNo;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

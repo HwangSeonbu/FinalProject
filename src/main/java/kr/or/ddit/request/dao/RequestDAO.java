@@ -1,0 +1,132 @@
+package kr.or.ddit.request.dao;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.RequestVO;
+
+/**
+ * 신청 DAO
+ * @author 고성식
+ * @since 2022. 5. 4.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 4.    고성식 	  	    최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Mapper
+public interface RequestDAO {
+	/**
+	 * 학생의 휴학 요청 리스트
+	 * @param paging
+	 * @return
+	 */
+	public List<RequestVO> selectStudentRequestList(PagingVO<RequestVO> paging);
+	
+	/**
+	 * 검색 조건에 맞는 휴학 요청 조회
+	 * @param paging
+	 * @return
+	 */
+	public int selectTotalRecord(PagingVO<RequestVO> paging);
+	
+	/**
+	 * 사용자 번호 조회
+	 * @param student
+	 * @return
+	 */
+	public int selectUserNo();
+	
+	/**
+	 * 승인했을대 학생 상태 변경
+	 * @param vo
+	 * @return
+	 */
+	public int updateLeaveSts(RequestVO vo);
+	
+	/**
+	 * 승인했을때 요청 상태 변경
+	 * @param vo
+	 * @return
+	 */
+	public int updateLeaveReq(RequestVO vo);
+	
+	/**
+	 * 반려했을때 반려사유
+	 * @param vo
+	 * @return
+	 */
+	public int updateReferLeaveSts(RequestVO vo);
+	
+	
+	/**
+	 * 학생의 휴학신청 중복 검사
+	 * @param vo
+	 * @return
+	 */
+	public int selectRequestLeaveStsCount(RequestVO vo);
+	
+	/**
+	 * 학생의 휴학신청
+	 * @param leave
+	 */
+	public int insertRequestLeaveSts(RequestVO vo);
+	
+	/**
+	 * 학생의 복학 요청 리스트
+	 * @param paging
+	 * @return
+	 */
+	public List<RequestVO> selectStudentReturnRequestList(PagingVO<RequestVO> paging);
+	
+	/**
+	 * 검색 조건에 맞는 복학 요청 조회
+	 * @param paging
+	 * @return
+	 */
+	public int selectReturnTotalRecord(PagingVO<RequestVO> paging);
+	
+	/**
+	 * 승인했을대 학생 상태 변경
+	 * @param vo
+	 * @return
+	 */
+	public int updateReturnSts(RequestVO vo);
+	
+	/**
+	 * 승인했을때 요청 상태 변경
+	 * @param vo
+	 * @return
+	 */
+	public int updateReturnReq(RequestVO vo);
+	
+	/**
+	 * 학생의 휴학신청
+	 * @param leave
+	 */
+	public int insertRequestReturnSts(RequestVO vo);
+	
+	/**
+	 * 학생의 복학신청 중복 검사
+	 * @param vo
+	 * @return
+	 */
+	public int selectRequestReturnStsCount(RequestVO vo);
+	
+	/**
+	 * 로그인한 학생 개인의 휴학신청 결과 조회
+	 * @param vo
+	 * @return
+	 */
+	public List<RequestVO> selectStudentLeaveRequestList(Map<String, Object> param);
+	
+	
+}

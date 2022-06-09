@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.commons.dao.MenuDAO">
+
+	<select id="selectTopMenuList" resultType="MenuTopVO">
+		SELECT A.ROLE_ID
+		    , B.*
+		FROM MENU_ROLES A, TOPMENU B
+		WHERE 
+		 A.MENU_ID = B.TOPMENU_ID
+		ORDER BY TOPMENU_TYPE DESC, TOPMENU_ORDER
+	</select>
+	
+	<select id="selectSideMenuList" parameterType="String" resultType="MenuSideVO">
+		SELECT MENU_ID,MENU_TEXT,MENU_URL,MENU_PARENT,MENU_CLASSES FROM MENU WHERE MENU_TOP = #{topmenuId} AND MENU_YN = 'Y'
+	</select>
+	
+	
+</mapper>

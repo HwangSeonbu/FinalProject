@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 13. 황선부     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecboard.dao.LecBoardDAO">
+
+	<select id="selectLectureListOfStu" parameterType="int" resultType="Map" >
+		SELECT A.LEC_ID , E.SJT_NAME, E.SJT_CREDIT, B.USER_NAME,
+        (SELECT SEMS_NO
+        FROM SEMSDATA
+       <![CDATA[
+        WHERE SYSDATE >= SEMS_SDATE
+        AND SYSDATE <= SEMS_EDATE) AS SEMS_DATE
+        ]]>
+      
+FROM LEC A INNER JOIN USERS B ON(A.USER_NO = B.USER_NO)
+           INNER JOIN PLANOK C ON(A.LEC_ID = C.LEC_ID)
+           INNER JOIN PLAN D ON(C.PLAN_NO = D.PLAN_NO)
+           INNER JOIN SJT E ON(D.SJT_ID = E.SJT_ID) 
+           INNER JOIN CLS F ON(A.LEC_ID=F.LEC_ID AND A.LEC_SEMS=F.LEC_SEMS)
+WHERE F.USER_NO=#{userNo} AND A.LEC_SEMS=      
+        (SELECT SEMS_NO
+        FROM SEMSDATA
+        <![CDATA[
+        WHERE SYSDATE >= SEMS_SDATE
+        AND SYSDATE <= SEMS_EDATE)
+        ]]>  
+	</select>
+	
+	<select id="selectLecUserList" parameterType="ClassVO" resultType="UserVO">
+		SELECT A.*
+		FROM USERS A INNER JOIN CLS B ON(A.USER_NO = B.USER_NO)
+		WHERE LEC_SEMS=#{lecSems} AND LEC_ID=#{lecId}
+	</select>
+	
+	<select id="selectAuthenLecUserNo" parameterType="ClassVO" resultType="int">
+	SELECT COUNT(*)
+	from(SELECT A.*
+		FROM USERS A INNER JOIN CLS B ON(A.USER_NO = B.USER_NO)
+		WHERE LEC_SEMS={#lecSems} AND LEC_ID=#{lecId})
+	WHERE USER_NO=#{userNo}
+	</select>
+
+
+
+
+</mapper>

@@ -1,0 +1,87 @@
+package kr.or.ddit.vo;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.HtmlUtils;
+
+import lombok.Data;
+
+/**
+ * @author 이유정
+ * @since 2022. 5. 9.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 9.      이유정      최초작성  <- 이부분 작성하면서 코딩 진행해주세요~
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+
+@Data
+public class NoticeBoardVO {
+	private Integer noticeNo;
+	private Integer userNo;
+	private String noticeTitle;
+	private String noticeContent;
+	private Integer noticeHit;
+	private String noticeDate;
+	
+	private String userPass;
+	private String userName;
+	private String userGender;
+	private String userPhone;
+	private String userAddr;
+	private String userReg1;
+	private String userReg2;
+	private String userMail;
+	private String userSavename;
+	private String userDate;
+	private String userCode;
+	
+	private int startAttNo;
+	private List<AttchVO> attchList;
+	
+	private int[] delAttNos;
+	private MultipartFile[] nBoFiles;
+	public void setNBoFiles(MultipartFile[] nBoFiles) {
+		if(nBoFiles==null || nBoFiles.length==0) return;
+		this.nBoFiles = nBoFiles;
+		this.attchList = new ArrayList<>();
+//		FOR(MULTIPARTFILE EACHFILE : NBOFILES) {
+//			IF(EACHFILE.ISEMPTY()) CONTINUE;
+//			ATTCHVO ATTCH = NEW ATTCHVO(ADAPTEE, ATTCHFNAME, ATTCHSNAME, ATTCHMIME, ATTCHSIZE, ATTCHFSIZE);
+//			ATTCHLIST.ADD(ATTCH);
+//		}
+	}
+	
+	public String getNoticeContentDisplay() {
+		return HtmlUtils.htmlUnescape(this.noticeContent);
+	}
+	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

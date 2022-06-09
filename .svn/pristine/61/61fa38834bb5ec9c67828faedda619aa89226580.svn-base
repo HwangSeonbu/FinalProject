@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.room.dao.ProfessorRoomSetDAO">
+
+	<resultMap type="DepartLectureAssignVO" id="assignMap" autoMapping="true">
+		<id property="planNo" column="PLAN_NO"/>
+		<collection property="assignList" ofType="AssignVO" autoMapping="true">
+			<id property="assignNo" column="ASSIGN_NO"/>
+		</collection>
+	</resultMap>
+	<select id="selectDepartLecList" parameterType="PlanVO" resultMap="assignMap">
+		WITH PLANOKLIST AS (
+		    SELECT
+		        A.PLAN_NO, A.USER_NO, A.SJT_ID, A.PLAN_YEAR, A.PLAN_LIMIT, A.PLAN_TCNT, A.DEPT_ID
+		        , B.USER_NAME, C.SJT_NAME, C.SJT_MAJOR
+		    FROM PLAN A, USERS B, SJT C
+		    WHERE A.PLAN_SEMS = #{planSems}
+		    AND A.DEPT_ID = #{deptId}
+		    AND A.PLAN_STS = 'B102'
+		    AND A.USER_NO = B.USER_NO
+		    AND A.SJT_ID = C.SJT_ID
+		)
+		SELECT A.*
+		    , B.ASSIGN_NO, B.ASSIGN_DAY, B.ASSIGN_TIME, B.ROOM_NO, B.GWAN_NAME
+		FROM PLANOKLIST A
+		    LEFT OUTER JOIN LEC_ASSIGN B ON(A.PLAN_NO = B.PLAN_NO)
+	</select>
+	
+	<select id="selectDepartOne" parameterType="string" resultType="DepartmentVO">
+		SELECT A.*, B.COL_GWAN
+		FROM DEPARTMENT A, COLLEGE B
+		WHERE DEPT_ID = #{deptId}
+		    AND A.COL_NAME = B.COL_NAME
+	</select>
+	
+	<select id="selectGwanOne" parameterType="string" resultType="GwanVO">
+		SELECT *
+		FROM GWAN
+		WHERE GWAN_NAME = #{gwanName}
+	</select>
+</mapper>

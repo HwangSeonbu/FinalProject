@@ -1,0 +1,22 @@
+package kr.or.ddit.users.dao;
+
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import kr.or.ddit.db.CustomSqlSessionFactoryBuilder;
+
+import kr.or.ddit.vo.UserVO;
+
+public class UserDAOImpl implements UserDAO {
+	
+	public SqlSessionFactory sqlSessionFactory =
+			CustomSqlSessionFactoryBuilder.getSqlSessionFactory();
+	
+	@Override
+	public UserVO selectMemberForAuth(UserVO input) {
+		try(
+			SqlSession sqlSession = sqlSessionFactory.openSession();
+		){
+			return sqlSession.selectOne("kr.or.ddit.users.dao.UserDAO.selectMemberForAuth", input);
+		}
+	}
+}

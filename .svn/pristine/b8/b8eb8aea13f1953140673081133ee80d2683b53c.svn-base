@@ -1,0 +1,88 @@
+package kr.or.ddit.grade.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.grade.service.GradeService;
+import kr.or.ddit.vo.GradeVO;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 교수가 성적을 입력하기 위한 컨트롤러
+ * @author 주창규
+ * @since 2022. 4. 27.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 27.      주창규       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+
+@Controller
+@Slf4j
+@RequestMapping("/studentGrade")
+public class GradeSelectController {
+	
+	@Inject
+	private GradeService Gservice;
+	
+	//단순히 페이지 이동
+	@RequestMapping("selectGrade")
+	public String semsdataSelect(
+	){
+		return "grade/gradeView";
+	}
+	
+	//년도와 학기를 선택 후 해당 정보를 리턴
+	@RequestMapping("semsdataForm")
+	public String gradeUpdate(
+			 Model model
+	){
+		List<String> semsdata = Gservice.retrieveSemsdata();
+		model.addAttribute("semsdata", semsdata);
+		log.info("======55555555=========semsdataTest==========={}",semsdata);
+		return "jsonView";
+	}
+	
+	@RequestMapping("selectLecture")
+	public String lectureSelect(
+			Model model
+			, @RequestParam(value ="semsdata") String planSems
+//			, HttpSession session
+	){
+		int userNo = 56; //하드코딩
+		
+		Map<String,Object> map =new HashMap<>();
+		
+		map.put("planSems", planSems);
+		map.put("userNo", userNo);
+		log.info("==================mapTest1212==========={}",map);
+		List<String> professorLecture =Gservice.retrieveProfessorLecture(map);
+		log.info("==========123123=====professorLecture Test{}", professorLecture);
+		
+		model.addAttribute("professorLecture", professorLecture);
+		
+		return "jsonView";
+	}
+	@RequestMapping("selectGradeaaaaaaaaa")//매핑이름 중복임.
+	public String gradeSelect(
+			Model model
+			, @RequestParam(value ="semsdata") String planSems
+	){
+		return null;
+
+	}
+}

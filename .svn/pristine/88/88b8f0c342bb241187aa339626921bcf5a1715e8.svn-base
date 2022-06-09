@@ -1,0 +1,51 @@
+package kr.or.ddit.request.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.request.dao.StudentRequestDAO;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.StudentRequestVO;
+
+/**
+ * 학색 휴복학 신청 service
+ * @author 고성식
+ * @since 2022. 5. 4.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 4.    고성식			 최초 작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Service
+public class StudentRequestServiceImpl implements StudentRequestService {
+	
+	@Inject
+	private StudentRequestDAO studentRequestDAO;
+	
+	@Override
+	public List<StudentRequestVO> retrieveStudentLeaveRequestList(PagingVO<StudentRequestVO> paging) {
+		int totalRecord = studentRequestDAO.selectTotalRecord(paging);
+		paging.setTotalRecord(totalRecord);
+		List<StudentRequestVO> dataList = studentRequestDAO.selectStudentLeaveRequestList(paging);
+		paging.setDataList(dataList);
+		return dataList;
+	}
+
+	@Override
+	public List<StudentRequestVO> retrieveStudentReturnRequestList(PagingVO<StudentRequestVO> paging) {
+		int totalRecord = studentRequestDAO.selectTotalRecord(paging);
+		paging.setTotalRecord(totalRecord);
+		List<StudentRequestVO> dataList = studentRequestDAO.selectStudentReturnRequestList(paging);
+		paging.setDataList(dataList);
+		return dataList;
+	}
+	
+}

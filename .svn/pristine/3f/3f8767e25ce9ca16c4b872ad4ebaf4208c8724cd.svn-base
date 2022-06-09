@@ -1,0 +1,356 @@
+<%--강의 게시판 메인페이지
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 13.      황선부      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+<script type="text/javascript" src="${cPath }/resources/js/jquery.form.min.js"></script>
+<style>
+ .card{ 
+  	margin: 20px;  
+ } 
+ .container{ 
+   	max-width: 1720px;
+ }  
+ .title{
+ 	text-align:left;
+ }
+ th,td{
+ 	text-align: center;
+ }
+/*  td:first-child{ */
+/*  	display:none; */
+/*  } */
+ .sp{
+ 	font-size: 0.6em;
+ 	color: blue;
+ }
+ #stuCard{
+ 	overflow-y:scroll; 
+ }
+ th{
+ 	font-size: 0.9em;
+ }
+ td{
+ 	font-size: 0.8em;
+ }
+ #feedBack td{
+ 	text-align: left;
+ }
+ .hwkName{
+ 	font-size: 1.2em;
+ 	font-weight: bold;
+ 	color: #4646CD;
+ }
+ #cardclass{
+ 	border: 1px solid white;
+ }
+</style>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+		  <div class="container-fluid">
+		    <div class="collapse navbar-collapse" id="navbarText">  
+		      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+		        <li class="nav-item dropdown">
+		            <security:authorize access="hasRole('ROLE_STUDENT')">
+		            </security:authorize>
+		            
+		
+		            <security:authorize access="hasRole('ROLE_PROFESSOR')">
+					</security:authorize>
+					            <li class="nav-item dropdown">
+		          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+		            ${lecMap.LEC_NAME }
+		          </a>
+		          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+		            <li><a class="dropdown-item" href="#">Action</a></li>
+		            <li><a class="dropdown-item" href="#">Another action</a></li>
+		            <li><hr class="dropdown-divider"></li>
+		            <li><a class="dropdown-item" href="#">Something else here</a></li>
+		          </ul>
+		        </li>
+		        
+		        </li>
+		        <li class="nav-item">
+		          <a class="nav-link active" aria-current="page" href="${cPath }/lecBoard/main?lecSems=${lecSems}&lecId=${lecId}">Home</a>
+		        </li>
+		        <li class="nav-item">
+		          <a class="nav-link" href="${cPath }/lecBoard/notice">강의공지</a>
+		        </li>
+		        <li class="nav-item">
+		          <a class="nav-link" href="${cPath }/lecBoard/qna">질문과 답변</a>
+		        </li>
+		        <li class="nav-item">
+		          <a class="nav-link" href="${cPath }/homework">과제 게시판</a>
+		        </li>
+		      </ul>
+		      <span class="navbar-text">
+		        문화인류학
+		      </span>
+		    </div>
+		  </div>
+	</nav>
+
+	<div id="container" class="container row " >
+		<div id="cardclass" class="card rounded mb-4 col d-grid gap-1">
+			<div class="card rounded row mb-4 ">
+			  <div class="card-header">
+			    최근 공지사항
+			  </div>
+			  <div class="card-body bg-warning bg-gradient text-dark bg-opacity-75">
+			    <blockquote class="blockquote mb-0">			    
+			    		<table class="table">
+<!-- 							<thead class="thead thead-dark"> -->
+<!-- 								<tr> -->
+<!-- 									<th>글번호</th> -->
+<!-- 									<th>글제목</th> -->
+<!-- <!-- 									<th>작성자</th> -->
+<!-- 									<th>작성일</th> -->
+<!-- 									<th>조회수</th> -->
+<!-- 								</tr> -->
+<!-- 							</thead> -->
+							<tbody id="noticeListBody">
+							
+							</tbody>
+						</table>			    	 
+			    
+			    
+<!-- 			      <p>A well-known quote, contained in a blocddddddddddddddddddddddddddkquote element.</p> -->
+<!-- 			      <p>A well-known quote, contained in a blockquote element.</p> -->
+<!-- 			      <p>A well-known quote, contained in a blockquote element.</p> -->
+<!-- 			      <p>A well-known quote, contained in a blockquote element.</p> -->
+<!-- 			      <p>A well-known quote, contained in a blockquote element.</p> -->
+<!-- 			      <p>A well-known quote, contained in a blockquote element.</p> -->
+<!-- 			      <p>A well-known quote, contained in a blockquote element.</p> -->
+<!-- 			      <p>A well-known quote, contained in a blockquote element.</p> -->
+<%-- 			      <footer class="blockquote-footer">Someone famous in <cite title="Source Title">Source Title</cite></footer> --%>
+			    </blockquote>
+			  </div>
+			</div>
+			
+			<div class="card rounded row mb-50">
+			  <div class="card-header">
+			    최근 과제
+			  </div>
+			  <div class="card-body bg-warning bg-gradient text-dark bg-opacity-75 shadow-lg">
+			    <blockquote class="blockquote mb-0">
+				  	<table class="table">
+					     <c:if test="${not empty homework}">
+						     
+						     <tr id="homworkTr" data-lechwk-no="${homework.lechwkNo}">
+						     	<td>
+						     		${homework.lechwkName}
+						     	</td>
+						     	<td>
+						     		제출인원:${homework.submittedStu}/${homework.wholeStu}
+						     	</td>
+						     	<td>
+						     		과제 마감일:${homework.lechwkDate}
+						     	</td>
+						     </tr>
+					
+					     </c:if>
+					     <c:if test="${empty homework}">
+					     	<td>
+					     		최근 제출한 과제가 없습니다.
+					     	</td>
+					     </c:if>
+				  	</table>
+			    </blockquote>
+			  </div>
+			</div>
+	  <security:authorize access="hasRole('ROLE_PROFESSOR')">
+			<div class="card rounded row mb-50 ">
+			  <div class="card-header">
+			    최근 올라온 질문(미답변한 질문)
+			    	
+			    	
+			  </div>
+			  <div class="card-body bg-warning bg-gradient text-dark bg-opacity-75 shadow-lg">
+			    <blockquote class="blockquote mb-0">
+			    <table class="table">
+		    			<c:if test="${not empty qnaList}">
+		    				<c:forEach items="${qnaList }" var="qna">
+		    					<tr class="qnaTr" data-lecbo-no="${qna.lecboNo}">
+			    					<td>${qna.lecboTitle }</td>
+			    					<td><span class="sp">작성일</span>${qna.lecboDate }</td>			    				
+		    					</tr>
+		    				</c:forEach>
+		    			</c:if>
+						<c:if test="${empty qnaList }">
+							<tr>
+								<td>미답변한 질문이 없습니다.</td>
+							</tr>
+						</c:if>
+			    </table>
+			    </blockquote>
+			  </div>
+			</div>
+       </security:authorize>			
+	  <security:authorize access="hasRole('ROLE_STUDENT')">
+			<div class="card rounded row mb-50">
+			  <div class="card-header">
+			    내가 올린 질문			    	
+			  </div>
+			  <div class="card-body bg-warning bg-gradient text-dark bg-opacity-75 shadow-lg">
+			    <blockquote class="blockquote mb-0 ">
+			    <table class="table">
+		    			<c:if test="${not empty myQnaList}">
+		    				<c:forEach items="${myQnaList }" var="qna">
+		    					<tr class="qnaTr" data-lecbo-no="${qna.LECBO_NO}">
+			    					<td>${qna.LECBO_TITLE }</td>
+			    					<td><span class="sp">작성일</span>${qna.LECBO_DATE }</td>			    				
+		    					<c:if test="${qna.CODE == '미등록' }">
+		    						<td><i style="font-size: 2rem; color: blue;" class="bi bi-square"></i></td>
+		    					</c:if>
+		    					<c:if test="${qna.CODE == '등록' }">
+		    						<td><i style="font-size: 2rem; color: blue;" class="bi bi-check-square"></i></td>
+		    					</c:if>
+		    					
+		    					</tr>
+		    				</c:forEach>
+		    			</c:if>
+						<c:if test="${empty myQnaList }">
+							<tr>
+								<td>내가 등록한 질문이 없습니다.</td>
+							</tr>
+						</c:if>
+			    </table>
+			    </blockquote>
+			  </div>
+			</div>
+
+
+       </security:authorize>
+
+
+
+		</div>
+		
+		<security:authorize access="hasRole('ROLE_PROFESSOR')">
+		<div id="rightDiv" class="card rounded col col-lg-3">
+		  <div class="card-header">
+		    학생 명부
+		  </div>
+		  <div id="stuCard" class="card-body bg-warning bg-gradient text-dark bg-opacity-75" style="height: 500px;">
+		    <blockquote class="blockquote mb-0">
+		    	<table class="table">
+		    		<thead>
+		    			<th>학번</th>
+		    			<th>이름</th>
+		    			<th>학년</th>
+		    			<th>학과</th>
+		    		</thead>
+		    		<tbody>
+				<c:forEach items="${stuList}" var="stu">
+					<tr>
+						<td>${stu.USER_NO }</td>
+						<td>${stu.USER_NAME }</td>
+						<td>${stu.STU_YEAR }</td>
+						<td>${stu.DEPT_NAME }</td>
+					</tr>
+				</c:forEach>	
+		    		</tbody>
+		    	</table>		    
+		    </blockquote>
+		  </div>
+		</div>
+		</security:authorize>
+		
+		
+		<security:authorize access="hasRole('ROLE_STUDENT')">
+				<div id="rightDiv" class="card rounded col col-lg-3">
+		  <div class="card-header">
+		    과제 피드백
+		  </div>
+		  <div id="feedBack" class="card-body  bg-warning bg-gradient text-dark bg-opacity-75 shadow-lg" style="height: 500px;">
+		    <blockquote class="blockquote mb-0">
+		    	<table class="table">
+		    		<tbody>
+				<c:forEach items="${evaList}" var="eva">
+					<tr>
+						<td><span class="hwkName">${eva.LECHWK_NAME }</span>
+							<span>- ${eva.HWK_SCORE}점</span>
+						<br><span>${eva.HWK_OPINION}</span>	
+						</td>					
+					</tr>
+				</c:forEach>	
+		    		</tbody>
+		    	</table>		    
+		    </blockquote>
+		  </div>
+		</div>
+		</security:authorize>	
+		
+
+	</div>
+		<form id="searchForm" hidden="true" action="${cPath }/lecBoard/notice" method="get">
+			<input type="hidden" name="main" value="main"/>
+			<input type="text" name="page" /> 
+			<input type="text" name="searchType" />
+			<input type="text" name="searchWord" />
+		</form>
+	<script>	
+	const VIEWURLPTRN = CONTEXTPATH+"/lecBoard/notice/%V";	
+	
+	let noticeListBody = $("#noticeListBody").on("click", "tr", function(){
+		let viewURL = $(this).data("href");
+		location.href = viewURL;
+	}).css("cursor", "pointer");	
+	
+	let searchForm = $("#searchForm").ajaxForm({
+			dataType:"json"		
+		, success:function(paging){
+			searchForm[0].page.value="";
+			let boardList = paging.dataList;
+			let img = '<i id="noticeImg" width="40px" height="40px" style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-exclamation-circle"></i>';
+			
+			let trTags = [];
+			if(boardList && boardList.length > 0){
+				$.each(boardList, function(idx, board){
+					let viewURL = VIEWURLPTRN.replace("%V", board.lecboNo);
+					let trTag = $("<tr>").data("href", viewURL)
+										.prop("id","TR_"+board.lecboNo)//아이디를 숫자로만하면 무시됨.영문자와 숫자를 혼합해야함.
+										.append(
+											$("<td>").html(board.lecboNo)	
+											,$("<td>").html(img)	
+											, $("<td class='title'>").html(board.lecboTitle)	
+// 											, $("<td>").html(board.userName)	
+											, $("<td>").html("<span class='sp'>등록일 : </span>"+board.lecboDate)	
+											, $("<td>").html("<span class='sp'>조회수 : </span>"+board.lecboHit)	
+										);
+					trTags.push(trTag);
+				});
+			}else{
+				let trTag = $("<tr>").html(
+								$("<td>").attr("colspan", "6")
+										 .html(overNoDataCode)
+							);
+				trTags.push(trTag);
+			} // if end
+			
+			noticeListBody.append(trTags);
+		} // success end
+		, resetForm : false
+	}).submit();
+	const qnaViewURL = CONTEXTPATH+"/lecBoard/qna/";
+	$(".qnaTr").on("click",function(){
+		let lecboNo = $(this).data("lecboNo");
+		
+		location.href = qnaViewURL+lecboNo;
+		
+	}).css("cursor", "pointer");
+//과제	
+	$("#homworkTr").on("click", function(e){
+		let lechwkNo = $(this).data("lechwkNo");
+				
+		 location.href="${cPath }/homework/"+lechwkNo;
+	}).css('cursor', 'pointer');
+	
+	
+	</script>

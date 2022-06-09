@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.commons.dao.MyPageDAO">
+
+<update id="editMyInfo" parameterType="MemberVO">
+	UPDATE users
+    SET
+        USER_PASS = #{userPass}
+        <if test="userPhone != null">
+        ,USER_PHONE = #{userPhone}
+        </if>
+        <if test="userMail != null">
+        ,USER_MAIL = #{userMail}
+        </if>
+        <if test="userAddr != null">
+        ,USER_ADDR = #{userAddr}
+        </if>
+WHERE
+    user_no = #{userNo}
+
+</update>
+
+
+
+
+
+
+</mapper>

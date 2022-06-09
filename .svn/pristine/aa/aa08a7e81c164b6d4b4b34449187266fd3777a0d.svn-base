@@ -1,0 +1,122 @@
+package kr.or.ddit.ast.service;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+
+import kr.or.ddit.ast.dao.AssessmentDAO;
+import kr.or.ddit.vo.AstLecVO;
+import kr.or.ddit.vo.AstProVO;
+import kr.or.ddit.vo.AstResultVO;
+import kr.or.ddit.vo.AstVO;
+import kr.or.ddit.vo.ProfessorLectureVO;
+import kr.or.ddit.vo.SemsVO;
+
+@Service
+public class AssessmentServiceImpl implements AssessmentService {
+
+	@Inject
+	AssessmentDAO dao;
+	
+	@Override
+	public List<AstLecVO> retrieveAstTargetLecList(Map<String, Integer> paramMap) {
+		List<AstLecVO> targetList = dao.selectAstTargetLecList(paramMap);
+		for(AstLecVO eachVo : targetList) {
+			String astYn = eachVo.getAstCnt() > 0 ? "완료":"미완료";
+			eachVo.setAstYn(astYn);
+		}
+		return targetList;
+	}
+
+	@Override
+	public List<AstProVO> retrieveAstTargetProList(Map<String, Integer> paramMap) {
+		List<AstProVO> targetList = dao.selectAstTargetProList(paramMap);
+		for(AstProVO eachVo : targetList) {
+			String astYn = eachVo.getAstCnt() > 0 ? "완료":"미완료";
+			eachVo.setAstYn(astYn);
+		}
+		return targetList;
+	}
+
+	@Override
+	public int createAssessment(Map<String, Object> paramMap) {
+		String lecId = null;
+		Integer proNo = null;
+		
+		int userNo = (int) paramMap.get("userNo");
+		int lecSems = (int) paramMap.get("thisSems");
+		String astAnswer = (String) paramMap.get("qList");
+		String astEtc = (String) paramMap.get("opnion");
+		String astDiv = (String) paramMap.get("flag");
+		if(astDiv.equals("강의")) {
+			lecId = (String) paramMap.get("lecId");
+		}else {
+			proNo = (Integer) paramMap.get("proNo");
+		}
+		
+		String[] answerArr = astAnswer.split(",");
+		int astScore = 0;
+		for(String eachAnswer : answerArr) {
+			astScore += Integer.parseInt(eachAnswer);
+		}
+		AstVO vo = new AstVO();
+		vo.setAstScore(astScore);
+		vo.setAstDiv(astDiv);
+		vo.setLecId(lecId);
+		vo.setLecSems(lecSems);
+		vo.setUserNo(userNo);
+		vo.setAstEtc(astEtc);
+		vo.setProNo(proNo);
+		vo.setAstAnswer(astAnswer);
+		
+		dao.insertAssessment(vo);
+		return 0;
+	}
+
+	@Override
+	public List<AstResultVO> retrieveProAstResultList() {
+		SemsVO semsVo = (SemsVO) RequestContextHolder.getRequestAttributes()
+                .getAttribute("semsVo", RequestAttributes.SCOPE_SESSION);
+		int thisSems = semsVo.getThisSems();
+		List<AstResultVO> resultList = dao.selectProAstResultList(thisSems);
+		
+		for(AstResultVO eachVo : resultList) {
+			double realpers = eachVo.getLecRealpers();
+			double astpers = eachVo.getAstPers();
+			double comRate = 0.0;
+			if(astpers!=0) {
+				comRate = (astpers/realpers);
+			}
+			comRate = Math.round(comRate*100)/100.0;
+			eachVo.setAstComprate(""+comRate+"%");
+		}
+		
+		return resultList;
+	}
+
+	@Override
+	public List<AstResultVO> retrieveLecAstResultList() {
+		SemsVO semsVo = (SemsVO) RequestContextHolder.getRequestAttributes()
+                .getAttribute("semsVo", RequestAttributes.SCOPE_SESSION);
+		int thisSems = semsVo.getThisSems();
+		List<AstResultVO> resultList = dao.selectLecAstResultList(thisSems);
+		
+		for(AstResultVO eachVo : resultList) {
+			double realpers = eachVo.getLecRealpers();
+			double astpers = eachVo.getAstPers();
+			double comRate = 0.0;
+			if(astpers!=0) {
+				comRate = (astpers/realpers);
+			}
+			comRate = Math.round(comRate*100)/100.0;
+			eachVo.setAstComprate(""+comRate+"%");
+		}
+		return resultList;
+	}
+
+}

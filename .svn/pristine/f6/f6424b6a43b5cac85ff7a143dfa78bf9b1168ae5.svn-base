@@ -1,0 +1,17 @@
+package kr.or.ddit.lecqna.service;
+
+import java.util.List;
+
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.vo.AttchVO;
+import kr.or.ddit.vo.LecqnaVO;
+import kr.or.ddit.vo.PagingVO;
+
+public interface LecQnaService {
+	public void retrieveBoardList(PagingVO<LecqnaVO>paging);
+	
+	public LecqnaVO retrieveBoard(int lecboNo);
+	public ServiceResult createBoard(LecqnaVO lecqna);
+
+	public AttchVO downloadAttach(int attchNo);
+}

@@ -1,0 +1,103 @@
+package kr.or.ddit.homework.controller;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.homework.service.HomeworkService;
+import kr.or.ddit.stomp.MessageVO;
+import kr.or.ddit.stomp.service.MessageService;
+import kr.or.ddit.validate.InsertHwkInsertGroup;
+import kr.or.ddit.vo.HwkVO;
+import kr.or.ddit.vo.LecHomeworkVO;
+
+/**과제 채점 update controller
+ * @author 황선부
+ * @since 2022. 6. 1.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 6. 1.      황선부       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@RequestMapping("homework")
+public class HomeworkGradingInsertController {
+	@Autowired
+	private HomeworkService service;
+	@Inject
+	private MessageService mService;
+	@PostMapping("grading/insert")
+	public String insert(
+			@Validated(InsertHwkInsertGroup.class)@ModelAttribute("hwk")HwkVO hwk
+			,BindingResult errors
+			,Model model
+			,@RequestParam("leckwkNo")int lechwkNo
+			) throws IllegalAccessException, InvocationTargetException {
+		HwkVO hwk2 = service.retrieveHwOne(hwk.getHwkNo());
+		//해야될 과제 정보
+		LecHomeworkVO hw = service.retrieveHomework(lechwkNo);
+		
+		
+		model.addAttribute("hwk", hwk2);
+		model.addAttribute("hw", hw);
+		
+		String viewName = null;
+		if(!errors.hasErrors()) {			
+			ServiceResult result = service.createGradingHwk(hwk);
+			
+			Map<String, Object> map = new HashMap<>();
+			List<String> receiverList = new ArrayList<>();
+			receiverList.add(Integer.toString(hwk2.getStuNo()));
+						
+			map.put("senderNo", hw.getUserNo());
+			map.put("receiver", receiverList);
+			map.put("message", "[과제 결과]"
+						+"<br>강의명 : "+hw.getLechwkName()
+					+ "<br>과제명 : "+hw.getLecName()
+					+ "<br>점수 : "+hwk.getHwkScore()
+					+ "<br>코멘트 :<br> "+hwk.getHwkOpinion()
+					);
+//			BeanUtils.populate(message, map);
+			mService.MessageSend(map);
+			
+			if(result.equals(ServiceResult.OK)) {
+				viewName="/homework/hwOneView";
+				model.addAttribute("message", "과제 채점이 등록되었습니다.");
+				
+			}else {
+				model.addAttribute("message", "서버 오류 입니다.");
+				
+				viewName="/homework/hwOneView";
+			}
+			
+		}else {
+			model.addAttribute("message", "채점 결과를 다시 입력하세요");
+			viewName="/homework/hwOneView";
+		}
+		
+		
+		return viewName;
+		
+	}
+}

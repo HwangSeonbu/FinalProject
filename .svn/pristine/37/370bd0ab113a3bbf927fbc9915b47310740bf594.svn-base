@@ -1,0 +1,40 @@
+package kr.or.ddit.board.controller;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.board.service.QnABoardService;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.QnABoardVO;
+import kr.or.ddit.vo.SimpleSearchVO;
+
+@Controller
+@RequestMapping("/board")
+public class QnABoardController {
+	
+	@Inject
+	private QnABoardService service;
+	
+	//게시판 목록 출력
+	@RequestMapping("/qnaBoardList.do")
+	public String listHandler(
+		@RequestParam(value="page", required=false, defaultValue="1") int currentPage
+		, @ModelAttribute("simpleCondition") SimpleSearchVO simpleCondition
+		, Model model
+	){
+		PagingVO<QnABoardVO> paging = new PagingVO<>(10,5);
+		paging.setCurrentPage(currentPage);
+		paging.setSimpleCondition(simpleCondition);
+		
+		service.retrieveBoardList(paging);
+		
+		model.addAttribute("paging", paging);
+		
+		return "board/qnaBoardList";
+	}
+}

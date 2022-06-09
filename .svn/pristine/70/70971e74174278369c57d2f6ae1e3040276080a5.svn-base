@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.adminLecture.dao.AdminLectureCompDAO">
+
+	<sql id="searchCompCondition">
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.colName)">
+				AND COL_NAME = #{detailCondition.colName}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.deptId)">
+				AND DEPT_ID = #{detailCondition.deptId}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.assignSts)">
+				AND ASSIGN_STS = #{detailCondition.assignSts}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.assignSubmit)">
+				AND ASSIGN_SUBMIT = #{detailCondition.assignSubmit}
+			</if>
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND 
+	    		<choose>
+	    			<when test="simpleCondition.searchType eq 'userName'">
+	    				INSTR(PRO_NAME, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<when test="simpleCondition.searchType eq 'sjtName'">
+	    				INSTR(SJT_NAME, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<when test="simpleCondition.searchType eq 'planSmry'">
+	    				INSTR(PLAN_SMRY, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<otherwise>
+	    				INSTR(PRO_NAME, #{simpleCondition.searchWord}) > 0
+	    				OR INSTR(SJT_NAME, #{simpleCondition.searchWord}) > 0
+	    				OR INSTR(PLAN_SMRY, #{simpleCondition.searchWord}) > 0
+	    			</otherwise>
+	    		</choose>
+	    	</if>
+		</trim>
+	</sql>
+
+	<sql id="compTargetFromClause">
+		SELECT APPROVEPAGE.*
+        FROM(
+            SELECT APPROVE.*,
+                CASE WHEN ROOM_NO IS NULL OR ASSIGN_DT IS NULL 
+                        OR INSTR(ASSIGN_DT, '미정') > 0 THEN '미배정'
+                     ELSE '배정'
+                END AS "ASSIGN_STS"
+            FROM(
+                WITH ASSIGNBASE AS(
+                    SELECT A.PLAN_NO, B.COL_NAME, B.DEPT_NAME
+                        ,A.USER_NO, A.SJT_ID, A.PLAN_STS, A.DEPT_ID, A.PLAN_SMRY, F.SJT_NAME
+                        , A.PLAN_TCNT
+                        , C.PRO_NO, D.USER_NAME "HEADPRO_NAME", D2.USER_NAME "PRO_NAME"
+                        , G.COL_GWAN "GWAN_NAME"
+                        , E.ROOM_NO, NVL(E.ASSIGN_DT, '미정') "ASSIGN_DT"
+                        , NVL(H.ASSIGN_SUBMIT, 'N') ASSIGN_SUBMIT
+                    FROM PLAN A LEFT OUTER JOIN DEPARTMENT B ON(A.DEPT_ID = B.DEPT_ID)
+                        LEFT OUTER JOIN PRO C ON(A.DEPT_ID = C.DEPT_ID)
+                        INNER JOIN USERS D ON(C.PRO_NO = D.USER_NO)
+                        INNER JOIN (SELECT 
+                                        ASSIGN_NO, PLAN_NO
+                                        , ASSIGN_DAY||ASSIGN_TIME ASSIGN_DT
+                                        , GWAN_NAME, ROOM_NO
+                                    FROM LEC_ASSIGN
+                                    ORDER BY PLAN_NO) E ON(A.PLAN_NO = E.PLAN_NO) 
+                        , USERS D2, SJT F, COLLEGE G, PLANOK H
+                    WHERE A.PLAN_STS = 'B102'
+                    AND C.PRO_JOB = '학과장'
+                    AND A.PLAN_SEMS = #{targetSems}
+                    AND A.USER_NO = D2.USER_NO
+                    AND A.SJT_ID = F.SJT_ID
+                    AND B.COL_NAME = G.COL_NAME
+                    AND A.PLAN_NO = H.PLAN_NO
+                )SELECT PLAN_NO, COL_NAME, DEPT_NAME, USER_NO, SJT_ID, PLAN_STS, DEPT_ID
+                    , PLAN_SMRY, SJT_NAME, PLAN_TCNT, PRO_NO, HEADPRO_NAME, PRO_NAME
+                    , GWAN_NAME, ROOM_NO
+                    , LISTAGG(ASSIGN_DT, ',') WITHIN GROUP (ORDER BY ASSIGN_DT) ASSIGN_DT
+                    , ASSIGN_SUBMIT
+                FROM ASSIGNBASE               
+                GROUP BY PLAN_NO, COL_NAME, DEPT_NAME, USER_NO, SJT_ID, PLAN_STS, DEPT_ID
+                    , PLAN_SMRY, SJT_NAME, PLAN_TCNT, PRO_NO, HEADPRO_NAME, PRO_NAME
+                    , GWAN_NAME, ROOM_NO, ASSIGN_SUBMIT
+            ) APPROVE
+        ) APPROVEPAGE
+	</sql>
+	
+	<select id="selectTotalLecCompTargetList" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)	FROM(
+		    SELECT ROWNUM RNUM, SEARCHBASE.* FROM(
+				<include refid="compTargetFromClause" />
+			) SEARCHBASE
+			<include refid="searchCompCondition" />
+		)COMPTARGET
+	</select>
+	
+	<select id="selectLecCompTargetList" parameterType="PagingVO" resultType="LecCompTargetVO">
+		SELECT COMPTARGET.* FROM( 
+    		SELECT ROWNUM RNUM, SEARCHBASE.* FROM(
+				<include refid="compTargetFromClause" />
+			) SEARCHBASE
+			<include refid="searchCompCondition" />
+		)COMPTARGET
+		<![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+	
+	<select id="selectLectureOne" parameterType="int" resultType="LectureVO">
+		SELECT LEC_ID, PLAN_NO, PRO_NO "USER_NO"
+		FROM PLANOK WHERE PLAN_NO = #{planNo}
+	</select>
+	<update id="updatePlanStatus" parameterType="int">
+		UPDATE PLAN SET PLAN_STS = 'B104' WHERE PLAN_NO = #{planNo}
+	</update>
+	
+	<insert id="insertLecture" parameterType="LectureVO">
+		INSERT INTO LEC (LEC_SEMS, LEC_ID, USER_NO, LEC_PERS, LEC_STS
+			, MRATE, FRATE, HWRATE, ATTRATE)
+		VALUES (#{lecSems}, #{lecId}, #{userNo}, 0, '개강', 30, 40, 20, 10)
+	</insert>
+	
+	
+	<sql id="compFromClause">
+		SELECT LEC_SEMS, LEC_ID, USER_NO, LEC_PERS, PLAN_STS, PLAN_NO
+		            , PRO_NO, HEADPRO_NAME, PRO_NAME, SJT_NAME, PLAN_SMRY
+		            , SJT_ID, DEPT_ID, PRO_JOB, COL_NAME, DEPT_NAME, GWAN_NAME, ROOM_NO
+		            , PLAN_YEAR, PLAN_LIMIT, PLAN_TCNT, PLAN_EVAL
+		            , LISTAGG(ASSIGN_DT, ',') WITHIN GROUP (ORDER BY ASSIGN_ORDER) "ASSIGN_DT"
+		        FROM (
+		            SELECT A.LEC_SEMS, A.LEC_ID, A.USER_NO, A.LEC_PERS, A.LEC_STS "PLAN_STS"
+		                , B.PLAN_NO
+		                , G.USER_NO "PRO_NO"
+		                , G.USER_NAME "HEADPRO_NAME"
+		                , B.PRO_NAME, B.LEC_NAME "SJT_NAME", B.SJT_ID
+		                , C.DEPT_ID, C.PRO_JOB
+		                , D.COL_NAME, D.DEPT_NAME
+		                , E.GWAN_NAME, E.ROOM_NO, E.ASSIGN_DAY||E.ASSIGN_TIME "ASSIGN_DT"
+		                , H.PLAN_YEAR, H.PLAN_LIMIT, H.PLAN_TCNT, H.PLAN_EVAL
+		                , H.PLAN_SMRY
+		                , (CASE 
+		                    WHEN E.ASSIGN_DAY = '월' THEN 1
+		                    WHEN E.ASSIGN_DAY = '화' THEN 2
+		                    WHEN E.ASSIGN_DAY = '수' THEN 3
+		                    WHEN E.ASSIGN_DAY = '목' THEN 4
+		                    ELSE 5
+		                    END) "ASSIGN_ORDER"
+		            FROM LEC A, PLANOK B, PRO C, DEPARTMENT D
+		                , LEC_ASSIGN E, (SELECT P.PRO_NO, P.DEPT_ID FROM PRO P
+		                    WHERE P.PRO_JOB='학과장' ) F, USERS G, PLAN H
+		            WHERE A.LEC_SEMS = #{targetSems}
+		            AND A.LEC_ID = B.LEC_ID
+		            AND A.USER_NO = C.PRO_NO
+		            AND C.DEPT_ID = D.DEPT_ID
+		            AND B.PLAN_NO = E.PLAN_NO
+		            AND F.DEPT_ID = C.DEPT_ID
+		            AND F.PRO_NO = G.USER_NO
+		            AND B.PLAN_NO = H.PLAN_NO
+		            ORDER BY ASSIGN_ORDER
+		        )
+		        GROUP BY LEC_SEMS, LEC_ID, USER_NO, LEC_PERS, PLAN_STS, PLAN_NO
+		            , PRO_NO, HEADPRO_NAME, PRO_NAME, SJT_NAME, PLAN_SMRY
+		            , SJT_ID, DEPT_ID, PRO_JOB, COL_NAME, DEPT_NAME, GWAN_NAME, ROOM_NO
+		            , PLAN_YEAR, PLAN_LIMIT, PLAN_TCNT, PLAN_EVAL
+	</sql>
+	
+	<sql id="searchRealCompCondition">
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.planSts)">
+				AND PLAN_STS = #{detailCondition.planSts}
+			</if>
+			<if test="detailCondition neq null and detailCondition.planYear neq null">
+				AND PLAN_YEAR = #{detailCondition.planYear}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.gwanName)">
+				AND GWAN_NAME = #{detailCondition.gwanName}
+			</if>
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND 
+	    		<choose>
+	    			<when test="simpleCondition.searchType eq 'userName'">
+	    				INSTR(PRO_NAME, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<when test="simpleCondition.searchType eq 'sjtName'">
+	    				INSTR(SJT_NAME, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<when test="simpleCondition.searchType eq 'planSmry'">
+	    				INSTR(PLAN_SMRY, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<otherwise>
+	    				INSTR(PRO_NAME, #{simpleCondition.searchWord}) > 0
+	    				OR INSTR(SJT_NAME, #{simpleCondition.searchWord}) > 0
+	    				OR INSTR(PLAN_SMRY, #{simpleCondition.searchWord}) > 0
+	    			</otherwise>
+	    		</choose>
+	    	</if>
+		</trim>
+	</sql>
+	
+	<select id="selectTotalLecCompList" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+	    FROM (
+		    SELECT V.*
+		    FROM(
+		        <include refid="compFromClause" />
+		    ) V
+		    <include refid="searchRealCompCondition" />
+		)SV
+	</select>
+	
+	<select id="selectLecCompList" parameterType="PagingVO" resultType="LecCompTargetVO">
+		SELECT RV.* FROM(
+			SELECT ROWNUM "RNUM", SV.*
+		    FROM (
+			    SELECT V.*
+			    FROM(
+			        <include refid="compFromClause" />
+			    ) V
+			    <include refid="searchRealCompCondition" />
+			)SV
+		)RV
+		<![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+</mapper>

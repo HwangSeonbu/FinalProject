@@ -1,0 +1,73 @@
+package kr.or.ddit.attendance.controller;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.attendance.service.AttendanceService;
+import kr.or.ddit.vo.MemberVO;
+import kr.or.ddit.vo.StudentVO;
+import kr.or.ddit.vo.security.MemberVOWrapper;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 학생이 로그인 하여 자신이 수강 중인 과목을 조회하여 해당 과목의 출석을 조회하고 대시보드로 나타느내는 컨트롤러
+ * @author 주창규
+ * @since 2022. 4. 26.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 26.      주창규       최초작성
+ * 2022. 5. 06.      주창규	 대시보드 기능 추가
+ * 
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@Slf4j
+@RequestMapping("/studentAttendance")
+public class StudentAttendanceCheckController {
+	
+	@Inject
+	private AttendanceService Aservice;
+	
+	//수강 중인 과목들을 조회하여  출석을 조회
+	@RequestMapping("studentAttendanceList")
+	public String studentAttendanceList(
+			Model model
+			, Authentication authentication
+	){
+		MemberVO authMember = ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		int userNo = authMember.getUserNo();
+		log.info("================================================================={}"+userNo);
+		StudentVO student =  Aservice.retrieveStudent(userNo); 
+		student = Aservice.retrieveLecture(student);
+		
+		model.addAttribute("student", student);
+		log.info("================================================================={}"+student);
+		
+		return "attendance/studentAttendanceList";
+	}
+	// 수강 중인 과목들을 조회하여 출석상황을 대시보드로 조회
+	@RequestMapping("studentAttendanceDashboard")
+	public String studentAttendanceDashboard(
+			Model model
+			, Authentication authentication
+	){
+		MemberVO authMember = ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		int userNo = authMember.getUserNo();
+		StudentVO student =  Aservice.retrieveStudent(userNo); 
+		student = Aservice.retrieveLecture(student);
+		log.info("============================studentAttendanceDashboard student Test ==========================={}"+student);
+		model.addAttribute("student", student);
+		return "attendance/studentAttabsDashboard";
+	}
+}

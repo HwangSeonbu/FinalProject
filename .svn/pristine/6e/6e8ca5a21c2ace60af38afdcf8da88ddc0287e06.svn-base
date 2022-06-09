@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 9.    고성식  	  최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.scholarship.dao.AdminScholarshipDAO">
+	
+	<select id="selectScholarshipList" parameterType="PagingVO" resultType="AdminScholarshipVO">
+		SELECT A.* 
+        FROM (
+                SELECT ROW_NUMBER() OVER(ORDER BY B.DEPT_ID, B.STU_YEAR ASC, A.CLS_RCT DESC) RNUM
+                        , A.USER_NO
+                        , C.USER_NAME
+                        , D.DEPT_NAME
+                        , A.CLS_RCT AS STU_SCORE
+                        , B.STU_YEAR
+                        , B.STU_CLASS
+                        , C.USER_MAIL
+                        , C.USER_PHONE
+                        , RANK() OVER(PARTITION BY D.DEPT_ID, B.STU_YEAR ORDER BY A.CLS_RCT DESC) AS STU_RANK 
+                        , E.REQ_RSN
+                FROM (  
+                            SELECT USER_NO, ROUND(AVG(CLS_RCT),3) AS CLS_RCT
+                            FROM CLS
+                            GROUP BY USER_NO
+                     ) A
+                     , STU B, USERS C, DEPARTMENT D, REQ E
+                WHERE A.USER_NO = B.USER_NO
+                AND A.USER_NO = C.USER_NO
+                AND B.DEPT_ID = D.DEPT_ID
+                AND CLS_RCT IS NOT NULL
+                AND A.USER_NO = E.USER_NO(+)
+                AND E.REQ_RSN(+) LIKE 'E0%'
+            ) A
+	    <![CDATA[  
+		WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+        ORDER BY RNUM           
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT A.* 
+        FROM (
+                SELECT ROW_NUMBER() OVER(ORDER BY B.DEPT_ID, B.STU_YEAR ASC, A.CLS_RCT DESC) RNUM
+                        , A.USER_NO
+                        , C.USER_NAME
+                        , D.DEPT_NAME
+                        , A.CLS_RCT AS STU_SCORE
+                        , B.STU_YEAR
+                        , B.STU_CLASS
+                        , C.USER_MAIL
+                        , C.USER_PHONE
+                        , RANK() OVER(PARTITION BY D.DEPT_ID, B.STU_YEAR ORDER BY A.CLS_RCT DESC) AS STU_RANK 
+                        , E.REQ_RSN
+                FROM (  
+                            SELECT USER_NO, ROUND(AVG(CLS_RCT),3) AS CLS_RCT
+                            FROM CLS
+                            GROUP BY USER_NO
+                     ) A
+                     , STU B, USERS C, DEPARTMENT D, REQ E
+                WHERE A.USER_NO = B.USER_NO
+                AND A.USER_NO = C.USER_NO
+                AND B.DEPT_ID = D.DEPT_ID
+                AND CLS_RCT IS NOT NULL
+                AND A.USER_NO = E.USER_NO(+)
+                AND E.REQ_RSN(+) LIKE 'E0%'
+            ) A
+        ORDER BY RNUM
+	</select>
+	
+	<insert id="updateScholarshipSts">
+		INSERT INTO REQ (
+		    REQ_ID
+		   ,USER_NO
+		   ,REQ_SMS
+		   ,REQ_RSN
+		   ,REQ_DENL
+		   ,REQ_DATE
+		   ,REQ_STAT
+		) VALUES (
+		    #{reqId}
+		   ,#{userNo}
+		   ,#{reqSms}
+		   ,#{reqRsn}
+		   ,#{reqDenl}
+		   ,#{reqDate}
+		   ,#{reqStat}
+		)
+	</insert>
+	
+</mapper>

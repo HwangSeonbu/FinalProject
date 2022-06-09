@@ -1,0 +1,30 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+
+@Data
+public class LecCompTargetVO {
+	private String colName;
+	private String deptId;
+	private String sjtId;
+	private String deptName;
+	private String gwanName;
+	private String headproName;
+	private String planSts;
+	private String assignDt;
+	
+	private String assignDt1;
+	private String assignDt2;
+	
+	
+	private Integer planTcnt;
+	private String sjtName;
+	private Integer planNo;
+	private Integer roomNo;
+	private Integer rnum;
+	private Integer userNo;
+	private String proName;
+	private String planSmry;
+	private Integer proNo;
+	private String assignSts;
+}

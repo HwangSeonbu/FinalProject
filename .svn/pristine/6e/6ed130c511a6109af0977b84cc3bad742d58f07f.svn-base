@@ -1,0 +1,40 @@
+package kr.or.ddit.vo;
+
+import java.util.List;
+
+import javax.validation.constraints.NotNull;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**강의 공지 게시판 VO
+ * @author 황선부
+ * @since 2022. 5. 14.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 14.      황선부		최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Data
+@EqualsAndHashCode(of="lecboNo")
+public class LecNoticeBoardVO {
+	@NotNull
+	private Integer lecboNo;
+	private String lecboInfo;
+	private String lecboTitle;
+	private String lecboContent;
+	private Integer lecboHit;
+	private String lecboDate;
+	private Integer lecSems;
+	private String lecId;
+	private Integer userNo;
+	private String lecDiv;
+	
+	private List<AttchVO> attchList;
+	
+}

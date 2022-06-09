@@ -1,0 +1,98 @@
+package kr.or.ddit.board.service;
+
+import java.io.File;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.apache.xmlbeans.impl.xb.xsdschema.Public;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ModelAttribute;
+
+import kr.or.ddit.board.dao.AttchDAO;
+import kr.or.ddit.board.dao.NoticeBoardDAO;
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.exception.PKNotFoundException;
+import kr.or.ddit.utils.PasswordUtils;
+import kr.or.ddit.vo.AttchVO;
+import kr.or.ddit.vo.NoticeBoardVO;
+import kr.or.ddit.vo.PagingVO;
+
+@Service
+public class NoticeBoardServiceImpl implements NoticeBoardService {
+	
+	@Inject
+	private NoticeBoardDAO nBoardDAO;
+	@Inject
+	private AttchDAO attchDAO;
+	@Value("#{appInfo.attatchPath}")
+	private File saveFolder;
+
+	@Override
+	public void retrieveNBoardList(PagingVO<NoticeBoardVO> paging) {
+		
+		int totalRecord = nBoardDAO.selectTotalNRecord(paging);
+		paging.setTotalRecord(totalRecord);
+		List<NoticeBoardVO> dataList = nBoardDAO.selectNBoardList(paging);
+		paging.setDataList(dataList);	
+	}
+
+	@Override
+	public NoticeBoardVO retrieveBoard(Integer noticeNo) {
+		NoticeBoardVO nBoard = nBoardDAO.selectNBoard(noticeNo);			
+		if(nBoard==null)
+			throw new PKNotFoundException(String.format("%d번 글이 없음", noticeNo));		
+		nBoardDAO.incrementHit(noticeNo);		
+		return nBoard;
+	}
+
+
+	@Override
+	public void removeNBoard(Integer noticeNo) {
+		nBoardDAO.deleteNBoard(noticeNo);		
+	}
+
+	@Override
+	public void modifyNBoard(NoticeBoardVO nBoardVO) {
+		nBoardDAO.updateNBoard(nBoardVO);
+		
+	}
+
+	@Override
+	public void createNBoard(NoticeBoardVO nBoardVO) {
+		nBoardDAO.insertNBoard(nBoardVO);
+	}
+
+	@Override
+	public AttchVO downloadAttch(Integer noticeNo) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void uploadAttch(NoticeBoardVO nBoardVO) {
+		// TODO Auto-generated method stub
+		
+	}
+
+//	@Override
+//	public void uploadAttch(NoticeBoardVO nBoardVO) {
+//		List<AttchVO> attchList = nBoardVO.get
+//				List<AttatchVO> attatchList = board.getAttatchList();
+//				if(attatchList==null || attatchList.isEmpty()) return;
+////				업로드 : 2진 데이터(saveFolder) + 메타데이터(Attatch)
+//				
+//				attatchDAO.insertAttaches(board);
+//				attatchList.forEach((attatch)->{
+//					try {
+//						attatch.saveTo(saveFolder);
+//					} catch (IOException e) {
+//						throw new RuntimeException(e);
+//					}
+//				});
+//			}
+//		
+//	}
+		
+}

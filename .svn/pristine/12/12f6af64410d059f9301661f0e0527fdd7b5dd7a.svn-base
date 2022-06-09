@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.NBoardAttchDAO">
+	<select id="selectAttch" parameterType="int" resultType="AttchVO">
+		SELECT 
+			ATTCH_NO,
+   	 		BOARD_NO,
+   			NOTICE_NO,
+  			USER_NO,
+   			ATTCH_FNAME,
+ 		    ATTCH_SNAME,
+    		ATTCH_MIME,
+   			ATTCH_SIZE,
+    		ATTCH_FSIZE,
+    		ATTCH_DHIT,
+		FROM ATTCH
+		WHERE ATTCH_NO = {attchNo}
+	</select>
+	<insert id="insertAttches" parameterType="NoticeBoardVO">
+		<selectKey resultType="int" keyProperty="startAttNo" order="BEFORE">
+			SELECT NVL(MAX(ATTCH_NO), 0)+1
+			FROM ATTCH
+		</selectKey>
+		INSERT ALL
+			<foreach collection="attchList" item="attch" index="idx">
+				INTO ATTCH
+				(
+					ATTCH_NO
+				    ,BOARD_NO
+				    ,NOTICE_NO
+				    ,ATTCH_FNAME
+				    ,ATTCH_SNAME
+				    ,ATTCH_MIME
+				    ,ATTCH_SIZE
+				    ,ATTCH_FSIZE
+				)
+				VALUES
+				(
+					 #{startAttNo}+#{idx}
+					,#{boardNo,jdbcType=VARCHAR}
+					,#{noticeNo,jdbcType=NUMERIC}
+					,#{attch.attchFname,jdbcType=VARCHAR}
+					,#{attch.attchSname,jdbcType=VARCHAR}
+					,#{attch.attchMime,jdbcType=VARCHAR}
+					,#{attch.attchSize,jdbcType=NUMERIC}
+					,#{attch.attchFsize,jdbcType=VARCHAR}
+				)
+			</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+
+</mapper>

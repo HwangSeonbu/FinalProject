@@ -1,0 +1,16 @@
+package kr.or.ddit.lecboard.dao;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.AttchVO;
+import kr.or.ddit.vo.LecNoticeBoardVO;
+
+@Mapper
+public interface AttachDAO {
+
+	public int insertAttach(LecNoticeBoardVO board);
+
+	public AttchVO selectAttach(Integer attchNo);
+
+	public int deleteAttaches(LecNoticeBoardVO board);
+}

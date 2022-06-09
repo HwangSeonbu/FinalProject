@@ -1,0 +1,121 @@
+package kr.or.ddit.commons.controller;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
+import javax.inject.Inject;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.exception.BadRequestException;
+import kr.or.ddit.users.service.AuthenticateService;
+import kr.or.ddit.utils.CookieUtils;
+import kr.or.ddit.vo.UserVO;
+
+
+/**
+ * 로그인 컨트롤러 
+ * @author 이유정
+ * @since 2022. 4. 26.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 26.      이유정       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+
+@Controller
+@RequestMapping("/login")
+public class LoginController {
+	@Inject
+	private AuthenticateService service;
+	@Inject
+	private WebApplicationContext context;
+	
+	@GetMapping("loginForm.do")
+	public String form(){
+		return "/login/loginForm";
+	}
+	
+	@PostMapping(value="loginProcess.do")
+	public String process(
+			@RequestParam(value="userNo", required=false) Integer userNo
+			, @RequestParam(value="userPass", required=false) String userPass
+			, @RequestParam(required=false) String saveId
+			, Model model
+			, HttpSession session
+			, HttpServletResponse resp
+			, RedirectAttributes redirectAttributes
+	) throws IOException{
+//		1. 요청 받고, 분석(파리미터, 헤더), 검증
+		if(session==null || session.isNew()) {
+			throw new BadRequestException();
+		}
+		
+		UserVO input = new UserVO(userNo, userPass);
+		model.addAttribute("inputData", input);
+		
+		boolean valid = true; 
+		String viewName = null;
+		if(valid) {
+//			2. 컨텐츠(Model) 확보(로직실행)
+				Object auth = service.authenticate(input);
+				if(auth instanceof UserVO) {
+					int maxAge = 0;
+					if("save".equals(saveId)) {
+						maxAge = 60*60*24*7;
+					}
+					Cookie idCookie = CookieUtils.createCookie("idCookie", userNo.toString(),  
+												context.getServletContext().getContextPath(), maxAge);
+					resp.addCookie(idCookie);
+					// login success, welcome page 이동, redirect로 이동
+					// "a001 이 로그인에 성공함" 메시지 전달. -- flash attribute
+					redirectAttributes.addFlashAttribute("message", userNo+" 이 로그인에 성공함.");
+					session.setAttribute("authMember", auth);
+					viewName = "redirect:/";
+				}else {
+					// login fail(password오류), loginForm  이동, dispatch  forward 이동.
+					if(ServiceResult.NOTEXIST.equals(auth)) {
+						redirectAttributes.addFlashAttribute("message", "해당 유저는 존재하지 않습니다.가입부터 하셈.");
+					}else if(ServiceResult.INVALIDPASSWORD.equals(auth)) {
+						// "비밀번호 오류" 메시지 전달
+						redirectAttributes.addFlashAttribute("message", "비밀번호 오류");
+					}
+					
+					viewName = "redirect:/login/loginForm.do";
+				}
+			}else {
+				session.setAttribute("message", "아이디나 비밀번호 누락");
+				viewName = "redirect:/login/loginForm.do";
+			}
+//			3. Scope를 선택하고 model 저장.
+//			4. 뷰 선택
+			return viewName;
+		}
+		
+		@PostMapping(value="logout.do")
+		public String logout(HttpSession session)throws UnsupportedEncodingException{
+			if(session==null || session.isNew()) {
+				throw new BadRequestException();
+			}
+			session.invalidate();
+			String message = URLEncoder.encode("로그아웃성공", "UTF-8");
+			return "redirect:/?message="+message;
+		}
+	}

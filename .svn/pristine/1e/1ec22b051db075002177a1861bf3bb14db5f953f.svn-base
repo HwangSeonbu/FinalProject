@@ -1,0 +1,144 @@
+<%@page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>  
+
+<script src="${pageContext.request.contextPath }/resources/js/jquery-3.6.0.min.js"></script>
+<style type="text/css">
+	header nav {
+		margin-left:190px;
+	}
+	.nav-link{
+		font-family: 'Noto Sans KR', sans-serif;
+		font-size: 15px;
+	}
+	header{
+		position: fixed;
+/* 		z-index:0;  */
+		top: 0;
+		left: 0;
+		right: 0;
+	}
+	.subnav{
+		top: 50px;
+	}
+	.sideDiv{
+		position: fixed;
+		top: 80px;
+		left: 0;
+	}
+	.text-nowrap{
+		margin-left: 80px;
+	}
+</style>
+
+<header>
+	<nav class="navbar navbar-expand bg-light navbar-light fixed-top px-4 py-0">
+		<div class="navbar-nav align-items-center ms-auto">
+			<div class="nav-item dropdown">
+				<a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+					<img class="rounded-circle me-lg-2" src="${pageContext.request.contextPath }/resources/img/user.jpg" alt="" style="width: 40px; height: 40px;">
+					<span class="d-none d-lg-inline-flex">민진홍</span>
+				</a>
+				<div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                   <a href="#" class="dropdown-item">마이페이지</a>
+                   <a href="${pageContext.request.contextPath }/index.do" class="dropdown-item">로그아웃</a>
+                </div>
+			</div>
+			
+			<div class="nav-item dropdown">
+				<a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+					<i class="fa fa-envelope me-lg-2"></i>
+					<span class="d-none d-lg-inline-flex">메시지함</span>
+				</a>
+			</div>
+			<div class="nav-item dropdown">
+				<a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+				<i class="fa fa-bell me-lg-2"></i>
+				<span class="d-none d-lg-inline-flex">새로운 알림</span>
+				</a>
+			</div>
+		</div>
+		<br>
+	</nav>
+	
+	<nav class="navbar navbar-expand bg-light navbar-light px-4 py-0 subnav" >
+		<div class="navbar-nav align-items-center">
+			<ul class="navbar-nav px-3" id="subTopMenu">
+				<c:forEach items="${topMenuList }" var="topMenu">
+					<li class="nav-item text-nowrap">
+						<a class="nav-link dropdown-item" href="#" data-menu-no="${topMenu.topMenuNo}">
+							${topMenu.topMenuName}</a>
+					</li>
+				</c:forEach>
+			</ul>
+		</div>
+	</nav>
+</header>
+
+<script type="text/javascript">
+$(function(){
+	let sideMenuArea = $("#sideMenuArea");
+	let userType = "${userType }";
+	let sideMenuURL = "";
+	
+	if(userType == "학생"){
+		sideMenuURL = "temp/studentSide.do";
+	}else if(userType == "교수"){
+		sideMenuURL = "temp/professorSide.do";
+	}else{
+		sideMenuURL = "temp/adminSide.do";
+	}
+	
+	$("#subTopMenu").on("click", ".nav-link", function(){
+		let menuNo = $(this).data("menuNo");
+		let code = "";
+		$.ajax({
+			url : "${pageContext.request.contextPath}/"+sideMenuURL,
+			method : "get",
+			data : {menuNo : menuNo},
+			dataType : "json",
+			success : function(resp) {
+				sideMenuArea.empty();
+				let sideMenuList = resp.sideMenuList;
+				
+				$.each(sideMenuList, function(idx, sideMenu){
+					code += "<div class='nav-item dropdown'>";
+					if(sideMenu.sideMenuURI == null){
+						let finalMenuList = sideMenu.finalMenuList;
+						code += "<a href='#' class='nav-link dropdown-toggle' data-bs-toggle='dropdown'>";
+						code += "<i class='bi bi-lock me-2'></i>";
+						code += sideMenu.sideMenuName;
+						code += "</a>";
+						code += "<div class='dropdown-menu bg-transparent border-0'>";
+						for(var i = 0; i < finalMenuList.length; i++){
+							let finalMenu = finalMenuList[i];
+							code += "<a href='";
+							code += "${pageContext.request.contextPath}/";
+							code += finalMenu.finalMenuURI;
+							code += "' class='dropdown-item'>";
+							code += finalMenu.finalMenuName;
+							code += "</a>";
+						}
+						code += "</div>";
+					}else{
+						code += "<a href='";
+						code += "${pageContext.request.contextPath}/"
+						code += sideMenu.sideMenuURI;
+						code += "' class='nav-link dropdown-toggle'>";
+						code += "<i class='bi bi-lock me-2'></i>";
+						code += sideMenu.sideMenuName;
+						code += "</a>";
+					}
+					code += "</div>";
+				});
+				sideMenuArea.html(code);
+			},
+			error : function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+			}
+		});
+	});
+});
+</script> 

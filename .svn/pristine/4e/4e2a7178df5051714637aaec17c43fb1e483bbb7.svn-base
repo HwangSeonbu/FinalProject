@@ -1,0 +1,46 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>    
+<table class="table table-striped">
+	<thead class="thead-dark">
+		<tr>
+			<th>글번호</th>
+			<th>관리자번호</th>
+			<th>제목</th>
+			<th>조회수</th>
+			<th>작성일자</th>
+		</tr>
+	</thead>
+		<tbody id="listBody">
+<!--  		변수 설정하는 법 var="title" value="제목"   -->
+			<c:set var="NBoardList" value="${paging.dataList }" />
+<!-- 			EL결과가 참이면 실행. empty=list 또는 배열이 비어있거나, 문자열이 null 또는 빈문자열이면 참 반환 -->
+			<c:if test="${empty NBoardList }">
+				<tr>
+					<td colspan="6">조건에 맞는 회원이 없음.</td>
+				</tr>
+			</c:if>
+			<c:if test="${not empty NBoardList }">
+<!-- 			목록을 입력 받아 목록의 갯수만큼 반복하는 반복문. items = collection 객체(List, Map) var = 사용할변수명-->
+				<c:forEach items="${NBoardList }" var="NBoard" >
+					<tr class="NBoardTr" data-notice-no="${NBoard.noticeNo }">
+						<td>${NBoard.noticeNo }</td>
+						<td>${NBoard.userNo }</td>
+						<td>${NBoard.noticeTitle }</td>
+						<td>${NBoard.noticeHit }</td>
+						<td>${NBoard.noticeDate }</td>
+					</tr>
+				</c:forEach>
+			</c:if>						
+		</tbody>
+</table>
+<input type="button" class="btn btn-primary linkBtn" value="글쓰기"  
+onClick="location.href='${pageContext.request.contextPath }/board/BoardWriteForm'"
+/>
+<script type="text/javascript">
+	$("#listBody").on("click", ".NBoardTr", function() {
+		let noticeNo = $(this).data('noticeNo');
+		location.href="${pageContext.request.contextPath }/board/noticeBoardView.do?who="+noticeNo;
+	}).css('cursor', 'pointer');
+</script>
+

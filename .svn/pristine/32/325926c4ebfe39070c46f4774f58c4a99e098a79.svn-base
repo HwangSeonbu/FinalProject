@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- [[개정이력(Modification Information)]] -->
+<!-- 수정일 수정자 수정내용 -->
+<!-- ========== ====== ============== -->
+<!-- 2022. 5. 13. 고성식 최초작성 -->
+<!-- Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.enr.dao.AdminEnrollDAO">
+	
+	<sql id="searchCompCondition">
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.colName)">
+				AND COL_NAME = #{detailCondition.colName}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.deptId)">
+				AND DEPT_ID = #{detailCondition.deptId}
+			</if>
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND 
+	    		<choose>
+	    			<when test="simpleCondition.searchType eq 'userName'">
+	    				INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<when test="simpleCondition.searchType eq 'userPhone'">
+	    				INSTR(USER_PHONE, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<otherwise>
+	    				INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+	    				OR INSTR(USER_ADDR, #{simpleCondition.searchWord}) > 0
+	    			</otherwise>
+	    		</choose>
+	    	</if>
+		</trim>
+	</sql>
+	
+	<select id="selectEnrollList" parameterType="PagingVO" resultType="AdminEnrollVO">
+		SELECT * FROM( 
+        SELECT ROWNUM RNUM ,USER_NO, USER_NAME, COL_NAME, STU_YEAR, STU_CLASS 
+                ,DEPT_NAME,DEPT_ENR,USER_PHONE,USER_MAIL,ENR_ID,DEPT_ID 
+        FROM( 
+            SELECT A.*
+            FROM 
+                (
+                    SELECT 
+                        A.USER_NO 
+                        ,A.USER_NAME 
+                        ,C.COL_NAME 
+                        ,B.STU_YEAR 
+                        ,B.STU_CLASS
+                        ,C.DEPT_NAME 
+                        ,B.DEPT_ID 
+                        ,TO_CHAR(C.DEPT_ENR,'999,999,999,999') ||'원' AS DEPT_ENR 
+                        ,A.USER_PHONE 
+                        ,A.USER_MAIL 
+                        ,A.USER_ADDR 
+                        ,E.ENR_ID 
+                    FROM USERS A, STU B, DEPARTMENT C, 
+                        (   SELECT * 
+                            FROM ENR 
+                            WHERE ENR_SEMS = 202202) E 
+                    WHERE A.USER_NO=B.USER_NO 
+                    AND B.DEPT_ID = C.DEPT_ID 
+                    AND B.STU_CODE = 'C101' 
+                    AND A.USER_NO = E.USER_NO(+) 
+                    AND E.ENR_ID IS NULL 
+                    ORDER BY C.DEPT_ID, B.STU_YEAR, A.USER_NO
+                    )A 
+                ) 
+                <include refid="searchCompCondition" /> 
+            )
+		<![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>               
+	</select>
+	
+	<select id="selectEnrollTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*) 
+		FROM( 
+        		SELECT ROWNUM RNUM ,USER_NO, USER_NAME, COL_NAME, STU_YEAR, STU_CLASS 
+                		,DEPT_NAME,DEPT_ENR,USER_PHONE,USER_MAIL,ENR_ID,DEPT_ID 
+        		FROM( 
+            			SELECT A.*
+            			FROM 
+                			(
+			                    SELECT 
+			                        A.USER_NO 
+			                        ,A.USER_NAME 
+			                        ,C.COL_NAME 
+			                        ,B.STU_YEAR 
+			                        ,B.STU_CLASS
+			                        ,C.DEPT_NAME 
+			                        ,B.DEPT_ID 
+			                        ,C.DEPT_ENR 
+			                        ,A.USER_PHONE 
+			                        ,A.USER_MAIL 
+			                        ,A.USER_ADDR 
+			                        ,E.ENR_ID 
+			                    FROM USERS A, STU B, DEPARTMENT C, 
+			                        (SELECT * 
+			                         FROM ENR 
+			                         WHERE ENR_SEMS = 202202) E 
+			                    WHERE A.USER_NO=B.USER_NO 
+			                    AND B.DEPT_ID = C.DEPT_ID 
+			                    AND B.STU_CODE = 'C101' 
+			                    AND A.USER_NO = E.USER_NO(+) 
+			                    AND E.ENR_ID IS NULL 
+			                    ORDER BY C.DEPT_ID, B.STU_YEAR, A.USER_NO
+			                    )A 
+                ) 
+                <include refid="searchCompCondition" /> 
+		)
+	</select>
+	
+	<insert id="insertEnroll">
+		INSERT INTO ENR (
+		    ENR_ID
+		   ,USER_NO
+		   ,ENR_SEMS
+		   ,ENR_AMT
+		   ,ENR_DUE
+		   ,ENR_DATE
+		   ,ENR_PAY
+		   ,SCH_NO
+		   ,ENR_YN
+		) VALUES (
+		    ENR_SEQ.NEXTVAL
+		   ,#{userNo}
+		   ,#{enrSems}
+		   ,#{enrAmt}
+		   ,SYSTIMESTAMP + 7
+		   ,#{enrDate}
+		   ,#{enrPay}
+		   ,#{schNo}
+		   ,'N101'
+		)
+	</insert>
+	
+	<select id="selectFinalEnrollList" parameterType="map" resultType="AdminEnrollVO">
+		SELECT B.*
+		FROM(        
+		      SELECT A.*,ROWNUM RNUM
+		   FROM
+		          (SELECT
+		              A.USER_NO
+		              ,A.USER_NAME
+		              ,C.COL_NAME
+		              ,B.STU_YEAR
+		              ,B.STU_CLASS
+		              ,C.DEPT_NAME
+		              ,TO_CHAR(C.DEPT_ENR,'999,999,999,999') ||'원' AS DEPT_ENR 
+		              ,A.USER_PHONE
+		              ,A.USER_MAIL
+		              ,D.SCH_NO
+		              ,D.ENR_ID
+		              ,D.ENR_YN
+		              ,E.STS_CODE1
+		              ,TO_CHAR(CASE WHEN D.SCH_NO = 'E001' THEN C.DEPT_ENR
+		              ELSE NVL(H.SCH_AMOUNT,0) END, '9999,999,999')||'원' AS SCH_AMOUNT
+		              ,TO_CHAR(CASE WHEN D.SCH_NO = 'E001' THEN 0
+		              ELSE C.DEPT_ENR-NVL(H.SCH_AMOUNT,0) END, '999,999,999')||'원' AS ENR_RESULT
+		          FROM USERS A, STU B, DEPARTMENT C, (SELECT * FROM ENR WHERE ENR_SEMS = #{enrSems}) D, CODE E, REQ F
+		              , SCH H
+		          WHERE A.USER_NO=B.USER_NO
+		          AND B.DEPT_ID = C.DEPT_ID
+		          AND B.STU_CODE = 'C101'
+		          AND A.USER_NO = D.USER_NO(+)
+		          AND D.ENR_YN = E.STS_ID
+		          AND D.SCH_NO = F.REQ_RSN(+)
+		          AND D.USER_NO = F.USER_NO(+)
+                  AND D.ENR_SEMS = F.REQ_SMS(+)
+		          AND D.ENR_ID IS NOT NULL
+		          AND D.SCH_NO = H.SCH_NO(+)
+		          
+		          
+		          ORDER BY C.DEPT_ID, B.STU_YEAR, A.USER_NO
+		          )A
+		  )B
+			<![CDATA[  
+				WHERE RNUM >= #{paging.startRow} AND RNUM <= #{paging.endRow}
+			]]> 
+		  ORDER BY ENR_YN	
+	</select>
+	
+	<select id="selectFinalEnrollTotalRecord" parameterType="map" resultType="int">
+		SELECT COUNT(*)
+		FROM(        
+		      SELECT A.*,ROWNUM RNUM
+		   FROM
+		          (SELECT
+		              A.USER_NO
+		              ,A.USER_NAME
+		              ,C.COL_NAME
+		              ,B.STU_YEAR
+		              ,B.STU_CLASS
+		              ,C.DEPT_NAME
+		              ,C.DEPT_ENR
+		              ,A.USER_PHONE
+		              ,A.USER_MAIL
+		              ,D.SCH_NO
+		              ,D.ENR_ID
+		              ,D.ENR_YN
+		              ,E.STS_CODE1
+		              ,CASE WHEN D.SCH_NO = 'E001' THEN C.DEPT_ENR
+		              ELSE NVL(H.SCH_AMOUNT,0) END AS SCH_AMOUNT
+		              , CASE WHEN D.SCH_NO = 'E001' THEN 0
+		              ELSE C.DEPT_ENR-NVL(H.SCH_AMOUNT,0) END AS ENR_RESULT
+		          FROM USERS A, STU B, DEPARTMENT C, (SELECT * FROM ENR WHERE ENR_SEMS = #{enrSems}) D, CODE E, REQ F
+		              , SCH H
+		          WHERE A.USER_NO=B.USER_NO
+		          AND B.DEPT_ID = C.DEPT_ID
+		          AND B.STU_CODE = 'C101'
+		          AND A.USER_NO = D.USER_NO(+)
+		          AND D.ENR_YN = E.STS_ID
+		          AND D.SCH_NO = F.REQ_RSN(+)
+		          AND D.USER_NO = F.USER_NO(+)
+                  AND D.ENR_SEMS = F.REQ_SMS(+)
+		          AND D.ENR_ID IS NOT NULL
+		          AND D.SCH_NO = H.SCH_NO(+)
+		          ORDER BY C.DEPT_ID, B.STU_YEAR, A.USER_NO
+		          )A
+		  )
+	</select>
+	
+	<update id="updateFinalEnroll">
+		UPDATE ENR
+		SET 
+		    ENR_DATE = SYSDATE
+		    ,ENR_PAY = #{enrPay}
+		    ,ENR_YN = 'N102'
+		WHERE USER_NO = #{userNo}
+		AND ENR_SEMS = #{enrSems}
+	</update>
+</mapper>

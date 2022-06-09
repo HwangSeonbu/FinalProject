@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.adminLecture.dao.AdminLectureDAO">
+
+
+<!-- 	<sql id="searchSubmitCondition"> -->
+<!-- 		<trim prefix="WHERE" prefixOverrides="AND"> -->
+<!-- 			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.planSems)"> -->
+<!-- 				WHERE A.PLAN_SEMS = #{planSems} -->
+<!-- 			</if> -->
+<!-- 		</trim> -->
+<!-- 	</sql> -->
+
+	<sql id="searchSubmitCondition">
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="detailCondition neq null">
+				WHERE A.PLAN_SEMS = #{planSems}
+			</if>		
+		</trim>
+	</sql>
+
+	<select id="selectSubmitPlanTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM PLAN A LEFT OUTER JOIN SJT B ON(A.SJT_ID = B.SJT_ID)
+		        INNER JOIN USERS C ON(A.USER_NO = C.USER_NO)
+		        INNER JOIN DEPARTMENT D ON(A.DEPT_ID = D.DEPT_ID)
+		        LEFT OUTER JOIN CODE F ON(A.PLAN_STS = F.STS_ID)
+<!-- 		        <include refid="searchSubmitCondition" /> -->
+		WHERE A.PLAN_SEMS = 202202
+		AND A.PLAN_STS IN ('B102', 'B103', 'B105')
+	</select>
+	
+
+	<select id="selectSubmitPlanList" parameterType="PagingVO" resultType="PlanEditVO">
+		SELECT RNUMSETVIEW.*
+		FROM(
+		    SELECT ROWNUM RNUM, BASEVIEW.*
+		    FROM (
+		        SELECT A.PLAN_NO, F.STS_CODE1 "PLAN_STS", A.USER_NO, A.SJT_ID, A.PLAN_YEAR
+		            , A.PLAN_LIMIT, A.PLAN_TCNT, A.PLAN_EVAL, A.PLAN_DENLRSN
+		            , A.PLAN_SMRY, A.PLAN_SEMS, A.DEPT_ID 
+		            , B.SJT_NAME, B.SJT_CREDIT, B.SJT_MAJOR, B.SJT_GRADE
+		            , C.USER_NAME, D.COL_NAME, D.DEPT_NAME
+		        FROM PLAN A LEFT OUTER JOIN SJT B ON(A.SJT_ID = B.SJT_ID)
+		                INNER JOIN USERS C ON(A.USER_NO = C.USER_NO)
+		                INNER JOIN DEPARTMENT D ON(A.DEPT_ID = D.DEPT_ID)
+		                LEFT OUTER JOIN CODE F ON(A.PLAN_STS = F.STS_ID)
+		        WHERE A.PLAN_SEMS = 202202
+		        AND A.PLAN_STS IN ('B102', 'B103', 'B105')
+		        ORDER BY A.PLAN_STS DESC, A.PLAN_NO
+		    ) BASEVIEW
+		) RNUMSETVIEW
+		<![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+	
+	
+	<resultMap type="PlanEditVO" id="submitPlanMap" autoMapping="true">
+		<id property="planNo" column="PLAN_NO"/>
+		<collection property="wPlanList" ofType="WplanVO" autoMapping="true">
+			<id property="wplanNo" column="WPLAN_NO"/>
+		</collection>
+	</resultMap>
+	<select id="selectSubmitPlanOne" parameterType="int" resultMap="submitPlanMap">
+		SELECT A.PLAN_NO, F.STS_CODE1 "PLAN_STS", A.USER_NO, A.SJT_ID, A.PLAN_YEAR
+		    , A.PLAN_LIMIT, A.PLAN_TCNT, A.PLAN_EVAL, A.PLAN_DENLRSN
+		    , A.PLAN_SMRY, A.PLAN_SEMS, A.DEPT_ID 
+		    , B.SJT_NAME, B.SJT_CREDIT, B.SJT_MAJOR, B.SJT_GRADE
+		    , C.USER_NAME, D.COL_NAME, D.DEPT_NAME
+		    , E.WPLAN_NO, E.WPLAN_W, E.WPLAN_CONT
+		FROM PLAN A LEFT OUTER JOIN SJT B ON(A.SJT_ID = B.SJT_ID)
+		        INNER JOIN USERS C ON(A.USER_NO = C.USER_NO)
+		        INNER JOIN DEPARTMENT D ON(A.DEPT_ID = D.DEPT_ID)
+		        LEFT OUTER JOIN WPLAN E ON(A.PLAN_NO = E.PLAN_NO)
+		        LEFT OUTER JOIN CODE F ON(A.PLAN_STS = F.STS_ID)
+		WHERE A.PLAN_NO = #{planNo}
+		ORDER BY E.WPLAN_W		
+	</select>
+</mapper>

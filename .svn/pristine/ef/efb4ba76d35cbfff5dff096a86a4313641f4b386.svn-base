@@ -1,0 +1,25 @@
+package kr.or.ddit.vo;
+
+import java.sql.Date;
+
+import lombok.Data;
+import lombok.ToString;
+
+@Data
+@ToString
+public class AcadscVO {
+
+	private String stsId;
+	private Integer acadscNo;
+	private String acadscCont;
+	private Date acadscStart;
+	private Date acadscEnd;
+	private Integer acadscSems;
+	private String stsCode1;
+	private String stsGid;
+	private String acadscDiv;
+	
+	private String startDate;
+	private String endDate;
+	private String setSts;
+}

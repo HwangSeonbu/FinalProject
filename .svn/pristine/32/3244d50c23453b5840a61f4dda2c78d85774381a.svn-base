@@ -1,0 +1,41 @@
+package kr.or.ddit.lecture.dao;
+
+import java.util.List;
+
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.PlanEditVO;
+import kr.or.ddit.vo.PlanVO;
+import kr.or.ddit.vo.ProfessorLectureVO;
+import kr.or.ddit.vo.ProfessorVO;
+import kr.or.ddit.vo.SubjectVO;
+import kr.or.ddit.vo.WplanVO;
+
+@Mapper
+public interface ProfessorLectureDAO {
+
+	//일반 강의 조회
+	public List<ProfessorLectureVO> selectProLectureList(ProfessorVO vo);
+	public List<ProfessorLectureVO> selectProLectureTimeTableList(ProfessorVO vo);
+	
+	//강의계획신청부분
+	public List<PlanVO> selectLecturePlanList(PlanVO vo);
+	public int insertLecturePlan(PlanVO vo);
+	public int deleteLecturePlan(int planNo);
+	public int deleteLectureWplan(int planNo);
+	
+	//강의계획신청 디테일 페이지 관련
+	public PlanEditVO selectLecturePlanEditData(int planNo);
+	
+	public int updateLecturePlan(PlanEditVO vo);
+	public int updateOrInsertWplan(WplanVO vo);
+	public List<SubjectVO> selectSubjectList(PagingVO<SubjectVO> paramVo);
+	
+	public int selectSubjectTotalRecord(PagingVO<SubjectVO> paramVo);
+	public int updatePlanSts(int planNo);
+	
+	//강의계획 제출 후 신청현황 조회
+	public List<PlanVO> selectSubmitPlanList(PlanVO vo);
+}

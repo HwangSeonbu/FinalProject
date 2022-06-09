@@ -1,0 +1,15 @@
+//package kr.or.ddit.sugang.controller;
+//
+//import org.springframework.stereotype.Controller;
+//import org.springframework.web.bind.annotation.RequestMapping;
+//
+//@Controller
+//@RequestMapping("/sugang")
+//public class SugangListController {
+//
+//	@RequestMapping("sugangList.do")
+//	public String sugangList() {
+//		
+//		return "sugang/studentLecList";
+//	}
+//}

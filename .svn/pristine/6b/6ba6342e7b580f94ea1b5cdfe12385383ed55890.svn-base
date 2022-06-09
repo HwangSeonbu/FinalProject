@@ -1,0 +1,19 @@
+package kr.or.ddit.homework.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("homework")
+public class HomeWorkController {
+	
+	@RequestMapping("board")
+	public String homeWorkList(){
+		return "homework/hwboard";
+	}
+	@RequestMapping("boardOne")
+	public String homeWorkOne() {
+	
+		return "homework/hwboard";
+	}
+}

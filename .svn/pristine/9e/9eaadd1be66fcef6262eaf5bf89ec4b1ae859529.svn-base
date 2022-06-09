@@ -1,0 +1,88 @@
+package kr.or.ddit.lecboard.controller;
+
+import javax.annotation.Resource;
+import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import kr.or.ddit.commons.controller.EgovMessageSource;
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.lecboard.service.LecBoardService;
+import kr.or.ddit.validate.InsertLecBoardGroup;
+import kr.or.ddit.vo.ClassVO;
+import kr.or.ddit.vo.LecNoticeBoardVO;
+import kr.or.ddit.vo.MemberVO;
+import kr.or.ddit.vo.security.MemberVOWrapper;
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
+@Controller
+@RequestMapping("/lecBoard/new")
+public class LecBoardInsertController {
+	@Inject
+	private LecBoardService service;
+	
+	@ModelAttribute("board")
+	public LecNoticeBoardVO board() {
+		return new LecNoticeBoardVO();
+	}
+	
+	@GetMapping
+	public String insertForm() {
+		return "lecBoard/lecBoardInsert";
+	}
+	
+    /** EgovMessageSource */
+	@Resource(name = "egovMessageSource")
+	private EgovMessageSource egovMessageSource;
+	
+	@PostMapping
+	public String insertLecBoard(
+			@Validated(InsertLecBoardGroup.class) @ModelAttribute("board") LecNoticeBoardVO board
+			,BindingResult errors
+			,Model model
+			,RedirectAttributes redirectattributes
+			,HttpSession session
+			,Authentication authentication
+			) {
+		MemberVO member = ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		int userNo = member.getUserNo();
+		
+		board.setUserNo(userNo);
+		
+		ClassVO classVO = (ClassVO) session.getAttribute("classVO");
+		board.setLecId(classVO.getLecId());
+		board.setLecSems(classVO.getLecSems());
+		String errorMessage = egovMessageSource.getMessage("fail.common.msg");
+		
+		log.info("==============================>>>{}",errorMessage);
+		log.info("BindingResult.MODEL_KEY_PREFIX=======>{}",BindingResult.MODEL_KEY_PREFIX);
+		
+		String viewName = "redirect:notice";
+			if(!errors.hasErrors()) {
+				ServiceResult result = service.createlecBoard(board);
+				if(result.equals(ServiceResult.FAIL)) {
+					viewName="redirect:new";
+					redirectattributes.addFlashAttribute("message", "서버오류, 잠시 뒤 실행해 보세요");
+				}
+			}else {
+				redirectattributes.addFlashAttribute("board", board);
+//				String errorMessage = egovMessageSource.getMessage("fail.common.msg");
+//				redirectattributes.addFlashAttribute(BindingResult.MODEL_KEY_PREFIX, errorMessage);
+				
+//			redirectattributes.addFlashAttribute("message",);
+				viewName="lecBoard/lecBoardInsert";
+				}
+		return viewName;
+	}
+	
+}

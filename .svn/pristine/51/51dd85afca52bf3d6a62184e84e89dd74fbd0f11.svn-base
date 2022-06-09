@@ -1,0 +1,22 @@
+package kr.or.ddit.score.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/stuScore")
+public class StudentScoreRetrieveController {
+
+	@RequestMapping("myScoreView.do")
+	public String myScoreView() {
+		
+		return "score/studentMyScoreView";
+	}
+	
+	@RequestMapping("totalScoreList.do")
+	public String totalScoreList() {
+	
+		return "score/studentTotalScoreView";
+	}
+	
+}

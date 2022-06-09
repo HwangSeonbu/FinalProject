@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- [[개정이력(Modification Information)]] -->
+<!-- 수정일 수정자 수정내용 -->
+<!-- ========== ====== ============== -->
+<!-- 2022. 5. 13. 고성식 최초작성 -->
+<!-- Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.request.dao.RequestDAO">
+
+	<sql id="searchCompCondition">
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.colName)">
+				AND COL_NAME = #{detailCondition.colName}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.deptId)">
+				AND DEPT_ID = #{detailCondition.deptId}
+			</if>
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND 
+	    		<choose>
+	    			<when test="simpleCondition.searchType eq 'userName'">
+	    				INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<when test="simpleCondition.searchType eq 'userNo'">
+	    				INSTR(USER_NO, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<otherwise>
+	    				INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+	    				OR INSTR(USER_NO, #{simpleCondition.searchWord}) > 0
+	    			</otherwise>
+	    		</choose>
+	    	</if>
+		</trim>
+	</sql>
+
+	<select id="selectStudentRequestList" parameterType="PagingVO" resultType="RequestVO">
+		SELECT B.*
+		FROM(
+			SELECT A.*, ROWNUM RNUM
+			FROM
+				(
+					SELECT
+					A.USER_NO
+					,B.USER_NAME
+					,F.COL_NAME
+					,F.DEPT_NAME
+					,A.DEPT_ID
+					,A.STU_YEAR
+					,A.STU_CLASS
+					,C.REQ_ID
+					,C.REQ_SMS
+					,C.REQ_DENL
+					,D.SEMS_SDATE
+					,D.SEMS_EDATE
+					,E.STS_CODE1
+					,C.REQ_STAT
+                    ,C.REQ_RSN
+					,B.USER_ADDR
+                    ,(SELECT 
+                        A.STS_CODE1
+                      FROM CODE A, REQ B
+                      WHERE A.STS_ID = B.REQ_STAT
+                      AND B.REQ_ID = C.REQ_ID) AS REQ_CODE
+					FROM STU A
+					INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+					INNER JOIN REQ C ON C.USER_NO=A.USER_NO
+					INNER JOIN SEMSDATA D ON C.REQ_SMS=D.SEMS_NO
+					INNER JOIN CODE E ON C.REQ_RSN=E.STS_ID
+					INNER JOIN DEPARTMENT F ON F.DEPT_ID=A.DEPT_ID
+					WHERE C.REQ_RSN ='A001'
+					OR C.REQ_RSN ='A002'
+				)A
+                <include refid="searchCompCondition" /> 
+		)B
+		<![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+		ORDER BY REQ_STAT, REQ_RSN
+	</select>
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM(
+			SELECT A.*, ROWNUM RNUM
+			FROM
+				(
+					SELECT
+					A.USER_NO
+					,B.USER_NAME
+					,F.COL_NAME
+					,F.DEPT_NAME
+					,A.DEPT_ID
+					,A.STU_YEAR
+					,A.STU_CLASS
+					,C.REQ_ID
+					,C.REQ_SMS
+					,C.REQ_DENL
+					,D.SEMS_SDATE
+					,D.SEMS_EDATE
+					,E.STS_CODE1
+					,C.REQ_STAT
+                    ,C.REQ_RSN
+					,B.USER_ADDR
+                    ,(SELECT 
+                        A.STS_CODE1
+                      FROM CODE A, REQ B
+                      WHERE A.STS_ID = B.REQ_STAT
+                      AND B.REQ_ID = C.REQ_ID) AS REQ_CODE
+					FROM STU A
+					INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+					INNER JOIN REQ C ON C.USER_NO=A.USER_NO
+					INNER JOIN SEMSDATA D ON C.REQ_SMS=D.SEMS_NO
+					INNER JOIN CODE E ON C.REQ_RSN=E.STS_ID
+					INNER JOIN DEPARTMENT F ON F.DEPT_ID=A.DEPT_ID
+					WHERE C.REQ_RSN ='A001'
+					OR C.REQ_RSN ='A002'
+				)A
+                <include refid="searchCompCondition" /> 
+		)B
+	</select>
+
+	<!-- 	휴학신청 승인 -->
+	<update id="updateLeaveSts">
+	UPDATE STU
+	SET STU_CODE = 'C102'
+	WHERE USER_NO = #{userNo}
+	</update>
+	<update id="updateLeaveReq">
+	UPDATE REQ
+	SET REQ_STAT = 'B102'
+	WHERE USER_NO = #{userNo}
+	</update>
+
+	<!-- 	휴학신청 반려 -->
+	<update id="updateReferLeaveSts">
+	UPDATE	REQ
+	SET		REQ_STAT = #{reqStat}
+			,REQ_DENL = #{reqDenl}
+	WHERE	REQ_ID = #{reqId}
+	</update>
+	
+	<select id="selectRequestLeaveStsCount" resultType="int">
+		SELECT COUNT(1)
+		FROM REQ
+		WHERE REQ_SMS = #{reqSms}
+		AND USER_NO = #{userNo}
+		AND REQ_RSN IN ('A001', 'A002')
+		AND REQ_STAT != 'B103'
+	</select>
+	
+<!-- 	휴학 신청시 요청테이블에 insert -->
+	<insert id="insertRequestLeaveSts">
+		INSERT INTO REQ (
+		    REQ_ID
+		   ,USER_NO
+		   ,REQ_SMS
+		   ,REQ_RSN
+		   ,REQ_DATE
+		   ,REQ_STAT
+		) VALUES (
+		   REQ_SEQ.NEXTVAL
+		   ,#{userNo}
+		   ,#{reqSms}
+		   ,#{reqRsn}
+		   ,SYSDATE
+		   ,'B101'
+		)
+	</insert>
+	
+	
+
+	<select id="selectStudentReturnRequestList" parameterType="PagingVO" resultType="RequestVO">
+		SELECT B.*
+		FROM(
+			SELECT A.*, ROWNUM RNUM
+			FROM
+				(
+					SELECT
+					A.USER_NO
+					,B.USER_NAME
+					,F.COL_NAME
+					,F.DEPT_NAME
+					,A.DEPT_ID
+					,A.STU_YEAR
+					,A.STU_CLASS
+					,C.REQ_ID
+					,C.REQ_SMS
+					,D.SEMS_SDATE
+					,D.SEMS_EDATE
+					,E.STS_CODE1
+					,C.REQ_STAT
+					FROM STU A
+					INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+					INNER JOIN REQ C ON C.USER_NO=A.USER_NO
+					INNER JOIN SEMSDATA D ON C.REQ_SMS=D.SEMS_NO
+					INNER JOIN CODE E ON C.REQ_STAT=E.STS_ID
+					INNER JOIN DEPARTMENT F ON F.DEPT_ID=A.DEPT_ID
+					WHERE C.REQ_RSN ='B001'
+				)A
+				<include refid="searchCompCondition" /> 
+		)B
+		<![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+		ORDER BY STS_CODE1
+	</select>
+	
+	<select id="selectReturnTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM(
+			SELECT A.*, ROWNUM RNUM
+			FROM
+				(
+					SELECT
+					A.USER_NO
+					,B.USER_NAME
+					,F.COL_NAME
+					,F.DEPT_NAME
+					,A.DEPT_ID
+					,A.STU_YEAR
+					,A.STU_CLASS
+					,C.REQ_ID
+					,C.REQ_SMS
+					,D.SEMS_SDATE
+					,D.SEMS_EDATE
+					,E.STS_CODE1
+					,C.REQ_STAT
+					FROM STU A
+					INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+					INNER JOIN REQ C ON C.USER_NO=A.USER_NO
+					INNER JOIN SEMSDATA D ON C.REQ_SMS=D.SEMS_NO
+					INNER JOIN CODE E ON C.REQ_STAT=E.STS_ID
+					INNER JOIN DEPARTMENT F ON F.DEPT_ID=A.DEPT_ID
+					WHERE C.REQ_RSN ='B001'
+				)A
+				<include refid="searchCompCondition" /> 
+		)
+	</select>
+	
+	<!-- 	복학신청 승인 -->
+	<update id="updateReturnSts">
+	UPDATE STU
+	SET STU_CODE = 'C101'
+	WHERE USER_NO = #{userNo}
+	</update>
+	<update id="updateReturnReq">
+	UPDATE REQ
+	SET 
+		REQ_STAT = 'B102'
+		
+	WHERE USER_NO = #{userNo}
+	</update>
+	
+	
+	<!-- 복학신청시 요청테이블에 insert -->
+	<insert id="insertRequestReturnSts">
+		INSERT INTO REQ (
+		    REQ_ID
+		   ,USER_NO
+		   ,REQ_SMS
+		   ,REQ_RSN
+		   ,REQ_DATE
+		   ,REQ_STAT
+		) VALUES (
+		   REQ_SEQ.NEXTVAL
+		   ,#{userNo}
+		   ,#{reqSms}
+		   ,'B001'
+		   ,SYSDATE
+		   ,'B101'
+		)
+	</insert>
+	
+	<select id="selectRequestReturnStsCount" resultType="int">
+		SELECT COUNT(1)
+		FROM REQ
+		WHERE REQ_SMS = #{reqSms}
+		AND USER_NO = #{userNo}
+		AND REQ_RSN = 'B001'
+	</select>
+	
+	<select id="selectStudentLeaveRequestList" parameterType="RequestVO">
+		SELECT
+		    A.USER_NO
+		    ,A.USER_NAME
+		    ,F.COL_NAME
+		    ,F.DEPT_NAME
+		    ,B.STU_YEAR
+		    ,B.STU_CLASS
+		    ,C.REQ_ID
+		    ,C.REQ_SMS
+		    ,D.SEMS_SDATE
+		    ,D.SEMS_EDATE
+		    ,E.STS_CODE1
+		    ,(SELECT 
+		        A.STS_CODE1
+		      FROM CODE A, REQ B
+		      WHERE A.STS_ID = B.REQ_STAT
+		      AND B.REQ_ID = C.REQ_ID) AS REQ_YN
+		FROM USERS A, STU B, REQ C, SEMSDATA D, CODE E, DEPARTMENT F
+		WHERE A.USER_NO = B.USER_NO
+		AND B.USER_NO = C.USER_NO
+		AND C.REQ_SMS = D.SEMS_NO
+		AND C.REQ_RSN = E.STS_ID
+		AND B.DEPT_ID = F.DEPT_ID
+		AND A.USER_NO = #{userNo}
+	</select>
+	
+</mapper>

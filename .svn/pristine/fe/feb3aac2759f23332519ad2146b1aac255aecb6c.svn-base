@@ -1,0 +1,14 @@
+package kr.or.ddit.vo;
+
+import java.io.Serializable;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+@Data
+@EqualsAndHashCode(of="evaId")
+public class EvaStandardVO implements Serializable {
+	private String evaId;
+	private String evaStd;
+	private Integer evaScore;
+	private Integer lechwkNo;
+}

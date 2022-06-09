@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.graduate.dao.GraduateDAO">
+	<select id="selectGraduateList" parameterType="PagingVO" resultType="GraduateVO">
+		WITH TEMP AS (
+		   SELECT A.* , ROWNUM RNUM
+		   FROM
+		        (SELECT
+		             A.USER_NO
+		           , A.USER_NAME
+		           , A.USER_GENDER
+		           , A.USER_PHONE
+		           , A.USER_ADDR
+		           , A.USER_MAIL
+		           , A.USER_CODE
+		           , B.STU_CODE
+		           , TO_CHAR(B.STU_GDU_DATE,'YYYY-MM-DD') AS STU_GDU_DATE
+		           , C.DEPT_NAME
+                   , D.STS_CODE1
+		        FROM USERS A
+		        INNER JOIN STU B ON A.USER_NO=B.USER_NO
+		        INNER JOIN DEPARTMENT C ON C.DEPT_ID = B.DEPT_ID
+                INNER JOIN CODE D ON D.STS_ID=B.STU_CODE
+                WHERE B.STU_CODE = 'C104'
+                ORDER BY A.USER_NO
+		   )A
+		)
+		SELECT *
+		FROM TEMP
+		<![CDATA[  
+				WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]> 
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM USERS A
+	        INNER JOIN STU B ON A.USER_NO=B.USER_NO
+	        INNER JOIN DEPARTMENT C ON C.DEPT_ID = B.DEPT_ID
+	        INNER JOIN CODE D ON D.STS_ID=B.STU_CODE
+        WHERE B.STU_CODE = 'C104'
+	</select>
+	
+	
+	<select id="selectGraduateTargetList" parameterType="PagingVO" resultType="GraduateVO">
+		WITH TEMP AS (
+		    SELECT A.* , ROWNUM RNUM
+		    FROM
+		        (SELECT
+		            A.USER_NO
+		            ,A.DEPT_ID
+		            ,A.STU_YEAR
+		            ,A.STU_CLASS
+		            ,A.STU_CODE
+		            ,A.STU_CDT_EARN
+		            ,A.STU_GDU_CDT
+		            ,B.USER_NAME
+		            ,B.USER_GENDER
+		            ,B.USER_PHONE
+		            ,B.USER_ADDR
+		            ,B.USER_REG1
+		            ,B.USER_REG2
+		            ,B.USER_MAIL
+		            ,C.DEPT_NAME
+		            ,C.COL_NAME
+		            ,D.STS_CODE1
+		        FROM
+		            STU A
+		        INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+		        INNER JOIN DEPARTMENT C ON A.DEPT_ID=C.DEPT_ID
+		        INNER JOIN CODE D ON D.STS_ID= A.STU_CODE
+		        WHERE A.STU_YEAR = 4
+		        AND A.STU_CDT_EARN > A.STU_GDU_CDT
+		        ORDER BY USER_NO
+		    )A
+		)
+		SELECT *
+		FROM TEMP
+		<![CDATA[  
+				WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]> 
+	</select>
+	
+	<select id="selelctTargetTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM
+            STU A
+        INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+        INNER JOIN DEPARTMENT C ON A.DEPT_ID=C.DEPT_ID
+        INNER JOIN CODE D ON D.STS_ID= A.STU_CODE
+        WHERE A.STU_YEAR = 4
+        AND A.STU_CDT_EARN > A.STU_GDU_CDT
+	</select>
+	
+	<update id="updateGraduateSts" >
+	UPDATE STU
+	SET STU_CODE = 'C104'
+	WHERE USER_NO = #{userNo}
+	</update>
+	
+</mapper>

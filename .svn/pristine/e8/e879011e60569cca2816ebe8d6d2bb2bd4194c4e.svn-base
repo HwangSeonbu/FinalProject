@@ -1,0 +1,76 @@
+package kr.or.ddit.lecboard.controller;
+
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.lecboard.service.LecBoardService;
+import kr.or.ddit.vo.ClassVO;
+import kr.or.ddit.vo.MemberVO;
+import kr.or.ddit.vo.security.MemberVOWrapper;
+import lombok.extern.slf4j.Slf4j;
+
+/**lecBoard Main page
+ * main page - 영역 분리하여 공지사항, 최근 과제 게시판, 과제에 대한 최근 피드백을 모두 나타냄.
+ * @author 황선부
+ * @since 2022. 5. 13.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 13.      작성자명       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Slf4j
+@Controller
+public class LecBoardRetrieveController {
+	
+	@Autowired
+	private LecBoardService service;
+	
+	@GetMapping("/lecBoard/main")
+	public String lecBoardMain(
+		Authentication authentication
+			,HttpServletResponse resp
+			,HttpServletRequest req
+			) throws IOException {
+		//시큐리티
+		//차후 마지막에 함.
+		String viewName = null;
+		//1. 강의 수강하는 학생이 아니면 session으로 접근제한(강의 수강 학생 전체 불러오기 나중에 main에서 재활용)
+		MemberVO member = ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		int userNo = member.getUserNo();
+		ClassVO classVO =new ClassVO();
+		int lecSems = Integer.parseInt(req.getParameter("lecSems"));
+		String lecId = req.getParameter("lecId");
+		
+		classVO.setLecSems(lecSems);
+		classVO.setUserNo(userNo);
+		classVO.setLecId(lecId);
+		
+		log.info("userNo{}",userNo);
+		ServiceResult result = service.retrieveLecAuthenUser(classVO);
+		
+		if(result.equals(ServiceResult.OK)) {
+			
+			viewName= "lecBoard/lecBoardMain";						
+		}else {
+			resp.sendError(resp.SC_UNAUTHORIZED, "접근 권한이 없습니다.");
+			return null;
+		}
+		//2. 페이징처리
+		
+		return viewName;
+	}
+}

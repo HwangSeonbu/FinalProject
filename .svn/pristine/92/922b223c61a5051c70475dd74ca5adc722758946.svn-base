@@ -1,0 +1,43 @@
+package kr.or.ddit.reciever.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * 학생학적신청기간 설정, 학적신청현황(휴학/복학)신청현황조회
+ * @author 김재웅
+ * @since 2022. 4. 28.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 28.      김재웅       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@RequestMapping("/req")
+public class AdminRequestRetrieveController {
+
+	
+	@RequestMapping("setPeriod.do")
+	public String reqSetPeriodForm() {
+		
+		return "request/adminSetPeriod";
+	}
+	
+	@RequestMapping("leaveSchoolList.do")
+	public String reqLeaveSchoolList() {
+		
+		return "request/adminLeaveSchoolList";
+	}
+	
+	@RequestMapping("returnSchoolList.do")
+	public String reqReturnSchoolList() {
+		
+		return "request/adminReturnSchoolList";
+	}
+}
+

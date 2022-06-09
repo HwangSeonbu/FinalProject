@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.NoticeBoardDAO">
+<sql id="searchFrag">
+		 <where>
+        	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+        		<choose>
+        			<when test="simpleCondition.searchType eq 'NAME'">
+        				INSTR(NOTICE_TITLE, #{simpleCondition.searchWord}) > 0
+        			</when>
+        			<when test="simpleCondition.searchType eq 'USERNO'">
+        				INSTR(USER_NO, #{simpleCondition.searchWord}) > 0
+        			</when>
+        			<otherwise>
+        				INSTR(NOTICE_TITLE, #{simpleCondition.searchWord}) > 0
+        				OR INSTR(USER_NO, #{simpleCondition.searchWord}) > 0
+        			</otherwise>
+        		</choose>
+        	</if>
+        </where>
+	</sql>
+<!-- 	<select id="selectNBoardList" resultType="NoticeBoardVO">
+		SELECT 
+		    NOTICE_NO,
+		    USER_NO,
+		    NOTICE_TITLE,
+		    NOTICE_CONTENT,
+		    NOTICE_HIT,
+		    NOTICE_DATE
+		FROM 
+		    NOTICE
+		ORDER BY NOTICE_NO DESC
+	</select> -->
+	<select id="selectTotalNRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM NOTICE
+		<include refid="searchFrag" />
+	</select>
+	<select id="selectNBoardList" parameterType="PagingVO" resultType="NoticeBoardVO">
+		SELECT B.*
+		FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+		        SELECT NOTICE_NO, USER_NO, NOTICE_TITLE
+		            , NOTICE_HIT, NOTICE_DATE
+		        FROM NOTICE
+		        <include refid="searchFrag" />
+		        ORDER BY NOTICE_NO DESC
+		    ) A
+		) B
+		<![CDATA[
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+	<resultMap type="NoticeBoardVO" id="nBoardMap" autoMapping="true">
+		<id property="noticeNo" column="NOTICE_NO" />
+	</resultMap>
+	<select id="selectNBoard" parameterType="int" resultMap="nBoardMap">
+		SELECT 
+		    NOTICE_NO,
+		    USER_NO,
+		    NOTICE_TITLE,
+		    NOTICE_CONTENT,
+		    NOTICE_HIT,
+		    NOTICE_DATE
+		FROM 
+		    NOTICE
+		WHERE NOTICE_NO = #{noticeNo}
+	</select>
+	<delete id="deleteNBoard" parameterType="int">
+		DELETE FROM NOTICE
+		WHERE NOTICE_NO = #{noticeNo}
+	</delete>
+	<update id="updateNBoard" parameterType="PagingVO">
+		UPDATE NOTICE
+		SET
+		NOTICE_NO = #{noticeNo,jdbcType=NUMERIC}
+		,USER_NO = #{userNo,jdbcType=NUMERIC}
+		,NOTICE_TITLE = #{noticeTitle,jdbcType=VARCHAR}
+		,NOTICE_CONTENT = #{noticeContent,jdbcType=VARCHAR}
+		,SYSDATE
+		WHERE NOTICE_NO = #{noticeNo}
+	</update>
+	<insert id="insertNBoard" parameterType="NoticeBoardVO">
+		<selectKey resultType="int" keyProperty="noticeNo" order="BEFORE">
+			SELECT NOTICE_SEQ.NEXTVAL
+			FROM DUAL
+		</selectKey>
+		INSERT INTO NOTICE 
+		(
+		    NOTICE_NO,
+		    USER_NO,
+		    NOTICE_TITLE,
+		    NOTICE_CONTENT,
+		    NOTICE_HIT,
+		    NOTICE_DATE
+		) VALUES (
+		    #{noticeNo,jdbcType=NUMERIC}
+			,#{userNo,jdbcType=NUMERIC}
+			,#{noticeTitle,jdbcType=VARCHAR}
+			,#{noticeContent,jdbcType=VARCHAR}
+			,#{noticeHit,jdbcType=NUMERIC}
+		    ,SYSDATE
+		)
+	</insert>
+	<update id="incrementHit" parameterType="int">
+		UPDATE NOTICE
+		SET 
+		NOTICE_HIT = NOTICE_HIT + 1
+		WHERE NOTICE_NO = #{noticeNo}
+	</update>
+</mapper>

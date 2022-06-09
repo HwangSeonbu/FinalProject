@@ -1,0 +1,27 @@
+package kr.or.ddit.tempKJU;
+
+public class ClassListVO {
+
+	private String sjtGrade;
+	private String sjtName;
+	private String userName;
+	public void setSjtGrade(String sjtGrade) {
+		this.sjtGrade = sjtGrade; 
+	}
+	public String getSjtGrade() {
+		return sjtGrade; 
+	}
+	public void setSjtName(String sjtName) {
+		this.sjtName = sjtName; 
+	}
+	public String getSjtName() {
+		return sjtName; 
+	}
+	public void setUserName(String userName) {
+		this.userName = userName; 
+	}
+	public String getUserName() {
+		return userName; 
+	}
+
+}

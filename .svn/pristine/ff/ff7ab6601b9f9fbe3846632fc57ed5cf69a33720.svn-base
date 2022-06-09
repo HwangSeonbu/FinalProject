@@ -1,0 +1,155 @@
+<%--
+	관리자의 개설강의현황조회
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 28.      김재웅      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<h2>관리자>개설강의현황조회</h2><hr>
+<style>
+	#lecContainer{
+		position: absolute;
+		border: 1px solid red;
+		width: 1400px;
+		height: 630px;
+	}
+	#lecListBody{
+		position: absolute;
+		top: 45px;
+		border: 1px solid blue;
+		width: 1380px;
+		height: 530px;
+		overflow-y: scroll;
+	}
+	#lecPageBody{
+		position: absolute;
+		top: 580px;
+		border: 1px solid blue;
+		width: 1380px;
+		height: 40px;
+	}
+	.pagination{
+		padding-left: 500px;
+	}
+	#lecTable th{background-color:#dee2e6; vertical-align: middle;}
+	.text-center{text-align: center;}
+	.enrollBtn{font-size: 8px;}
+	a {text-decoration-line: none;}
+</style>
+
+<div id="lecContainer">
+	<div id="lecListBody">
+		<table class="table table-bordered" id="lecTable">
+			 <thead>
+			    <tr class="text-center">
+			    	<th ><input id="checkAll" type="checkbox" /></th>	
+			    	<th >계획<br>번호</th>	
+			    	<th >분과대학</th>	
+			    	<th >소속학과</th>	
+			    	<th >학과<br>교수</th>	
+			    	<th >강의<br>교수</th>	
+			    	<th >강의과목</th>	
+			    	<th >강의요약</th>	
+			    	<th >시수</th>	
+			    	<th >강의관</th>	
+			    	<th >강의실</th>	
+			    	<th >시간1</th>	
+			    	<th >시간2</th>
+			    	<th >배정<br>상태</th>
+			    	<th >개설</th>
+			    </tr>
+			 </thead>
+			 <tbody class="text-center" id="lecListTbody">
+				<tr>
+				</tr>
+			 </tbody>
+			</table>
+	</div>
+	<div id="lecPageBody"></div>
+</div>
+
+
+<script>
+let lecListTbody = $("#lecListTbody");
+let lecPageBody= $("#lecPageBody");
+
+function completeList(){
+	$.ajax({
+		url : "${cPath}/lecComp/LectureCompleteListData.do",
+		method : "get",
+		dataType : "json",
+		success : function(resp) {
+			lecListTbody.empty();
+			lecPageBody.empty();
+			
+			let paging = resp.pagingVo;
+			let completeList = paging.dataList;
+			
+			let trTags = [];
+			if(completeList && completeList.length > 0){
+				$.each(completeList, function(idx, comp){
+					let roomNo = comp.roomNo;
+					let assignSts = comp.assignSts;
+					if(roomNo == null || roomNo == ""){
+						roomNo = "미정";
+					}
+					
+					let trTag = $("<tr>").attr("data-plan-no", comp.planNo);
+					if(assignSts == "미배정"){
+						trTag.append($("<td>"));
+					}else{
+						trTag.append($("<td>").append($("<input>").attr("type", "checkbox")
+								.attr("id", comp.planNo).addClass("checkEach")));
+					}
+					trTag.append(
+							$("<td>").html(comp.planNo)
+							, $("<td>").html(comp.colName)	
+							, $("<td>").html(comp.deptName)	
+							, $("<td>").append($("<a>").attr("href", "#").text(comp.headproName))
+							, $("<td>").append($("<a>").attr("href", "#").text(comp.proName))
+							, $("<td>").html(comp.sjtName)	
+							, $("<td>").html(comp.planSmry)	
+							, $("<td>").html(comp.planTcnt)	
+							, $("<td>").html(comp.gwanName)	
+							, $("<td>").html(roomNo)	
+							, $("<td>").html(comp.assignDt1)	
+							, $("<td>").html(comp.assignDt2)	
+							, $("<td>").html(assignSts));
+						if(assignSts == "미배정"){
+							trTag.append($("<td>").append($("<input>").attr("type", "button").attr("disabled", true)
+									.attr("value", "불가").addClass("btn btn-secondary btn-sm")));
+						}else{
+							trTag.append($("<td>").append($("<input>").attr("type", "button")
+									.attr("value", "개설").addClass("btn btn-primary btn-sm detailBtn").attr("data-plan-no", comp.planNo)
+									.attr("data-bs-toggle", "modal").attr("data-bs-target", "#detailModal")));
+						}
+					trTags.push(trTag);
+				});
+			}else{
+				let trTag = $("<tr>").html(
+								$("<td>").attr("colspan", "15")
+										 .html("조건에 맞는 개설 대상 강의가 없습니다.")
+							);
+				trTags.push(trTag);
+			} // if end
+			lecListTbody.append(trTags);
+			lecPageBody.html(paging.pagingHTMLBS);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+completeList();
+
+</script>
+
+
+
+
+

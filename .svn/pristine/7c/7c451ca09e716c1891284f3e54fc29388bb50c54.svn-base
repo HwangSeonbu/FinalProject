@@ -1,0 +1,28 @@
+package kr.or.ddit.homework.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.homework.service.HomeworkService;
+import kr.or.ddit.vo.LecHomeworkVO;
+@RequestMapping("/homework")
+@Controller
+public class HomeWorkViewController {
+	@Autowired
+	private HomeworkService service;
+	
+	@RequestMapping("board")
+	public String hwView(
+			@RequestParam("what")int lechwkNo
+			,Model model
+			) {
+		LecHomeworkVO hw = service.retrieveHomework(lechwkNo);
+		
+		model.addAttribute("homework", hw);
+		
+		return "homework/hwView";
+	}
+}

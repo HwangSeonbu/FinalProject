@@ -1,0 +1,34 @@
+package kr.or.ddit.vo;
+
+import java.util.List;
+
+import lombok.Data;
+
+/**
+ * 교과목 테이블 + 교수명 VO  (테이블명 : SJT/USERS)
+ * @author 주창규
+ * @since 2022. 4. 28.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 28.      주창규       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Data
+public class SubjectVO {
+	private String sjtId;		//과목아아디
+	private String sjtName;		//강의명
+	private Integer sjtCredit;	//학점
+	private String sjtMajor;	//전공분류
+	private Integer sjtGrade;	//과목에대한 학년(ex 1학년과목, 2학년과목)
+	private String userName;	//교수명
+	
+	private List<LecturePeriodVO> lecturePeriodList;		//1~16주차 출석 현황을 List
+	
+	private AttendanceCountVO attendanceCountVo;	//출석현황카운터List
+}
+

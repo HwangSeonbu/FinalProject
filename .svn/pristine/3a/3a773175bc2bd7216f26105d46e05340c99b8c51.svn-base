@@ -1,0 +1,15 @@
+package kr.or.ddit.lecture.dao;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.ProfessorLectureVO;
+import kr.or.ddit.vo.ProfessorVO;
+
+@Mapper
+public interface ProfessorLectureDAO {
+
+	public List<ProfessorLectureVO> selectProLectureList(ProfessorVO vo);
+	public List<ProfessorLectureVO> selectProLectureTimeTableList(ProfessorVO vo);
+}

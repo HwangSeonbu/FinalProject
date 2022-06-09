@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.ProfessorLectureDAO">
+
+	<select id="selectProLectureList" parameterType="ProfessorVO" resultType="ProfessorLectureVO">
+		WITH PRODETAIL AS (
+		    SELECT A.*, B.LEC_ID
+		        , C.PLAN_NO, C.SJT_ID, C.LEC_NAME
+		        , D.SJT_CREDIT, D.SJT_MAJOR, D.SJT_GRADE
+		        , E.GWAN_NAME, E.ROOM_NO, E.ASSIGN_DT
+		    FROM (SELECT A.PRO_NO, A.PRO_JOB, A.DEPT_ID
+		                , B.USER_NAME, B.USER_PHONE
+		                , C.COL_NAME, C.DEPT_NAME
+		            FROM PRO A, USERS B, DEPARTMENT C
+		            WHERE A.PRO_NO = B.USER_NO
+		                AND A.DEPT_ID = C.DEPT_ID
+		                AND A.PRO_NO = #{proNo}
+		            ORDER BY PRO_NO
+		            ) A
+		        LEFT OUTER JOIN (
+		            SELECT * FROM LEC WHERE LEC_SEMS = #{thisSems}
+		        ) B ON(A.PRO_NO = B.USER_NO)
+		        LEFT OUTER JOIN PLANOK C ON(B.LEC_ID = C.LEC_ID)
+		        LEFT OUTER JOIN SJT D ON(C.SJT_ID = D.SJT_ID)
+		        LEFT OUTER JOIN(
+		            SELECT 
+		                ASSIGN_NO, PLAN_NO
+		                , ASSIGN_DAY||ASSIGN_TIME ASSIGN_DT
+		                , GWAN_NAME, ROOM_NO
+		            FROM LEC_ASSIGN
+		            ORDER BY PLAN_NO) E ON(C.PLAN_NO = E.PLAN_NO)
+		    ORDER BY A.PRO_NO
+		)
+		SELECT 
+		    PRO_NO, PRO_JOB, DEPT_ID, USER_NAME
+		    , COL_NAME, DEPT_NAME, LEC_ID
+		    , PLAN_NO, SJT_ID, LEC_NAME
+		    , SJT_CREDIT, SJT_MAJOR, SJT_GRADE
+		    , GWAN_NAME, ROOM_NO
+		    , LISTAGG(ASSIGN_DT, ',') WITHIN GROUP (ORDER BY ASSIGN_DT) ASSIGN_DT
+		FROM PRODETAIL 
+		GROUP BY
+		    PRO_NO, PRO_JOB, DEPT_ID, USER_NAME
+		    , COL_NAME, DEPT_NAME, LEC_ID
+		    , PLAN_NO, SJT_ID, LEC_NAME
+		    , SJT_CREDIT, SJT_MAJOR, SJT_GRADE
+		    , GWAN_NAME, ROOM_NO
+		ORDER BY LEC_ID
+	</select>
+	
+	<select id="selectProLectureTimeTableList" parameterType="ProfessorVO" resultType="ProfessorLectureVO">
+		WITH PROINFO AS(
+		    SELECT A.PRO_NO, A.PRO_JOB, A.DEPT_ID
+		        , B.USER_NAME, B.USER_PHONE
+		        , C.COL_NAME, C.DEPT_NAME
+		    FROM PRO A, USERS B, DEPARTMENT C
+		    WHERE A.PRO_NO = B.USER_NO
+		        AND A.DEPT_ID = C.DEPT_ID
+		        AND A.PRO_NO = #{proNo}
+		    ORDER BY PRO_NO
+		) SELECT A.*, B.LEC_ID
+		    , C.PLAN_NO, C.SJT_ID, C.LEC_NAME
+		    , D.SJT_CREDIT, D.SJT_MAJOR, D.SJT_GRADE
+		    , E.GWAN_NAME, E.ROOM_NO, E.ASSIGN_DAY||E.ASSIGN_TIME ASSIGN_DT, E.ASSIGN_NO
+		FROM PROINFO A
+		    LEFT OUTER JOIN (
+		        SELECT * FROM LEC WHERE LEC_SEMS = #{thisSems}
+		    ) B ON(A.PRO_NO = B.USER_NO)
+		    LEFT OUTER JOIN PLANOK C ON(B.LEC_ID = C.LEC_ID)
+		    LEFT OUTER JOIN SJT D ON(C.SJT_ID = D.SJT_ID)
+		    LEFT OUTER JOIN LEC_ASSIGN E ON(C.PLAN_NO = E.PLAN_NO)
+		ORDER BY A.PRO_NO
+	</select>
+	
+	<select id="selectLecturePlanList" parameterType="PlanVO" resultType="PlanVO">
+		SELECT * 
+		FROM PLAN
+		WHERE USER_NO = #{userNo}
+		AND PLAN_SEMS = #{planSems}
+		AND PLAN_STS = 'B101' OR PLAN_STS = 'B103'
+		ORDER BY PLAN_NO
+	</select>
+	
+	<insert id="insertLecturePlan" parameterType="PlanVO">
+		INSERT INTO PLAN(PLAN_NO, USER_NO, PLAN_STS, PLAN_SEMS, DEPT_ID)
+		VALUES(PLAN_SEQ.NEXTVAL, #{userNo}, 'B101', #{planSems}, #{deptId})
+	</insert>
+	
+	<delete id="deleteLecturePlan" parameterType="int">
+		DELETE FROM PLAN
+		WHERE
+    		PLAN_NO = #{planNo}
+	</delete>
+	
+	
+	<resultMap type="PlanEditVO" id="planMap" autoMapping="true">
+		<id property="planNo" column="PLAN_NO"/>
+		<collection property="wPlanList" ofType="WplanVO" autoMapping="true">
+			<id property="wplanNo" column="WPLAN_NO"/>
+		</collection>
+	</resultMap>
+	<select id="selectLecturePlanEditData" parameterType="int" resultMap="planMap">
+		SELECT A.*
+		    , B.SJT_NAME
+		    , B.SJT_CREDIT
+		    , B.SJT_MAJOR
+		    , B.SJT_GRADE
+		    , C.USER_NAME
+		    , D.COL_NAME||' '||D.DEPT_NAME "DEPT_NAME"
+		    , E.WPLAN_NO, E.WPLAN_W, E.WPLAN_CONT
+		FROM PLAN A LEFT OUTER JOIN SJT B ON(A.SJT_ID = B.SJT_ID)
+		        INNER JOIN USERS C ON(A.USER_NO = C.USER_NO)
+		        INNER JOIN DEPARTMENT D ON(A.DEPT_ID = D.DEPT_ID)
+		        LEFT OUTER JOIN WPLAN E ON(A.PLAN_NO = E.PLAN_NO)
+		WHERE A.PLAN_NO = #{planNo}
+		ORDER BY E.WPLAN_W
+	</select>
+	
+	
+	<select id="selectSubjectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*) FROM SJT
+		<include refid="searchCondition" />
+	</select>
+	
+	<sql id="searchCondition">
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.sjtMajor)">
+				AND SJT_MAJOR LIKE #{detailCondition.sjtMajor}||'%'
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.sjtName)">
+				AND INSTR(SJT_NAME, #{detailCondition.sjtName}) > 0
+			</if>
+		</trim>
+	</sql>
+	
+	<select id="selectSubjectList" resultType="SubjectVO" parameterType="PagingVO">
+		SELECT B.*
+		FROM(SELECT ROWNUM RNUM, A.* 
+		    FROM(SELECT *
+		        FROM SJT
+				<include refid="searchCondition" />
+		        ORDER BY SJT_NAME, SJT_ID) A
+		)B
+		<![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+	
+	
+	<update id="updateLecturePlan" parameterType="PlanEditVO">
+		UPDATE PLAN
+		SET
+		    SJT_ID = #{sjtId,jdbcType=VARCHAR}
+		    , PLAN_YEAR = #{planYear,jdbcType=NUMERIC}
+		    , PLAN_LIMIT = #{planLimit,jdbcType=NUMERIC}
+		    , PLAN_TCNT = #{planTcnt,jdbcType=NUMERIC}
+		    , PLAN_EVAL = #{planEval,jdbcType=VARCHAR}
+		    , PLAN_SMRY = #{planSmry,jdbcType=VARCHAR}
+		WHERE
+		    PLAN_NO = #{planNo}
+	</update>
+	
+	
+	<update id="updateOrInsertWplan" parameterType="WplanVO">
+		MERGE INTO WPLAN A
+		    USING DUAL ON (A.WPLAN_NO = #{wplanNo})
+		WHEN MATCHED THEN
+		    UPDATE SET A.WPLAN_CONT = #{wplanCont}
+		WHEN NOT MATCHED THEN
+		    INSERT (WPLAN_NO, PLAN_NO, WPLAN_W, WPLAN_CONT)
+		    VALUES (WPLAN_SEQ.NEXTVAL, #{planNo}, #{wplanW}, #{wplanCont})
+	</update>
+</mapper>
+
+
+
+
+
+

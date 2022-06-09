@@ -1,0 +1,29 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(of="userNo")
+public class StudentSugangVO {
+	private String deptId;
+	private String colName;
+	private String sjtId;
+	private String deptName;
+	private String gwanName;
+	private String assignDt;
+	private String userName;
+	private String stuCode;
+	private String lecId;
+	private Integer planNo;
+	private Integer roomNo;
+	private String userGender;
+	private Integer userNo;
+	private String stuYear;
+	private String userType;
+	private String proName;
+	private String sjtCredit;
+	private String lecName;
+	private String sjtMajor;
+	private String proNo;
+}

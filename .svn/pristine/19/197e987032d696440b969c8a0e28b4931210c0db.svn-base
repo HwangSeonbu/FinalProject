@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 10.}     주창규     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.grade.dao.GradeDAO">
+	
+<!-- 	학생 점수 조회 -->
+	<select id="selectStudentGrade" parameterType="map" resultType="map">
+		SELECT  ROWNUM RNUM
+		       , C.LEC_SEMS 
+		       , C.USER_NO 
+		       , STU_YEAR
+		       , USER_NAME 
+		       , SJT_NAME 
+		       , CLS_MEXAM
+		       , CLS_FEXAM 
+		       , CLS_HWK 
+		       , CLS_ATTABS
+		       , CLS_PCT 
+		       , CLS_CRDT 
+		FROM STU A INNER JOIN USERS B ON(A.USER_NO = B.USER_NO)
+		     INNER JOIN CLS C ON(B.USER_NO = C.USER_NO)
+		     INNER JOIN LEC D ON(C.LEC_ID = D.LEC_ID)
+		     INNER JOIN PLANOK E ON(D.LEC_ID = E.LEC_ID)
+		     INNER JOIN PLAN F ON(E.PLAN_NO = F.PLAN_NO)
+		     INNER JOIN SJT G ON(F.SJT_ID = G.SJT_ID)
+		WHERE C.LEC_SEMS = #{lecSems}
+		      AND C.LEC_ID = #{lecId}
+	</select>
+	
+<!-- 	학기를 조회 -->
+	<select id="selectSemsdata" resultType="String">
+		SELECT SEMS_NO 
+		FROM SEMSDATA
+	</select>
+	
+<!-- 	해당년도와 학기에 해당하는 한 명의 교수가 강의하는 강의목록 조회 -->
+	<select id="selectProfessorLecture" parameterType="map" resultType="map" >
+		SELECT  PLAN_SEMS 
+		        , LEC_ID 
+		        , SJT_NAME 
+		FROM SJT A INNER JOIN PLAN B ON (A.SJT_ID = B.SJT_ID)
+		     INNER JOIN PLANOK C ON (B.PLAN_NO=C.PLAN_NO)
+		WHERE USER_NO = #{userNo}
+		      AND B.PLAN_SEMS = #{planSems}
+	</select>
+	
+<!-- 	과목에 대한 비중 조회 -->
+	<select id="selectLectureRate" parameterType="String" resultType="map" >
+		SELECT  MRATE
+		       ,FRATE
+		       ,HWRATE
+		       ,ATTRATE
+		FROM LEC
+		WHERE LEC_ID = #{lecId}
+	</select>
+	
+<!-- 	중간고사 기말고사 과제 출석을 합한 최종 점수 -->
+	<update id="updateTotalGrade" parameterType="map">
+		UPDATE CLS A 
+	    SET CLS_PCT = (SELECT (CLS_MEXAM+CLS_FEXAM+CLS_HWK+CLS_ATTABS)
+	                    FROM CLS 
+	                    WHERE USER_NO = #{userNo}
+	                    AND LEC_ID = #{lecId})
+		WHERE USER_NO = #{userNo}
+		AND LEC_ID = #{lecId}
+	</update>
+	
+<!-- 	중간고사점수 수정 -->
+	<update id="updateClsMexam" parameterType="map">
+		UPDATE CLS 
+		SET CLS_MEXAM = #{clsMexam}
+		WHERE LEC_ID = #{lecId}
+		      AND LEC_SEMS = #{lecSems}
+		      AND USER_NO = #{userNo}
+	</update>
+	
+	
+<!-- 	기말고사점수 수정 -->
+<update id="updateClsFexam" parameterType="map">
+	UPDATE CLS 
+	SET CLS_FEXAM = #{clsFexam}
+	WHERE LEC_ID = #{lecId}
+	      AND LEC_SEMS = #{lecSems}
+	      AND USER_NO = #{userNo}
+</update>
+
+<!-- 	과제점수 수정 -->
+<update id="updateClsHwk" parameterType="map">
+	UPDATE CLS 
+	SET CLS_HWK = #{clsHwk}
+	WHERE LEC_ID = #{lecId}
+	      AND LEC_SEMS = #{lecSems}
+	      AND USER_NO = #{userNo}
+</update>
+
+</mapper>

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 강의 질의응답 게시판  xml -->
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 18. 황선부     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecqna.dao.LecQnaDAO">
+	<sql id="searchFrag">
+		
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				and
+					<choose>
+						<when test="simpleCondition.searchType eq 'TITLE'">
+							INSTR(A.LECBO_TITLE, #{simpleCondition.searchWord})>0
+						</when>
+						<when test="simpleCondition.searchType eq 'CONTENT'">
+							INSTR(A.LECBO_CONTENT, #{simpleCondition.searchWord})>0
+						</when>
+						<otherwise>
+							(INSTR (A.LECBO_TITLE, #{simpleCondition.searchWord})>0
+							OR INSTR(A.LECBO_CONTENT, #{simpleCondition.searchWord})>0)
+						</otherwise>
+					</choose>
+			</if>
+		</sql>
+	
+	
+	
+	
+	<select id="selectTotalLecqnaRecord" parameterType="PagingVO" resultType="int">
+		SELECT count(*)
+		FROM LECQNA
+		WHERE LEC_ID=#{lecId} and LEC_SEMS=(SELECT SEMS_NO
+						        				FROM SEMSDATA
+											       <![CDATA[
+							 				        WHERE SYSDATE >= SEMS_SDATE 
+							 				        AND SYSDATE <= SEMS_EDATE) ]]>
+		<include refid="searchFrag"/>
+	</select>
+	
+	<select id="selectLecqnaBoardList" parameterType="PagingVO" resultType="LecqnaVO" >
+  	
+  	SELECT E.*	
+            FROM( SELECT ROWNUM RNUM, D.*
+				FROM(                                                  
+		SELECT
+		    A.LECBO_NO
+		   ,A.LEC_SEMS
+		   ,A.LEC_ID
+		   ,A.PRO_NO
+		   ,A.LECBO_INFO
+		   ,A.LECBO_TITLE
+		   ,A.LECBO_HIT
+		   ,TO_CHAR(A.LECBO_DATE,'YYYY-MM-DD HH24:MI:SS') AS LECBO_DATE
+		   ,A.LECBO_PASS
+		   ,A.STU_NO
+           ,A.LECBO_LIKE	
+
+			   ,(SELECT B.USER_NAME
+			     FROM USERS B
+			     WHERE B.USER_NO=A.PRO_NO) AS PRO_NAME         
+
+           
+
+			    ,(SELECT C.USER_NAME
+			    FROM USERS C
+			    WHERE C.USER_NO=A.STU_NO) AS STU_NAME
+	   
+		FROM LECQNA A
+		WHERE LEC_ID=#{lecId} AND LEC_SEMS=(SELECT SEMS_NO
+						        				FROM SEMSDATA
+											       <![CDATA[
+							 				        WHERE SYSDATE >= SEMS_SDATE 
+							 				        AND SYSDATE <= SEMS_EDATE) ]]>
+		<include refid="searchFrag"/>
+       ORDER BY lecbo_no DESC
+					)D
+			)E 
+            <![CDATA[
+ 			WHERE RNUM >=#{startRow} AND RNUM <=#{endRow} 
+ 	 		]]>
+	</select>
+	
+	<resultMap type="LecqnaVO" id="oneLecQna" autoMapping="true">
+		<id property="lecboNo" column="bono"/>
+		<association property="attach" javaType="AttchVO" autoMapping="true"/>
+	</resultMap>
+	
+	<select id="selectLecqnaBoard" parameterType="int" resultMap="oneLecQna">
+	SELECT
+	    A.LECBO_NO as bono
+	   ,A.LEC_SEMS
+	   ,A.LEC_ID
+	   ,A.PRO_NO
+	   ,A.LECBO_INFO
+	   ,A.LECBO_TITLE
+	   ,A.LECBO_CONTENT
+	   ,A.LECBO_HIT
+	   ,A.LECBO_DATE
+	   ,A.LECBO_PASS
+	   ,A.STU_NO
+	   ,A.LECBO_LIKE
+        ,E.attch_no
+       ,E.attch_fname
+       ,E.attch_sname
+       ,E.attch_mime
+       ,E.attch_size
+       ,E.attch_fsize
+       ,E.attch_dhit
+	 ,(SELECT B.USER_NAME
+	     FROM USERS B
+	     WHERE B.USER_NO=A.PRO_NO) AS PRO_NAME         
+	   ,(SELECT C.USER_NAME
+	    FROM USERS C
+	    WHERE C.USER_NO=A.STU_NO) AS STU_NAME
+	FROM LECQNA A LEFT OUTER JOIN ATTCH E ON (A.LECBO_NO = E.LECQNA_NO)
+	WHERE A.LECBO_NO=#{lecboNo}
+	</select>
+	
+	<update id="incrementHit" parameterType="int">
+		update LECQNA 
+		SET LECBO_HIT = LECBO_HIT +1
+		WHERE LECBO_NO = #{lecboNo}
+	</update>
+	
+	<insert id="insertLecqnaBoard" parameterType="LecqnaVO">
+	 	<selectKey resultType="int" keyProperty="lecboNo" order="BEFORE">
+	 		SELECT NVL(MAX(LECBO_NO),0)+1
+	 		FROM LECQNA
+	 	</selectKey>
+	 
+	 INSERT INTO LECQNA
+	 (
+	 	    LECBO_NO
+		   ,LEC_SEMS
+		   ,LEC_ID
+		   <if test="proNo neq null">
+		   ,PRO_NO		   
+		   </if>
+		   ,LECBO_TITLE
+		   ,LECBO_CONTENT
+		   ,LECBO_DATE
+		   ,LECBO_PASS
+		   <if test="stuNo neq null">		   
+		   ,STU_NO
+		   </if>
+
+	 )
+	 VALUES
+	 (
+	 	#{lecboNo}
+	   ,(SELECT SEMS_NO
+	        FROM SEMSDATA
+	       <![CDATA[
+		        WHERE SYSDATE >= SEMS_SDATE 
+		        AND SYSDATE <= SEMS_EDATE)]]> 
+	 	,#{lecId}
+ 	<if test="proNo neq null">
+	   ,#{proNo}		   
+	</if>
+		,#{lecboTitle}
+	   ,#{lecboContent}
+	   ,SYSDATE
+	   ,#{lecboPass}	 
+   <if test="stuNo neq null">		   
+  	   ,#{stuNo}
+   </if>
+
+	 )
+	</insert>
+	<update id="updateLecqnaBoard" parameterType="LecqnaVO">
+		UPDATE LECQNA
+		SET 
+				LEC_ID = #{lecId,jdbcType=VARCHAR}
+				,LECBO_TITLE = #{lecboTitle,jdbcType=VARCHAR}
+				,LECBO_CONTENT = #{lecboContent,jdbcType=CLOB}		
+		WHERE LECBO_NO=#{lecboNo}
+	</update>
+	
+	<delete id="deleteLecqnaBoard" parameterType="int">
+		DELETE FROM LECQNA
+		WHERE LECBO_NO = #{lecboNo}	
+	</delete>
+	
+</mapper>
+

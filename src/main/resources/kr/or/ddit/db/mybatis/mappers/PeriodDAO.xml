@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.set.dao.PeriodDAO">
+	<select id="selectSemsDataList" resultType="SemsDataVO">
+		SELECT * 
+		FROM SEMSDATA
+		<![CDATA[
+		WHERE ADD_MONTHS(SYSDATE,18) >= SEMS_SDATE
+		    AND ADD_MONTHS(SYSDATE,-18) <= SEMS_EDATE
+		]]>
+	</select>
+	
+	<select id="selectPeriodDataList" parameterType="int" resultType="AcadscVO">
+		SELECT A.STS_GID, A.STS_ID, A.STS_CODE1
+		    , B.*
+		FROM CODE A LEFT OUTER JOIN (
+		    SELECT * FROM ACADSC 
+		    WHERE ACADSC_SEMS = #{acadscSems}
+		    AND ACADSC_DIV = 'B3') B ON(B.ACADSC_CONT LIKE A.STS_CODE1)
+		WHERE A.STS_GID = 'S1'
+	</select>
+	
+	<update id="updateOrInsertPeriod" parameterType="AcadscVO">
+		MERGE INTO ACADSC A
+		    USING DUAL ON (A.ACADSC_NO = #{acadscNo})
+		WHEN MATCHED THEN
+		    UPDATE SET A.ACADSC_CONT = #{acadscCont}
+				   	, A.ACADSC_START = #{acadscStart}
+				   	, A.ACADSC_END = #{acadscEnd}
+				   	, A.ACADSC_DIV = #{acadscDiv}
+				   	, A.ACADSC_SEMS =#{acadscSems}
+		WHEN NOT MATCHED THEN
+		    INSERT (ACADSC_NO, ACADSC_CONT, ACADSC_START, ACADSC_END
+		    		, ACADSC_DIV, ACADSC_SEMS)
+		    VALUES (ACADSC_SEQ.NEXTVAL, #{acadscCont}, #{acadscStart}, #{acadscEnd}
+		    		, #{acadscDiv}, #{acadscSems})
+	</update>
+</mapper>

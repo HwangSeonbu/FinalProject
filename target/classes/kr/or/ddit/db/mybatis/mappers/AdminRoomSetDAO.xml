@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.room.dao.AdminRoomSetDAO">
+
+	<select id="selectCollegeList" resultType="kr.or.ddit.vo.CollegeVO">
+		SELECT * FROM COLLEGE ORDER BY COL_ID
+	</select>
+
+	<select id="selectCollegeDepartList" parameterType="string" resultType="kr.or.ddit.vo.DepartmentVO">
+		SELECT
+		    A.DEPT_ID, A.DEPT_NAME, A.COL_NAME, A.DEPT_FL
+		    , B.COL_GWAN
+		    , C.GWAN_SFL, C.GWAN_EFL
+		FROM DEPARTMENT A
+		    INNER JOIN COLLEGE B ON(A.COL_NAME = B.COL_NAME)
+		    LEFT OUTER JOIN GWAN C ON(B.COL_GWAN = C.GWAN_NAME)
+		WHERE A.COL_NAME = #{colName}
+	</select>
+	
+	<select id="selectGwanList" resultType="kr.or.ddit.vo.GwanVO">
+		SELECT * FROM GWAN
+	</select>
+	
+	<select id="selectFloorList" parameterType="GwanVO" resultType="int">
+		SELECT LEVEL FROM DUAL
+		<![CDATA[  
+			WHERE LEVEL >= #{gwanSfl}
+			CONNECT BY LEVEL <= #{gwanEfl}
+		]]>
+	</select>
+	
+	<select id="selectFloorRoomList" parameterType="GwanVO" resultType="RoomVO">
+		WITH FLOORROOM AS(
+		    SELECT
+		    <![CDATA[
+		        CASE
+		            WHEN ROOM_NO-(#{pickFl}*100) < 100 AND ROOM_NO-(#{pickFl}*100) > 0 THEN ROOM_NO
+		            ELSE NULL
+		    ]]>
+		        END ROOM_NO
+		        , ROOM_USE, ROOM_LIMIT
+		    FROM ROOM 
+		    WHERE GWAN_NAME = #{gwanName}		)
+		SELECT *
+		FROM FLOORROOM WHERE ROOM_NO IS NOT NULL
+	</select>
+	
+	<update id="updateCollegeGwan" parameterType="kr.or.ddit.vo.CollegeVO">
+		UPDATE COLLEGE
+		    SET
+		        COL_GWAN = #{colGwan,jdbcType=VARCHAR}
+		WHERE
+		    COL_ID = #{colId}
+	</update>
+	
+	<update id="updateDepartFloor" parameterType="DepartmentVO">
+		UPDATE DEPARTMENT
+			SET
+				DEPT_FL = #{deptFl,jdbcType=NUMERIC}
+		WHERE
+			DEPT_ID = #{deptId}
+	</update>
+	
+	
+</mapper>

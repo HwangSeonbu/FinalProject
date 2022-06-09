@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.scholarship.dao.StudentScholarshipDAO">
+
+	<select id="studentScholarshipApplyList" resultType="ScholarshipVO">
+	SELECT
+	    sch_no,
+	    sch_name,
+	    sch_score,
+	    sch_quali,
+	    sch_amount,
+	    sch_content
+	FROM
+    	sch
+	</select>
+	
+	<select id="studentScholarshipAleardyApply" parameterType="int" resultType="String">
+	select
+	    req_note
+ 	from req
+ 	where user_no = #{userNo} and req_rsn = 'E104'
+	</select>
+	
+	<insert id="studentScholarshipApply" parameterType="Map" >
+	
+INSERT INTO req (
+    req_id,
+    user_no,
+    req_sms,
+    req_rsn,
+    req_date,
+    req_stat,
+    req_note
+) VALUES (
+    REQ_SEQ.NEXTVAL,
+    #{userNo},
+    #{thisSemester},
+    'E104',
+    SYSDATE,
+    'B105',
+    #{schNo}
+)
+	</insert>
+</mapper>

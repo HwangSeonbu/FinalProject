@@ -1,0 +1,18 @@
+package kr.or.ddit.lecqna.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.lecqna.dao.LecQnaDAO;
+import kr.or.ddit.lecqna.dao.LecQnaReplyDAO;
+import kr.or.ddit.vo.LecQnaReplyVO;
+
+public interface LecQnaReplyService {
+	public List<LecQnaReplyVO> retrieveLecQnaReplyList(Integer lecboNo);
+	public ServiceResult createLecQnaReply(LecQnaReplyVO reply);
+	public ServiceResult deleteLecQnaReply(String replyNo);
+}

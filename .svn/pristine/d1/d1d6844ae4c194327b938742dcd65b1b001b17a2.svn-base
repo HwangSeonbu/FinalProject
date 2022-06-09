@@ -1,0 +1,16 @@
+package kr.or.ddit.vo;
+
+import java.io.Serializable;
+import java.util.List;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(of="questNo")
+public class QuestionVO implements Serializable {
+	private String questNo;
+	private String questContent;
+	
+	private List<QuestionAnswerVO> qaVO;
+}

@@ -1,0 +1,61 @@
+package kr.or.ddit.lecboard.dao;
+
+import static org.junit.Assert.*;
+
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Transactional;
+
+import kr.or.ddit.counsel.dao.CounselDAOTest;
+import kr.or.ddit.vo.ClassVO;
+import kr.or.ddit.vo.UserVO;
+import lombok.extern.slf4j.Slf4j;
+@RunWith(SpringRunner.class)
+@ContextHierarchy({
+	@ContextConfiguration("file:webapp/WEB-INF/spring/*-context.xml")//상위 컨테이너
+	,@ContextConfiguration("file:webapp/WEB-INF/spring/appServlet/servlet-context.xml")//하위 컨테이너
+})
+@WebAppConfiguration
+@Slf4j
+@Transactional//테스트과정의 트랜잭션은 자동 롤백!!중요!!//단위테스트간 서로 영향을 주지 않도록 트랜잭션 관리함.테스트하고 svn에 커밋해야함!!
+public class LecBoardDAOTest {
+	@Autowired
+	private LecBoardDAO dao;
+	
+	@Test
+	public void testSelectLectureListOfStu() {
+		int stuNo=1;
+		
+		List<Map<String, Object>> lecList = dao.selectLectureListOfStu(stuNo);
+		assertNotNull(lecList);
+	}
+	@Test
+	public void testSelectLecUserList() {
+		int stuNo=1;
+		ClassVO classVO = new ClassVO();
+		classVO.setUserNo(stuNo);
+		
+		List<UserVO> lecList = dao.selectLecUserList(classVO);
+		assertNotNull(lecList);
+	}
+	@Test
+	public void testSelectAuthenLecUserNo() {
+		int stuNo=1;
+		ClassVO classVO = new ClassVO();
+		classVO.setUserNo(stuNo);
+		
+		int result = dao.selectAuthenLecUserNo(classVO);
+		assertNotNull(result);
+	}
+	
+	
+
+}

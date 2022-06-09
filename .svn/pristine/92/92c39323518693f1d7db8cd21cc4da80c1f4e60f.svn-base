@@ -1,0 +1,310 @@
+<%--
+	
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 29.      김재웅      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+ <?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<script type="text/javascript" src="${pageContext.request.contextPath }/resources/js/jquery.form.min.js"></script>
+<h2>관리자>분과대학강의관배분</h2><hr>
+
+<style>
+	.card{
+		float: left;
+	}
+ 	#gwanBody{ 
+ 		position:absolute;
+ 		left:270px;
+ 		width: 1000px; 
+		height:600px; 
+ 		border: 1px solid blue; 
+ 		float: left;
+ 		padding-left: 10px;
+ 	} 
+	.collegeClick{
+		font-weight:bold;
+	}
+	.gwanClick:hover{
+		cursor: pointer;
+		font-weight:bold;
+		color: blue;
+	}
+	
+	.collegeClick:hover{
+		cursor: pointer;
+		color: blue;
+	}
+	.detail {
+		position:absolute;
+		border: 1px solid red;
+	}
+	#departmentBody{
+	 	width: 300px;
+	 	height:500px;
+	}
+	#gwanViewBody{
+		left:320px;
+		width: 500px;
+	 	height:150px;
+	}
+	#gwanDetailBody{
+		left:320px;
+		top:240px;
+		width: 650px;
+	 	height: 330px;
+	}
+	#buttonBody{
+	text-align:center;
+		left:830px;
+		width: 140px;
+		height: 150px;
+	}
+	input[type=text]{
+		margin: 5px;
+		width: 120px;
+	}
+	#assignBtn{
+		margin-top: 15px;
+	}
+</style>
+
+<!-- 	<p><span class="collegeClick">분과대학명</span> [배분강의관] -->
+<!-- 		<input type="button" class="btn btn-primary" value="저장" /> -->
+<!-- 	</p> -->
+<!-- 	<hr> -->
+<div class="card border-info" style="max-width: 15rem;">
+	<div class="card-header"><span class="collegeClick">분과대학명</span> [배분강의관]</div>
+	<div class="card-body"  id="collegeBody">
+	
+	</div>
+</div>
+
+<div id="gwanBody">
+	<p>
+		<h4 id="pickCollege">분과대학을 선택해주세요.</h4>
+	</p>
+	<hr>
+	<div class="detail border-info" id="departmentBody">
+		<div class="card-header">소속학과</div>
+		<div class="card-body" id="departmentCard">
+			<p>분과대학을 선택해주세요.</p>
+		</div>
+	</div>
+	<div class="detail card border-info" id="gwanViewBody">
+		<div class="card-header">강의관 현황</div>
+		<div class="card-body" id="gwanViewCard"></div>
+	</div>
+	<div class="detail card border-info" id="gwanDetailBody">
+		<div class="card-header">강의관 세부정보</div>
+		<div class="card-body" id="gwanDetailCard"></div>
+	</div>
+	<div class="detail" id="buttonBody">
+		<form id="assignForm">
+			<input type="text" name="colName" readonly/>
+			<input type="hidden" name="colId" readonly />
+			<input type="text" name="gwanName" readonly/>
+			<input type="button" class="btn btn-primary" value="배분" id="assignBtn"/>
+			<input type="reset" class="btn btn-secondary" value="취소" />
+		</form>
+	</div>
+</div>
+
+<script>
+let collegeBody = $("#collegeBody");
+let gwanViewCard = $("#gwanViewCard");
+let departmentCard = $("#departmentCard");
+let pickGwan = $("#pickGwan");
+
+let inputColName = $("input[name=colName]");
+let inputGwanName = $("input[name=gwanName]");
+let inputColId = $("input[name=colId]");
+
+$.ajax({
+	url : "${pageContext.request.contextPath}/roomSet/gwanDataList.do",
+	method : "get",
+	dataType : "json",
+	success : function(resp) {
+		departmentCard.empty();
+		let gwanList = resp.gwanList;
+		
+		let spanTags = [];
+		if(gwanList && gwanList.length > 0){
+			var cnt = 0;
+			$.each(gwanList, function(idx, gwan){
+				cnt++;
+// 				let viewURL = VIEWURLPTRN.replace("%V", prod.prodId);
+				let spanTag = $("<span>").html(gwan.gwanName+"&nbsp;&nbsp;")
+										 .attr("class", "gwanClick");
+				spanTags.push(spanTag);
+				if(cnt == 4){
+					cnt = 0;
+					spanTags.push($("<br>"));
+				}
+			});
+			spanTags.push($("<br>"));
+			let spanTag = $("<span>").html("초기화"+"&nbsp;&nbsp;")
+			 		.attr("class", "gwanClick")
+					.css("color", "red");
+			spanTags.push(spanTag);
+		}else{
+		} // if end
+		gwanViewCard.append(spanTags);
+	},
+	error : function(jqXHR, textStatus, errorThrown) {
+		console.log(jqXHR);
+		console.log(textStatus);
+		console.log(errorThrown);
+	}
+});
+
+
+function collegeAjax(){
+	$.ajax({
+		url : "${pageContext.request.contextPath}/roomSet/collegeDataForm.do",
+		method : "get",
+		dataType : "json",
+		success : function(resp) {
+			collegeBody.empty();
+			let collegeList = resp.collegeList;
+			
+			let pTags = [];
+			if(collegeList && collegeList.length > 0){
+				$.each(collegeList, function(idx, college){
+	// 				let viewURL = VIEWURLPTRN.replace("%V", prod.prodId);
+					let pTag = $("<p>").append($("<span>").text(college.colName)
+														  .addClass("collegeClick")
+														  .attr("id", college.colId)
+														  .data("col-gwan", college.colGwan));
+					pTag.append($("<span>").text("  ["+college.colGwan+"]"));
+	// 				pTag.append($("<select>").append("<option>강의관1</option>")
+										
+	// 				);
+					pTags.push(pTag);
+				});
+			}else{
+			} // if end
+			collegeBody.append(pTags);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+collegeAjax();
+
+let pickCollege = $("#pickCollege");
+
+
+$(document).on("click", ".collegeClick", function(){
+	let colId = $(this).attr("id");
+	let colGwan = $(this).data("colGwan");
+	let colName = $(this).text();
+	let code = "";
+	pickCollege.empty();
+	
+	code += colName;
+	code += "<span style='font-size:15px;'>  현재 배정 강의관 : [ ";
+	code += colGwan;
+	code += " ]</span>";
+	pickCollege.html(code);
+// 	pickCollege.text(colName+" 현재 배정 강의관 : "+colGwan);
+	inputColName.val(colName);
+	inputColId.val(colId);
+	
+	$.ajax({
+		url : "${pageContext.request.contextPath}/roomSet/collegeDepartDataList.do",
+		method : "get",
+		data : {colName:colName},
+		dataType : "json",
+		success : function(resp) {
+			departmentCard.empty();
+			let departList = resp.departList;
+			
+			let pTags = [];
+			if(departList && departList.length > 0){
+				$.each(departList, function(idx, depart){
+//	 				let viewURL = VIEWURLPTRN.replace("%V", prod.prodId);
+					let pTag = $("<p>").text(depart.deptName)
+									   .attr("id", depart.deptId)
+					pTags.push(pTag);
+				});
+			}else{
+				let pTag = $("<p>").text("소속 학과가 없습니다.");
+				pTags.push(pTag);
+			} // if end
+			departmentCard.append(pTags);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+	
+});
+
+
+$(document).on("click", ".gwanClick", function(){
+	let gwanName = $(this).text();
+	pickGwan.text(gwanName);
+	inputGwanName.val(gwanName);
+});
+
+
+
+$("#assignBtn").on("click", function(event){
+	let colName = inputColName.val().trim();
+	let gwanName = inputGwanName.val().trim();
+	let colId = inputColId.val().trim();
+	
+	if(colName=="") 
+		alert("분과대학을 선택하세요.");
+	
+	if(gwanName=="")
+		alert("강의관을 선택하세요");
+	
+	if(colName!="" && gwanName!=""){
+		confirm(colName+"/"+colId);
+		
+		$.ajax({
+			url : "${pageContext.request.contextPath}/roomSet/collegeGwanSet.do",
+			method : "get",
+			data : {colId:colId,
+					ColGwan:gwanName},
+			dataType : "json",
+			success : function(resp) {
+				alert(resp.result);
+				collegeAjax();
+				$("div").find("[id="+colId+"]").trigger("click");
+// 				.trigger("click");
+			},
+			error : function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+			}
+		});
+	};
+});
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+

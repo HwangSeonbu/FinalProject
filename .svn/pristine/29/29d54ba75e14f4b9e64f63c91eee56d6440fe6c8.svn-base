@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.homework.dao.HomeworkDAO">
+		<sql id="searchFrag">
+
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+						and lechwk_name LIKE '%'||#{simpleCondition.searchWord}||'%'
+			</if>
+
+		</sql>
+	
+	<select id="homeworkList" parameterType="PagingVO" resultType="LecHomeworkVO">
+SELECT B.*	
+    FROM( SELECT ROWNUM RNUM, A.*
+        FROM(
+		SELECT  lechwk_no
+		   ,lec_sems
+		   ,lec_id
+		   ,user_no
+		   ,lechwk_name
+		   ,lechwk_cont
+		   ,lechwk_date
+		  <![CDATA[
+		   ,(CASE WHEN SYSDATE<lechwk_date THEN 'OPENED'
+		        ELSE 'CLOSED' 
+		    END)AS LECHWK_CODE]]>
+		    ,REGIST_DATE
+		    ,hit
+		FROM
+		    lechwk
+	
+		WHERE LEC_ID = #{detailCondition.lecId} and LEC_SEMS=(SELECT SEMS_NO
+							        				FROM SEMSDATA
+												       <![CDATA[
+								 				        WHERE SYSDATE >= SEMS_SDATE 
+								 				        AND SYSDATE <= SEMS_EDATE) ]]>
+			<include refid="searchFrag"></include>
+		order by lechwk_no desc
+						)A
+			)B
+			<![CDATA[
+		WHERE RNUM >=#{startRow} AND RNUM <=#{endRow}
+		]]>
+	</select>
+	
+	<select id="totalHomeworkList" parameterType="PagingVO" resultType="int">
+		select count(*)
+		from lechwk
+		where lec_id = #{detailCondition.lecId} and LEC_SEMS=(SELECT SEMS_NO
+									        				FROM SEMSDATA
+														       <![CDATA[
+										 				        WHERE SYSDATE >= SEMS_SDATE 
+										 				        AND SYSDATE <= SEMS_EDATE) ]]>
+	</select>
+	
+	<resultMap type="LecHomeworkVO" id="hwMap" autoMapping="true">
+		<id property="lechwkNo" column="lechwk_no"/>
+		<collection property="hwkList" ofType="HwkVO" autoMapping="true">
+		<id property="hwkNo" column="hwk_no"/>
+		</collection>
+		<collection property="evaList" ofType="EvaStandardVO" autoMapping="true">
+		<id property="evaId" column="eva_id"/>
+		</collection>
+	</resultMap>
+	
+	
+	<select id="homework" parameterType="int" resultMap="hwMap">
+	SELECT
+	    A.lechwk_no
+	   ,A.lec_sems
+	   ,A.lec_id
+	   ,A.user_no
+	   ,A.lechwk_name
+	   ,A.lechwk_date
+	   ,A.regist_date
+	   ,A.hit
+	   ,A.lechwk_cont
+   	   ,A.ATTCH_NO
+	   ,B.hwk_no
+	   ,B.STU_NO
+	   ,B.board_attch
+	   ,B.hwk_date
+	   ,B.hwk_score
+	   ,B.PRO_NO
+	   ,B.hwk_opinion
+	   ,C.eva_id
+	   ,C.eva_std
+	   ,C.eva_score
+	   ,C.lechwk_no
+	FROM
+	    lechwk A INNER JOIN HWK B ON(A.LECHWK_NO = B.LECHWK_NO)
+	            INNER JOIN EVA_STANDARD C ON(A.LECHWK_NO = C.LECHWK_NO)
+	WHERE A.LECHWK_NO = #{lechwkNo}
+	</select>
+	
+	
+</mapper>

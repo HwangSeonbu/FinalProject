@@ -1,0 +1,15 @@
+package kr.or.ddit.graduate.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/graduate")
+public class GraduateStudentRetrieveController {
+
+	@RequestMapping("graduateStudentList.do")
+	public String graduateStudentList() {
+		
+		return "graduate/adminGraduateStudentList";
+	}
+}

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.homework.dao.HomeworkDAO">
+		<sql id="searchFrag">
+
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+						and lechwk_name LIKE '%'||#{simpleCondition.searchWord}||'%'
+			</if>
+
+		</sql>	
+
+	<select id="homeworkList" parameterType="PagingVO" resultType="LecHomeworkVO">
+	SELECT B.*	
+	    FROM( SELECT ROWNUM RNUM, A.*
+	        FROM(
+			SELECT  lechwk_no
+			   ,lec_sems
+			   ,lec_id
+			   ,user_no
+			   ,lechwk_name
+			   ,lechwk_cont
+			   ,TO_CHAR(lechwk_date,'YY/MM/DD') AS LECHWK_DATE
+			  <![CDATA[
+			   ,(CASE WHEN SYSDATE<lechwk_date THEN 'OPENED'
+			        ELSE 'CLOSED' 
+			    END)AS LECHWK_CODE]]>
+			    ,TO_CHAR(REGIST_DATE,'YY/MM/DD HH24:MI:SS') AS REGIST_DATE
+			    ,hit
+			FROM
+			    lechwk
+		
+			WHERE LEC_ID = #{detailCondition.lecId} and LEC_SEMS=(SELECT SEMS_NO
+								        				FROM SEMSDATA
+													       <![CDATA[
+									 				        WHERE SYSDATE >= SEMS_SDATE 
+									 				        AND SYSDATE <= SEMS_EDATE) ]]>
+				<include refid="searchFrag"></include>
+			order by lechwk_no desc
+							)A
+				)B
+				<![CDATA[
+			WHERE RNUM >=#{startRow} AND RNUM <=#{endRow}
+			]]>
+	</select>
+	
+	<select id="totalHomeworkList" parameterType="PagingVO" resultType="int">
+		select count(*)
+		from lechwk
+		where lec_id = #{detailCondition.lecId} and LEC_SEMS=(SELECT SEMS_NO
+									        				FROM SEMSDATA
+														       <![CDATA[
+										 				        WHERE SYSDATE >= SEMS_SDATE 
+										 				        AND SYSDATE <= SEMS_EDATE) ]]>
+	</select>
+	
+	<resultMap type="LecHomeworkVO" id="hwMap" autoMapping="true">
+		<id property="lechwkNo" column="HW_NO"/>
+		<association property="attach" javaType="AttchVO" autoMapping="true"/>
+		
+		<collection property="hwkList" ofType="HwkVO" autoMapping="true">
+		<id property="hwkNo" column="hwk_no"/>
+		<id property="lechwkNo" column="lechwk_hwk"/>
+		
+		</collection>
+		
+		<collection property="evaList" ofType="EvaStandardVO" autoMapping="true">
+		<id property="evaId" column="eva_id"/>
+		</collection>
+	</resultMap>
+	
+	
+	<select id="homework" parameterType="int" resultMap="hwMap">
+	SELECT
+	    A.lechwk_no AS HW_NO
+	   ,A.lec_sems
+	   ,A.lec_id
+	   ,A.user_no
+	   ,A.lechwk_name
+	   ,TO_CHAR(A.lechwk_date,'YYYY-MM-DD') AS LECHWK_DATE
+	   ,TO_CHAR(A.regist_date,'YYYY-MM-DD HH24:MI:SS') AS regist_date
+	   ,A.hit
+	   ,A.lechwk_cont
+	   ,B.lechwk_no as lechwk_hwk
+	   ,B.hwk_no
+	   ,B.STU_NO
+	   ,TO_CHAR(B.hwk_date,'YY/MM/DD HH24:MI:SS') AS hwk_date
+	   ,B.hwk_score
+	   ,B.PRO_NO
+	   ,B.hwk_opinion
+	   ,B.HWK_REGISDATE
+	   ,(SELECT USER_NAME FROM USERS WHERE USER_NO=B.STU_NO) AS STU_NAME
+	   ,C.eva_id
+	   ,C.eva_std
+	   ,C.eva_score
+	   ,D.attch_no
+	  ,D.attch_fname
+	  ,D.attch_sname
+	  ,D.attch_mime
+	  ,D.attch_size
+	  ,D.attch_fsize
+	  ,D.attch_dhit
+	  ,D.lechwk_no
+	  ,D.hwk_no
+	  ,(SELECT AVG(HWK_SCORE)
+		FROM HWK
+		WHERE LECHWK_NO=#{lechhwkNo})AS AVG_POINTS
+	,(SELECT COUNT(HWK_REGISDATE)
+		FROM HWK
+		WHERE lechwk_no = #{lechhwkNo}) AS COMPLETE
+	
+	,(SELECT SUM(E.eva_score)
+			FROM EVA_STANDARD E
+			WHERE E.lechwk_no=#{lechhwkNo} )as TOTAL_POINTS
+    ,(SELECT COUNT(STU_NO)
+	    FROM HWK
+	    WHERE LECHWK_NO=#{lechwkNo}) AS submittedStu
+    ,(SELECT DISTINCT(COUNT(USER_NO))
+                        FROM CLS 
+                        WHERE LEC_ID = (SELECT LEC_ID
+                                            FROM LECHWK
+                                            WHERE LECHWK_NO=#{lechwkNo})
+                            AND LEC_SEMS =  ( SELECT SEMS_NO                                      
+                                                FROM SEMSDATA
+                                                			<![CDATA[
+                                                WHERE SYSDATE >= SEMS_SDATE
+                                                    AND SYSDATE <= SEMS_EDATE)) AS wholeStu
+                                                    		]]>
+    FROM
+	    LECHWK A LEFT OUTER JOIN HWK B ON(A.LECHWK_NO = B.LECHWK_NO)
+	            INNER JOIN EVA_STANDARD C ON(A.LECHWK_NO = C.LECHWK_NO)
+	            LEFT OUTER JOIN ATTCH D ON(A.LECHWK_NO = D.LECHWK_NO)
+    WHERE A.LECHWK_NO = #{lechhwkNo}
+	</select>
+	
+	<update id="updateHit" parameterType="int">
+	UPDATE lechwk
+	SET HIT = HIT + 1
+	WHERE lechwk_no = #{lechwkNo}
+	</update>
+	
+	<insert id="insertHomework" parameterType="LecHomeworkVO" >
+	<selectKey order="BEFORE" resultType="int" keyProperty="lechwkNo">
+	SELECT  NVL(MAX(LECHWK_NO),0)+1 FROM LECHWK
+	</selectKey>
+	INSERT INTO lechwk (
+	    lechwk_no
+	   ,lec_sems
+	   ,lec_id
+	   ,user_no
+	   ,lechwk_name
+	   ,lechwk_date
+	   ,regist_date
+	   ,lechwk_cont
+) VALUES (
+	 #{lechwkNo}
+	,( SELECT SEMS_NO                                      
+       FROM SEMSDATA
+      <![CDATA[
+      WHERE SYSDATE >= SEMS_SDATE
+      AND SYSDATE <= SEMS_EDATE)
+  		]]>    
+	,#{lecId,jdbcType=VARCHAR}
+	,(SELECT USER_NO
+		FROM LEC
+		WHERE LEC_ID=#{lecId} AND LEC_SEMS =  ( SELECT SEMS_NO                                      
+		                                                FROM SEMSDATA
+		                                                <![CDATA[
+		                                                WHERE SYSDATE >= SEMS_SDATE
+		                                                    AND SYSDATE <= SEMS_EDATE))]]>
+
+	,#{lechwkName,jdbcType=VARCHAR}
+	,#{lechwkDate,jdbcType=DATE}
+	,SYSDATE
+	,#{lechwkCont,jdbcType=CLOB}
+)
+	</insert>
+
+	
+	<insert id="insertEva" parameterType="LecHomeworkVO">
+	INSERT ALL
+		<foreach collection="evaList" item="eva" index="idx">
+		INTO EVA_STANDARD (	
+							eva_id
+						   ,eva_std
+						   ,eva_score
+						   ,lechwk_no
+						   )
+		VALUES (
+				(SELECT TO_CHAR(NVL(MAX(TO_NUMBER(EVA_ID)),0)+1) FROM EVA_STANDARD)+#{idx}
+				,#{eva.evaStd}
+				,#{eva.evaScore}
+				,#{lechwkNo}
+		)
+		</foreach>
+		
+	select * from dual
+	</insert>
+	<update id="updateHomework" parameterType="LecHomeworkVO">
+	UPDATE LECHWK
+    SET
+		LECHWK_NAME = #{lechwkName,jdbcType=VARCHAR}
+		,LECHWK_CONT = #{lechwkCont,jdbcType=CLOB}
+		,LECHWK_DATE = #{lechwkDate,jdbcType=DATE}
+	WHERE LECHWK_NO = #{lechwkNo}
+	</update>
+	
+	
+	
+	
+	<!-- 	jdbcType=VARCHAR null값에 대한 에러처리 -->
+	<!-- 함수나 프로시저 OUTBOUND로 값을 넘겨옴. -->
+<!-- 	<select id="realMemberDelete" parameterType="map" statementType="CALLABLE"> -->
+<!-- 	{ -->
+<!-- 		CALL PROC_DELMEMBERS(#{rowcnt,mode=OUT,jdbcType=NUMERIC,javaType=java.lang.Integer}) -->
+<!-- 	} -->
+<!-- 	</select> -->
+
+<!-- 	<select id="updateEva" parameterType="LecHomeworkVO" resultType="int" statementType="CALLABLE"> -->
+<!-- 		{ -->
+<!-- 			CALL PROC_UPDATE_EVA(#{evaList,mode=IN,jdbcType=ARRAY,jdbcTypeName=LIST_EVASTD -->
+<!-- 					,typeHandler=kr.or.ddit.typehandler.EvaTypeHandler,javaType=java.util.ArrayList}} -->
+					
+<!-- 					,#{rowcnt,mode=OUT,jdbcType=NUMERIC,javaType=java.lang.Integer}) -->
+<!-- 		} -->
+<!-- 	</select> -->
+
+<!-- 			UPDATE EVA_STANDARD -->
+<!-- 			SET	EVA_STD = #{eva.evaStd,jdbcType=VARCHAR} -->
+<!-- 				,EVA_SCORE = #{eva.evaScore,jdbcType=NUMERIC} -->
+<!-- 			WHERE EVA_ID = #{eva.evaId,jdbcType=VARCHAR} -->
+	
+	<update id="updateEva2" parameterType="EvaStandardVO">
+			UPDATE EVA_STANDARD
+			SET	EVA_STD = #{evaStd,jdbcType=VARCHAR}
+				,EVA_SCORE = #{evaScore,jdbcType=NUMERIC}
+			WHERE EVA_ID = #{evaId,jdbcType=VARCHAR}
+	</update>
+	
+	<delete id="deleteHomework" parameterType="LecHomeworkVO">
+		DELETE FROM LECHWK
+		WHERE LECHWK_NO = #{lechwkNo}
+	</delete>
+	<delete id="deleteEva" parameterType="LecHomeworkVO">
+		DELETE FROM EVA_STANDARD
+		WHERE LECHWK_NO = #{lechwkNo}
+	</delete>
+	
+	<select id="selectHw" parameterType="int" resultType="HwkVO">
+	SELECT
+	    hwk_no
+	   ,stu_no
+	   ,lechwk_no
+	   ,hwk_date
+	   ,hwk_score
+	   ,pro_no
+	   ,hwk_opinion
+	   ,hwk_content
+	   ,(SELECT USER_NAME
+		FROM USERS
+		WHERE USER_NO = (SELECT STU_NO
+		                FROM HWK
+		                WHERE HWK_NO=#{hwkNo}
+		                            )) AS STU_NAME
+	FROM
+	    hwk
+	WHERE HWK_NO=#{hwkNo}
+	</select>
+	
+	
+</mapper>

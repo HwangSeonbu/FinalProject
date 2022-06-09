@@ -1,0 +1,113 @@
+package kr.or.ddit.adminLecture.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import kr.or.ddit.adminLecture.dao.AdminLectureDAO;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.PlanEditVO;
+import kr.or.ddit.vo.PlanVO;
+import kr.or.ddit.vo.SubjectVO;
+
+@Service
+public class AdminLecturePlanServiceImpl implements AdminLecturePlanService {
+
+	@Inject
+	AdminLectureDAO dao;
+
+	@Override
+	public PagingVO<PlanEditVO> retrieveSubmitPlanList(PagingVO<PlanEditVO> vo) {
+		
+		int totalRecord = dao.selectSubmitPlanTotalRecord(vo);
+		vo.setTotalRecord(totalRecord);
+		
+		List<PlanEditVO> dataList = dao.selectSubmitPlanList(vo);
+		vo.setDataList(dataList);
+		
+		return vo;
+	}
+
+	@Override
+	public PlanEditVO retrieveSubmitPlanOne(Integer planNo) {
+		return dao.selectSubmitPlanOne(planNo);
+	}
+
+	@Override
+	public int modifySubmitPlanSts(Map<String, Object> parameters) {
+		int result = 0;
+		String targetPlanNo = parameters.get("targetPlanNos").toString();
+		String targetPlanNoReplace = targetPlanNo.replaceAll("&quot;", "\"");
+		
+		String reason = parameters.get("reason").toString();
+		String reasonReplace = reason.replaceAll("&quot;", "\"");
+		
+		ObjectMapper mapper = new ObjectMapper();
+		PlanVO vo = new PlanVO();
+		vo.setPlanDenlrsn(reasonReplace);
+		
+		if(targetPlanNoReplace.charAt(0) == '[') {
+			List<String> planNoList = new ArrayList<>();
+			try {
+				planNoList =
+						mapper.readValue(targetPlanNoReplace, new TypeReference<ArrayList<String>>() {});
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+			for(String planNoStr : planNoList) {
+				Integer planNo = Integer.parseInt(String.valueOf(planNoStr));
+				vo.setPlanNo(planNo);
+				result += dao.updateSubmitPlanSts(vo);
+			}
+		}else {
+			Integer planNo = null;
+			try {
+				planNo =
+						mapper.readValue(targetPlanNoReplace, new TypeReference<Integer>() {});
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+			vo.setPlanNo(planNo);
+			result += dao.updateSubmitPlanSts(vo);
+		}
+		return result;
+	}
+
+	@Override
+	public int modifySumitApproveProcess(Map<String, Object> parameters) {
+		int resCnt = 0;
+		String targetPlanNo = parameters.get("targetPlanNos").toString();
+		String targetPlanNoReplace = targetPlanNo.replaceAll("&quot;", "\"");
+		
+		//임시 다음학기 하드코딩 - 세션
+		int targetSems = 202202;
+		int lecIdPrefix = Integer.parseInt(String.valueOf(targetSems).substring(2));
+		
+		ObjectMapper mapper = new ObjectMapper();
+		List<PlanEditVO> planNoList = new ArrayList<>();
+		try {
+			planNoList =
+					mapper.readValue(targetPlanNoReplace, new TypeReference<ArrayList<PlanEditVO>>() {});
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		for(PlanEditVO targetVo : planNoList) {
+			targetVo.setPlanSems(lecIdPrefix);
+			Integer planNo = targetVo.getPlanNo();
+			dao.insertPlanok(targetVo);
+			resCnt += dao.updateSubmitApprove(planNo);
+			for(int i = 1; i <= 2; i++) {
+				dao.insertLectureAssign(planNo);
+			}
+		}
+		return resCnt;
+	}
+}

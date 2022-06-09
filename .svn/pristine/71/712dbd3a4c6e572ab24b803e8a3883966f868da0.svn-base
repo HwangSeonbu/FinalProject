@@ -1,0 +1,133 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
+<h4>친구목록</h4>
+<div class="form-check">
+  <input class="form-check-input" type="checkbox" value="학생" id="flexCheckChecked">
+  <label class="form-check-label" for="flexCheckDefault">
+    학생만
+  </label>
+</div>
+<div class="form-check">
+
+  <input class="form-check-input" type="checkbox" value="교수" id="flexCheckChecked">
+  <label class="form-check-label" for="flexCheckChecked">
+    교수만
+  </label>
+</div>
+<div class="form-check">
+
+  <input class="form-check-input" type="checkbox" value="학사관리자" id="flexCheckChecked">
+  <label class="form-check-label" for="flexCheckChecked">
+    학사관리자만
+  </label>
+</div>
+
+
+<!-- 유저리스트 -->
+<div class="container" id="messageUserListBody" style="margin:0; margin-top: 10px;"></div>
+
+
+
+
+
+<script>
+    var messageUserListBody = $("#messageUserListBody");
+    
+    	$.ajax({
+		url : "${pageContext.request.contextPath}/messageUserList",
+		dataType : "json",
+		success : function(messageUserList) {
+			messageUserListBody.empty();
+		
+			let trTags = [];
+	
+			let listDiv =  $("<div>").addClass("list-group user-list");
+			if(messageUserList && messageUserList.length > 0){
+			$.each(messageUserList, function(idx, data){
+			
+				let trTag = listDiv.append(
+							$("<label>").addClass("list-group-item").append(
+							$("<input>").addClass("form-check-input me-1").attr('type','checkbox')
+							,$("<span>").addClass("badge " + (data.userType == '학생' ? "bg-primary" : data.userType == '교수' ? "bg-success" : data.userType == '학사관리자' ? "bg-warning" : "bg-info" ))
+							.html((data.userType == '학생' ? "학생" : data.userType == '교수' ? "교수" : data.userType == '학사관리자' ? "학사관리자" : "소속없음" ))
+							,$("<span>").addClass("badge bg-secondary").html("컴퓨터공학과")
+							,$("<span>").addClass("badge bg-dark").html(data.userName)
+							
+							)
+						)
+			
+				trTags.push(trTag);	
+			});
+			}else{
+				let trTag = $("<tr>").html(
+								$("<td>").attr("colspan", "10")
+										 .html("조건에 맞는 데이터가 없음.")
+							);
+				trTags.push(trTag);
+			} // if end		
+			messageUserListBody.append(trTags);
+		
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		},
+	});
+    	
+    	
+    	//체크박스
+    $('input[type=checkbox]').change(function(){
+    	var userTypeList = {};
+    	  $("input[id='flexCheckChecked']:checked").each(function(i){   //jQuery로 for문 돌면서 check 된값 배열에 담는다
+    		  userTypeList.push($(this).val());
+    	  });
+    	  alert(userTypeList);
+    	$.ajax({
+    		url : "${pageContext.request.contextPath}/messageUserList",
+    		data : {"userTypeList" : userTypeList},
+    		dataType : "json",
+    		success : function(messageUserList) {
+    			messageUserListBody.empty();
+    		
+    			let trTags = [];
+    	
+    			let listDiv =  $("<div>").addClass("list-group user-list");
+    			if(messageUserList && messageUserList.length > 0){
+    			$.each(messageUserList, function(idx, data){
+    			
+    				let trTag = listDiv.append(
+    							$("<label>").addClass("list-group-item").append(
+    							$("<input>").addClass("form-check-input me-1").attr('type','checkbox')
+    							,$("<span>").addClass("badge " + (data.userType == '학생' ? "bg-primary" : data.userType == '교수' ? "bg-success" : data.userType == '학사관리자' ? "bg-warning" : "bg-info" ))
+    							.html((data.userType == '학생' ? "학생" : data.userType == '교수' ? "교수" : data.userType == '학사관리자' ? "학사관리자" : "소속없음" ))
+    							,$("<span>").addClass("badge bg-secondary").html("컴퓨터공학과")
+    							,$("<span>").addClass("badge bg-dark").html(data.userName)
+    							
+    							)
+    						)
+    			
+    				trTags.push(trTag);	
+    			});
+    			}else{
+    				let trTag = $("<tr>").html(
+    								$("<td>").attr("colspan", "10")
+    										 .html("조건에 맞는 데이터가 없음.")
+    							);
+    				trTags.push(trTag);
+    			} // if end		
+    			messageUserListBody.append(trTags);
+    		
+    		},
+    		error : function(jqXHR, textStatus, errorThrown) {
+    			console.log(jqXHR);
+    			console.log(textStatus);
+    			console.log(errorThrown);
+    		},
+    	});
+    	
+    })
+    
+    	
+    </script>

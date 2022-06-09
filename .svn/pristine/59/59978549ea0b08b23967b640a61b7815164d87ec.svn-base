@@ -1,0 +1,21 @@
+package kr.or.ddit.board.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/board")
+public class AcadScheduleController {
+
+	@RequestMapping("acadScInsertForm.do")
+	public String acadScInsertForm() {
+		
+		return "adminAcadScheduleInsert";
+	}
+	
+	@RequestMapping("acadScList.do")
+	public String acadScListView() {
+		
+		return "acadScheduleBoardList";
+	}
+}

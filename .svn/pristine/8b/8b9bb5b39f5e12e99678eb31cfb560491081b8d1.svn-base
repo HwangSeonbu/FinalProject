@@ -1,0 +1,14 @@
+package kr.or.ddit.enr.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/setEnroll")
+public class EnrollSetController {
+
+	@RequestMapping("enrollSetForm.do")
+	public String enrollSetForm() {
+		return "enr/adminSetEnroll";
+	}
+}

@@ -1,0 +1,62 @@
+package kr.or.ddit.board.dao;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.NoticeBoardVO;
+import kr.or.ddit.vo.PagingVO;
+
+/**
+ * @author 이유정
+ * @since 2022. 4. 28.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 28.      이유정       최초작성
+ * 2022. 4. 29.      이유정        delete추가
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Mapper
+public interface NoticeBoardDAO {
+	/**
+	 * 검색 조건에 맞는 회원 수 조회 
+	 * @param paging
+	 * @return
+	 */
+	public int selectTotalNRecord(PagingVO<NoticeBoardVO> paging);
+	/**
+	 * 회원 목록 조회
+	 * @param paging
+	 * @return 조건에 맞는 레코드가 없는 경우, size()==0
+	 */
+	public List<NoticeBoardVO> selectNBoardList(PagingVO<NoticeBoardVO> paging);
+	/**
+	 * 회원 정보 상세 조회 
+	 * @param noticeNo 수정할 정보를 가진 VO
+	 * @return > 0, 성공 
+	 */
+	public NoticeBoardVO selectNBoard(Integer noticeNo);
+	/**
+	 * 삭제
+	 * @param noticeNo
+	 * @return
+	 */
+	public int deleteNBoard(Integer noticeNo);
+	/**
+	 * 수정
+	 * @param nBoard
+	 */
+	public void updateNBoard(NoticeBoardVO nBoard);
+	/**
+	 * 신규 공지사항글 등록
+	 * @param nBoard
+	 * @return
+	 */
+	public int insertNBoard(NoticeBoardVO nBoard);
+	
+}

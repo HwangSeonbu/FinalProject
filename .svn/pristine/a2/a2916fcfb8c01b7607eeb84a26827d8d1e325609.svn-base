@@ -1,0 +1,202 @@
+package kr.or.ddit.counsel.dao;
+
+import static org.junit.Assert.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Transactional;
+
+import kr.or.ddit.exception.PKNotFoundException;
+import kr.or.ddit.vo.CounselVO;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.ProCounselVO;
+import kr.or.ddit.vo.QuestionAnswerVO;
+import kr.or.ddit.vo.StudentVO;
+import lombok.extern.slf4j.Slf4j;
+/**상담신청, 조회 페이지에 대한 단위 테스트
+ * @author 황선부
+ * @since 2022. 5. 3.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 3.      황선부       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@RunWith(SpringRunner.class)
+@ContextHierarchy({
+	@ContextConfiguration("file:webapp/WEB-INF/spring/*-context.xml")//상위 컨테이너
+	,@ContextConfiguration("file:webapp/WEB-INF/spring/appServlet/servlet-context.xml")//하위 컨테이너
+})
+@WebAppConfiguration
+@Slf4j
+@Transactional//테스트과정의 트랜잭션은 자동 롤백!!중요!!//단위테스트간 서로 영향을 주지 않도록 트랜잭션 관리함.테스트하고 svn에 커밋해야함!!
+public class CounselDAOTest {
+	@Inject
+	private CounselDAO dao;
+	
+	@Test
+	public void testInsertReqCounsel() {
+		//조건
+		CounselVO counselVO = new CounselVO();
+		
+		counselVO.setStuNo(1);
+		counselVO.setProNo(11);
+		//실행
+		int cRowcnt = dao.insertReqCounsel(counselVO);
+		//결과예측
+		assertNotNull(cRowcnt);
+		
+	
+	}
+	
+	@Test
+	public void testProSelectCounselList() {
+		//조건
+		
+		PagingVO<ProCounselVO> paging = new PagingVO<>();
+		paging.setProNo(11);
+		//실행
+		List<ProCounselVO> studentList = dao.proSelectCounselList(paging);
+		//결과예측
+		assertNotNull(studentList);
+	}
+
+	@Test
+	public void testProCounselTotalRecord() {
+		//조건
+		PagingVO<ProCounselVO> paging = new PagingVO<>();
+		paging.setProNo(12);
+		//실행
+		int num = dao.proCounselTotalRecord(paging);
+		//결과예측
+		assertNotNull(num);
+		
+	}
+	@Test
+	public void testSelectOneCounselStudent() {
+		//조건
+		Integer userNo=1;
+		//실행
+		ProCounselVO procounselVO = dao.selectOneCounselStudent(userNo);
+		//결과예측
+		assertNotNull(procounselVO);
+		
+		
+	}
+	@Test
+	public void testSelectOneReqCounsel() {
+		//조건
+		Integer cnslId=80;
+		//실행
+		List<QuestionAnswerVO> qaVO = dao.selectOneReqCounsel(cnslId);
+		//결과예측
+		Map<String, Object> qaMap = new HashMap<>();
+		List<QuestionAnswerVO>qaList = dao.selectOneReqCounsel(cnslId);
+		if(qaList==null)
+			throw new PKNotFoundException(cnslId+"에 해당하는 신청번호가 없습니다.");
+		for(int i=0; i<qaList.size(); i++) {
+			//Map<-문,답
+			qaMap.put(qaList.get(i).getQuestNo(), qaList.get(i).getAnsNo());			
+			log.info((String) qaMap.get("r"+i));
+		}
+		
+
+		assertNotNull(qaVO);
+	}
+	@Test
+	public void TestUpdatedyDate() {
+		CounselVO counsel = new CounselVO();
+		counsel.setDyDate("2011-11-11");
+		counsel.setCnslId("151");
+		int result = dao.updatedyDate(counsel);
+		assertNotNull(result);
+	}
+	@Test
+	public void TestInsertCounselLog() {
+		QuestionAnswerVO qaVO = new QuestionAnswerVO();
+		qaVO.setQuestNo("L1");
+		qaVO.setAnsNo("B1");
+		qaVO.setCnslId("101");
+		int result = dao.insertCounselLog(qaVO);
+		assertNotNull(result);
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+//	@Test
+//	public void testStudentSelectCounselList() {
+//		fail("Not yet implemented");
+//	}
+//
+//	@Test
+//	public void testStuCounselTotalRecord() {
+//		fail("Not yet implemented");
+//	}
+//
+//	@Test
+//	public void testSelectQuestion() {
+//		fail("Not yet implemented");
+//	}
+//
+//	@Test
+//	public void testSelectdepartment() {
+//		fail("Not yet implemented");
+//	}
+//
+//	@Test
+//	public void testSelectProfessor() {
+//		fail("Not yet implemented");
+//	}
+//
+//	@Test
+//	public void testInsertQA() {
+//		fail("Not yet implemented");
+//	}
+//
+//
+//
+//	@Test
+//	public void testSelectReqCounsel() {
+//		fail("Not yet implemented");
+//	}
+//
+//	@Test
+//	public void testInsertCounsellog() {
+//		fail("Not yet implemented");
+//	}
+//
+//	@Test
+//	public void testSelectCounsellog() {
+//		fail("Not yet implemented");
+//	}
+
+}
+
+
+

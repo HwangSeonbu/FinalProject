@@ -1,0 +1,109 @@
+package kr.or.ddit.objection.controller;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.attendance.service.AttendanceService;
+import kr.or.ddit.objection.service.ObjectionService;
+import kr.or.ddit.vo.StudentVO;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 교수랑 학생이  이의신청에 대해서 접근하는 컨트롤러
+ * 교수 : 학생들이 신청한 성적이의신청 목록들을 보는 컨트롤러
+ * 학생 : 출석인정현황을 볼 수 있고, 신청 양식을 작성할 수 있는 컨트롤러 
+ * @author 주창규
+ * @since 2022. 4. 26.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 26.      주창규       최초작성
+ * 2022. 4. 27.      주창규       학생이랑 교수랑 같은 컨트롤러를 이용해도 됨.
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@RequestMapping("/objection")
+@Slf4j
+public class ObjectionController {
+	
+	@Inject
+	private ObjectionService Oservice;
+	@Inject
+	private AttendanceService Aservice;
+	
+//	---------------------------------------JCK 학생 컨트롤러 시작 JCK---------------------------------------
+	/** 학생이 자신의 출석인정현황 조회
+	 * @return 
+	 */
+	@GetMapping("studentGetView")
+	public String studentGetView(
+			Model model
+	){
+		int userNo = 14; //test를 위한 하드코딩
+		StudentVO student =  Aservice.retrieveStudent(userNo);
+		student = Oservice.retrieveStudentAttendanceObjection(student);	
+		
+		log.info("studentTest{}", student);
+		log.info("studentTest{}", student);
+		
+		model.addAttribute("student", student);
+		return "objection/studentAttendanceRecognitionStatus";
+	}
+	
+	/** 학생이 출석인정신청서를 작성
+	 * @return
+	 */
+	@GetMapping("studentObjectionInsert")
+	public String studentObjectionInsert() {
+		log.info("====================222");
+		return "objection/studentAttendanceForm";
+	}
+	
+	/** 학생이 출석인정신청서 양식을 작성 후 다시 출석인정현황을 조회
+	 * @return
+	 */
+	@PostMapping("studentPostView")
+	public String studentPostView() {
+		log.info("====================3333");
+		return studentGetView(null);
+	}
+//	 ---------------------------------------JCK 학생 컨트롤러 끝 JCK---------------------------------------
+	
+
+
+//	---------------------------------------JCK 교수 컨트롤러 시작 JCK ---------------------------------------
+	/** 교수가 학생이 신청한 성적이의신청 조회
+	 * @return
+	 */
+	@GetMapping("professorObjectionGetView")
+	public String professorObjectionGetView() {
+		return "objection/professorObjectionList";
+	}
+	
+	/** 교수가 학생이 신청한 성적이의신청서 조회(상세조회)
+	 * @return
+	 */
+	@GetMapping("professorObjectionDetail")
+	public String professorObjectionDetail() {
+		return "/objection/professorObjectionForm";
+	}
+	
+	/** 교수가 성적이의신청서를 확인 후 승인 또는 반려 버튼을 누르고 목록 조회
+	 * @return
+	 */
+	@PostMapping("professorObjectionPostView")
+	public String professorObjectionPostView() {
+		return professorObjectionGetView();
+	}
+	
+//	---------------------------------------JCK 교수 컨트롤러 끝 JCK---------------------------------------
+}

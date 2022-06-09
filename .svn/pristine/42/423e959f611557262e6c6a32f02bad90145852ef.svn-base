@@ -1,0 +1,13 @@
+package kr.or.ddit.homework.service;
+
+import java.util.List;
+
+import kr.or.ddit.vo.LecHomeworkVO;
+import kr.or.ddit.vo.PagingVO;
+
+public interface HomeworkService {
+	List<LecHomeworkVO> retrieveHomeworkList(PagingVO<LecHomeworkVO> paging);
+	
+	LecHomeworkVO retrieveHomework(Integer lechwkNo);
+	
+}

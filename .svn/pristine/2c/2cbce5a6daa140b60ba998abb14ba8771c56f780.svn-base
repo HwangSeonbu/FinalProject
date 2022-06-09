@@ -1,0 +1,13 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+
+@Data
+public class NoticeBoardVO {
+	private Integer noticeNo;
+	private Integer userNo;
+	private String noticeTitle;
+	private String noticeContent;
+	private Integer noticeHit;
+	private String noticeDate;
+}

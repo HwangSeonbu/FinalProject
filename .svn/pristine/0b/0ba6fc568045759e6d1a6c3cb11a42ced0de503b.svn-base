@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 4. 26.  고성식     최초작성          -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.student.dao.StudentDAO">
+	<sql id="searchFrag">
+		<where>
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+			<choose>
+				<when test="simpleCondition.searchType eq 'USERNAME'">
+					B.USER_NAME LIKE '%'||#{simpleCondition.searchWord}||'%'
+				</when>
+				<when test="simpleCondition.searchType eq 'DEPTNAME'">
+					INSTR(C.DEPT_NAME, #{simpleCondition.searchWord}) > 0
+				</when>
+				<when test="simpleCondition.searchType eq 'USERNO'">
+					INSTR(A.USER_NO, #{simpleCondition.searchWord}) > 0
+				</when>
+				<otherwise>
+					B.USER_NAME LIKE '%'||#{simpleCondition.searchWord}||'%'
+					OR INSTR(C.DEPT_NAME, #{simpleCondition.searchWord}) > 0
+					OR INSTR(A.USER_NO, #{simpleCondition.searchWord}) > 0
+				</otherwise>
+			</choose>
+		</if>
+		</where>
+	</sql>
+	
+	<resultMap type="StudentVO" id="studentMap" autoMapping="true">
+		<id property="userNo" column="USER_NO"/>
+	</resultMap>
+	<select id="selectStudentList" parameterType="PagingVO" resultType="StudentVO">
+		SELECT B.*
+		FROM(
+    		SELECT A.*, ROWNUM RNUM
+    		FROM(
+				    SELECT 
+				            A.USER_NO
+						    , C.DEPT_NAME
+						    , B.USER_NAME
+						    , A.STU_YEAR
+						    , A.STU_CLASS
+						    , B.USER_GENDER
+						    , B.USER_REG1
+						    , B.USER_PHONE
+						    , B.USER_MAIL
+						    , D.STS_CODE1
+					FROM STU A
+					INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+					INNER JOIN DEPARTMENT C ON A.DEPT_ID=C.DEPT_ID
+                    INNER JOIN CODE D ON D.STS_ID=A.STU_CODE
+					WHERE A.STU_CODE='C101'
+                    <include refid="searchFrag" />
+        			ORDER BY A.USER_NO
+        	)A
+        )B
+		<![CDATA[  
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM STU A
+				INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+				INNER JOIN DEPARTMENT C ON A.DEPT_ID=C.DEPT_ID
+				INNER JOIN CODE D ON D.STS_ID=A.STU_CODE
+		WHERE A.STU_CODE='C101'
+		<include refid="searchFrag" />
+	</select>
+	
+	<select id="selectStudent"  parameterType="int" resultMap="studentMap">
+	SELECT B.*
+    FROM(
+    	SELECT A.*, ROWNUM RNUM
+    	FROM(
+		    SELECT 
+	              A.USER_NO
+                  ,A.DEPT_ID
+                  ,A.STU_YEAR
+                  ,A.STU_CLASS
+                  ,A.STU_CODE
+                  ,A.STU_CDT_EARN
+                  ,A.STU_GDU_CDT
+                  ,A.STU_GDU_DATE
+                  ,B.USER_PASS
+                  ,B.USER_NAME
+                  ,B.USER_GENDER
+                  ,B.USER_PHONE
+                  ,B.USER_ADDR
+                  ,B.USER_REG1
+                  ,B.USER_REG2
+                  ,B.USER_MAIL
+                  ,B.USER_SAVENAME
+                  ,B.USER_DATE
+                  ,B.USER_CODE
+                  ,C.DEPT_NAME
+                  ,C.COL_NAME
+			FROM STU A
+			INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+			INNER JOIN DEPARTMENT C ON A.DEPT_ID=C.DEPT_ID
+   			ORDER BY A.USER_NO
+       	)A
+        WHERE A.USER_NO = #{userNo}
+    )B
+	
+	</select>
+	
+	<select id="selectUserNo" resultType="int">
+		SELECT USER_SEQ.NEXTVAL
+		FROM DUAL
+	</select>
+	
+	<insert id="insertUser" parameterType="StudentVO">
+		INSERT INTO USERS(
+			USER_NO
+			,USER_PASS
+			,USER_NAME
+			,USER_GENDER
+			,USER_PHONE
+			,USER_ADDR
+			,USER_REG1
+			,USER_REG2
+			,USER_MAIL
+			,USER_SAVENAME
+			,USER_DATE
+			,USER_CODE
+			,MEM_ROLE
+		) VALUES (
+			#{userNo}
+			,#{userPass}
+			,#{userName}
+			,#{userGender}
+			,#{userPhone}
+			,#{userAddr}
+			,#{userReg1}
+			,#{userReg2}
+			,#{userMail}
+			,#{userSavename}
+			,#{userDate}
+			,#{userCode}
+			,#{memRole}
+		)
+	</insert>
+	
+	<insert id="insertStudent" parameterType="StudentVO">
+		INSERT INTO STU (
+		   USER_NO
+		   ,DEPT_ID
+		   ,STU_YEAR
+		   ,STU_CLASS
+		   ,STU_CODE
+		   ,STU_CDT_EARN
+		   ,STU_GDU_CDT
+		   ,STU_GDU_DATE
+		) VALUES (
+			#{userNo}
+		   ,#{deptId}
+		   ,#{stuYear}
+		   ,#{stuClass}
+		   ,#{stuCode}
+		   ,#{stuCdtEarn}
+		   ,#{stuGduCdt}
+		   ,#{stuGduDate}
+		)
+	</insert>
+	
+	
+	
+		
+</mapper>

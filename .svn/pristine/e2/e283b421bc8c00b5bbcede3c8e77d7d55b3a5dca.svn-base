@@ -1,0 +1,15 @@
+package kr.or.ddit.scholarship.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/applyScholar")
+public class StudentScholarshipApplyContoller {
+
+	@RequestMapping("scholarApplyForm.do")
+	public String scholarApplyForm() {
+		
+		return "scholarship/studentScholarRequestForm";
+	}
+}

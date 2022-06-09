@@ -1,0 +1,38 @@
+package kr.or.ddit.vo;
+
+import java.io.Serializable;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**PRO 테이블(교수테이블) 객체를 담을 VO
+ * @author 황선부
+ * @since 2022. 4. 28.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 28.      황선부       최초작성
+ * 2022. 5. 9.       김재웅       학기 속성 추가
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Data
+@EqualsAndHashCode(of="proNo")
+public class ProfessorVO implements Serializable {
+	private Integer proNo;
+	private String deptId;
+	private String proIndate;
+	private String proOutdate;
+	private String proJob;
+	
+	private String userName;
+	private UserVO userVO;
+	
+	private Integer prevSems;
+	private Integer thisSems;
+	private Integer nextSems;
+	
+}

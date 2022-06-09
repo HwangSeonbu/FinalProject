@@ -1,0 +1,108 @@
+package kr.or.ddit.board.controller;
+
+import javax.inject.Inject;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.board.service.QnABoardService;
+import kr.or.ddit.vo.MemberVO;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.QnABoardVO;
+import kr.or.ddit.vo.SimpleSearchVO;
+import kr.or.ddit.vo.security.MemberVOWrapper;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+@RequestMapping("/board")
+public class QnABoardController {
+	
+	@Inject
+	private QnABoardService service;
+	
+	//게시판 목록 출력
+	@RequestMapping("/qnaBoardList.do")
+	public String listHandler(
+		@RequestParam(value="page", required=false, defaultValue="1") int currentPage
+		, @ModelAttribute("simpleCondition") SimpleSearchVO simpleCondition
+		, Model model
+	){
+		PagingVO<QnABoardVO> paging = new PagingVO<>(10,5);
+		paging.setCurrentPage(currentPage);
+		paging.setSimpleCondition(simpleCondition);
+		
+		service.retrieveBoardList(paging);
+		
+		model.addAttribute("paging", paging);
+		
+		return "board/qnaBoardList";
+	}
+	
+	//상세화면 뷰 
+	@RequestMapping("qnaBoardView.do")
+	public String detailViewHandler(
+		@RequestParam(value="who", required=false, defaultValue="") String boardNo
+			, Model model
+	) {
+		log.info("==================================="+boardNo);
+		QnABoardVO qBoard = service.retrieveBoard(boardNo);
+		model.addAttribute("qBoard", qBoard);
+		
+		return "board/qnaBoardView";
+	}
+	
+	//글 작성 폼
+	@RequestMapping("/qnaBoardWriteForm")
+	public String insertForm(
+			@ModelAttribute("qBoard") QnABoardVO qBoard,
+			Authentication authentication,
+			Model model
+	) {
+		MemberVO authMember = ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		int userNo = authMember.getUserNo();
+		model.addAttribute("userNo", userNo);
+		return "board/qnaBoardForm";
+	}
+	
+	// 글 저장
+	@RequestMapping(value="/qnaSave", method = RequestMethod.POST)
+	public String saveForm(
+			@ModelAttribute("qBoard") QnABoardVO qBoard
+			,Model model) {
+		service.createQBoard(qBoard);
+		return "redirect:/board/qnaBoardList.do";
+	}
+	
+	//글 삭제
+	@RequestMapping(value="/qnaBoardListView", method=RequestMethod.POST)
+	public String qBoardDelete(QnABoardVO qBoardVO) {
+		service.removeQBoard(qBoardVO.getBoardNo());
+		
+		return "redirect:/board/qnaBoardList.do";
+	}
+	
+	//글 수정 뷰
+	@RequestMapping(value="/qnaBoardEditView", method = RequestMethod.POST)
+	public String updateView(QnABoardVO qBoardVO, Model model) {
+		model.addAttribute("qBoardVO", service.retrieveBoard(qBoardVO.getBoardNo()));
+		return "board/qnaBoardEdit";
+	}
+	
+	//글 수정하고 리스트로 고~
+	@RequestMapping(value="/qnaBoardView", method = RequestMethod.POST)
+	public String update(QnABoardVO qBoardVO, Model model) {
+		service.modifyQBoard(qBoardVO);
+		model.addAttribute("who", qBoardVO.getBoardNo());
+		
+		return "redirect:/board/qnaBoardView.do";
+	}
+	
+	
+}
+

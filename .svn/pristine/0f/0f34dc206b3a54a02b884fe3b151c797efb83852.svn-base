@@ -1,0 +1,25 @@
+package kr.or.ddit.vo;
+
+import java.util.List;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(of="assignNo")
+public class DepartLectureAssignVO {
+
+	private String deptId;
+	private String sjtId;
+	private String planLimit;
+	private Integer userNo;
+	private Integer planTcnt;
+	private String assignNo;
+	private String sjtName;
+	private String userName;
+	private Integer planNo;
+	private Integer planYear;
+	private String sjtMajor;
+	
+	private List<AssignVO> assignList;
+}

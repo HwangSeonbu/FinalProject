@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.ProfessorLectureDAO">
+
+	<select id="selectProLectureList" parameterType="ProfessorVO" resultType="ProfessorLectureVO">
+		WITH PRODETAIL AS (
+		    SELECT A.*, B.LEC_ID
+		        , C.PLAN_NO, C.SJT_ID, C.LEC_NAME
+		        , D.SJT_CREDIT, D.SJT_MAJOR, D.SJT_GRADE
+		        , E.GWAN_NAME, E.ROOM_NO, E.ASSIGN_DT
+		    FROM (SELECT A.PRO_NO, A.PRO_JOB, A.DEPT_ID
+		                , B.USER_NAME, B.USER_PHONE
+		                , C.COL_NAME, C.DEPT_NAME
+		            FROM PRO A, USERS B, DEPARTMENT C
+		            WHERE A.PRO_NO = B.USER_NO
+		                AND A.DEPT_ID = C.DEPT_ID
+		                AND A.PRO_NO = #{proNo}
+		            ORDER BY PRO_NO
+		            ) A
+		        LEFT OUTER JOIN (
+		            SELECT * FROM LEC WHERE LEC_SEMS = 202201
+		        ) B ON(A.PRO_NO = B.USER_NO)
+		        LEFT OUTER JOIN PLANOK C ON(B.LEC_ID = C.LEC_ID)
+		        LEFT OUTER JOIN SJT D ON(C.SJT_ID = D.SJT_ID)
+		        LEFT OUTER JOIN(
+		            SELECT 
+		                ASSIGN_NO, PLAN_NO
+		                , ASSIGN_DAY||ASSIGN_TIME ASSIGN_DT
+		                , GWAN_NAME, ROOM_NO
+		            FROM LEC_ASSIGN
+		            ORDER BY PLAN_NO) E ON(C.PLAN_NO = E.PLAN_NO)
+		    ORDER BY A.PRO_NO
+		)
+		SELECT 
+		    PRO_NO, PRO_JOB, DEPT_ID, USER_NAME
+		    , COL_NAME, DEPT_NAME, LEC_ID
+		    , PLAN_NO, SJT_ID, LEC_NAME
+		    , SJT_CREDIT, SJT_MAJOR, SJT_GRADE
+		    , GWAN_NAME, ROOM_NO
+		    , LISTAGG(ASSIGN_DT, ',') WITHIN GROUP (ORDER BY ASSIGN_DT) ASSIGN_DT
+		FROM PRODETAIL 
+		GROUP BY
+		    PRO_NO, PRO_JOB, DEPT_ID, USER_NAME
+		    , COL_NAME, DEPT_NAME, LEC_ID
+		    , PLAN_NO, SJT_ID, LEC_NAME
+		    , SJT_CREDIT, SJT_MAJOR, SJT_GRADE
+		    , GWAN_NAME, ROOM_NO
+		ORDER BY LEC_ID
+	</select>
+	
+	<select id="selectProLectureTimeTableList" parameterType="ProfessorVO" resultType="ProfessorLectureVO">
+		WITH PROINFO AS(
+		    SELECT A.PRO_NO, A.PRO_JOB, A.DEPT_ID
+		        , B.USER_NAME, B.USER_PHONE
+		        , C.COL_NAME, C.DEPT_NAME
+		    FROM PRO A, USERS B, DEPARTMENT C
+		    WHERE A.PRO_NO = B.USER_NO
+		        AND A.DEPT_ID = C.DEPT_ID
+		        AND A.PRO_NO = #{proNo}
+		    ORDER BY PRO_NO
+		) SELECT A.*, B.LEC_ID
+		    , C.PLAN_NO, C.SJT_ID, C.LEC_NAME
+		    , D.SJT_CREDIT, D.SJT_MAJOR, D.SJT_GRADE
+		    , E.GWAN_NAME, E.ROOM_NO, E.ASSIGN_DAY||E.ASSIGN_TIME ASSIGN_DT, E.ASSIGN_NO
+		FROM PROINFO A
+		    LEFT OUTER JOIN (
+		        SELECT * FROM LEC WHERE LEC_SEMS = 202201
+		    ) B ON(A.PRO_NO = B.USER_NO)
+		    LEFT OUTER JOIN PLANOK C ON(B.LEC_ID = C.LEC_ID)
+		    LEFT OUTER JOIN SJT D ON(C.SJT_ID = D.SJT_ID)
+		    LEFT OUTER JOIN LEC_ASSIGN E ON(C.PLAN_NO = E.PLAN_NO)
+		ORDER BY A.PRO_NO
+	</select>
+</mapper>

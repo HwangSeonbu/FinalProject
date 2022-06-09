@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.graduate.dao.GraduateDAO">
+	<select id="selectGraduateList" parameterType="PagingVO" resultType="GraduateVO">
+		WITH TEMP AS (
+		   SELECT A.* , ROWNUM RNUM
+		   FROM
+		        (SELECT
+		             A.USER_NO
+		           , A.USER_NAME
+		           , A.USER_GENDER
+		           , A.USER_PHONE
+		           , A.USER_ADDR
+		           , A.USER_MAIL
+		           , A.USER_CODE
+		           , B.STU_CODE
+		           , TO_CHAR(B.STU_GDU_DATE,'YYYY-MM-DD') AS STU_GDU_DATE
+		           , C.DEPT_NAME
+		        FROM USERS A
+		        INNER JOIN STU B ON A.USER_NO=B.USER_NO
+		        INNER JOIN DEPARTMENT C ON C.DEPT_ID = B.DEPT_ID
+                WHERE B.STU_CODE = '졸업'
+                ORDER BY A.USER_NO
+		   )A
+		)
+		SELECT *
+		FROM TEMP
+		<![CDATA[  
+				WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]> 
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM USERS A
+        INNER JOIN STU B ON A.USER_NO=B.USER_NO
+        INNER JOIN DEPARTMENT C ON C.DEPT_ID = B.DEPT_ID
+        WHERE B.STU_CODE = '졸업'
+	</select>
+	
+	
+</mapper>

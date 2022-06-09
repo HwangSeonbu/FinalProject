@@ -1,0 +1,178 @@
+<%--
+ 학사관리자가 졸업대상자를 조회하고 처리하는 페이지
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 2.   김재웅 	     최초작성
+* 2022. 5. 17.	고성식	     리스트 출력
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+<script type="text/javascript" src="${cPath }/resources/js/jquery.form.min.js"></script>    
+<h3 class="h3-title">졸업가능대상자관리</h3><hr class="hr-title">
+<table class="table table-striped">
+	<thead class="thead-dark">
+	<button type="submit" class="btn btn-primary btn-sm" onclick="getCheckboxValue();">졸업</button>
+	
+		<tr>
+			<th scope="col" class="frst">
+				<input type="checkbox" id="chkalltop" title="선택" onclick="checkAll()"></th>
+			<th>학번</th>
+			<th>이름</th>
+			<th>분과대학명</th>
+			<th>학과</th>
+			<th>이수학점</th>
+			<th>졸업가능기준학점</th>
+			<th>학적상태</th>
+			<th>휴대폰번호</th>
+			<th>주소</th>
+			<th>이메일</th>
+		</tr>
+	</thead>
+	<tbody id="listBody">
+	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan="10">
+				<div id="pagingArea">
+				</div>
+				<div id="searchDIV">
+					<select name="sarchType">
+						<option value>전체</option>
+						<option value="USERNAME">이름</option>
+						<option value="DEPTNAME">학과</option>
+						<option value="USERNO">학번</option>
+					</select>
+					<input type="text" name="searchWord" />
+					<input type="button" value="검색" />
+				</div>
+			</td>
+		</tr>
+	</tfoot>
+</table>
+<form id="searchForm">
+	<input type="hidden" name="page" />
+	<input type="hidden" name="searchType" />
+	<input type="hidden" name="searchWord" />
+	<security:csrfInput/>
+</form>
+<script type="text/javascript">
+$("#chkalltop").click(function() {
+	if($("#chkalltop").is(":checked")) $("input[name=chk]").prop("checked", true);
+	else $("input[name=chk]").prop("checked", false);
+});
+
+const VIEWURLPTRN = "${cPath}/graduate/adminGraduateTargetList";
+let listBody = $("#listBody");
+let pagingArea = $("#pagingArea");
+let token = $("meta[name='_csrf']").attr("content");
+let header = $("meta[name='_csrf_header']").attr("content");
+var nextSems = ${sessionScope.semsVo.nextSems};
+
+let searchForm = $("#searchForm").ajaxForm({
+	dataType:"json"
+	, success:function(paging){
+		listBody.empty();
+		pagingArea.empty();
+		searchForm[0].page.value="";
+		
+		let graduateList = paging.dataList;
+		let trTags = [];
+		if(graduateList && graduateList.length > 0){
+			$.each(graduateList, function(idx, graduate){
+				let trTag = $("<tr>")
+									.attr("id", graduate.userNo)
+									.append(
+											$("<td>").append($("<input>")
+													.attr("type", "checkbox").attr("name", "chk")
+											)
+												, $("<td>").html(graduate.userNo)
+												, $("<td>").html(graduate.userName)
+												, $("<td>").html(graduate.colName)
+												, $("<td>").html(graduate.deptName)
+												, $("<td>").html(graduate.stuCdtEarn)
+												, $("<td>").html(graduate.stuGduCdt) 
+												, $("<td>").html(graduate.stsCode1)
+												, $("<td>").html(graduate.userPhone)
+												, $("<td>").html(graduate.userAddr)
+												, $("<td>").html(graduate.userMail)
+									);
+				trTags.push(trTag);
+			});
+		}else{
+			let trTag = $("<tr>").html(
+							$("<td>").attr("colspan", "10")
+									 .html("조건에 맞는  사람이 없음.")
+						);
+			trTags.push(trTag);
+		} // if end
+		
+		listBody.append(trTags);
+		pagingArea.html(paging.pagingHTMLBS)
+		
+	} // success end
+	, resetForm : false
+}).submit();
+
+pagingArea.on("click", "a", function(){
+	let page = $(this).data("page");
+	searchForm.find("[name=page]").val(page);
+	searchForm.submit();
+});
+
+function getCheckboxValue()  {
+	// 선택된 목록 가져오기
+	let graduateNos = [];
+	let graduateNoList = {};
+	
+	let names = listBody.find('input[name="chk"]:checked');
+	
+	// 졸업할 학생이 체크되었는지 확인
+	if(names.length == 0){
+		alert("졸업시킬 학생을 선택해주세요.");
+		return false;
+	}
+	
+	// 졸업할 학생 리스트 추출
+	$.each(names, function(idx, name){
+	  	let thisName = $(this).parents("tr").attr("id");
+	  	
+	  	let jsonEle = {
+	  		"userNo" : thisName
+	  		,"enrSems" : nextSems
+	  	};
+	  	
+	  	graduateNos.push(jsonEle);
+	});
+	
+	// 졸업 처리
+	$.ajax({
+		url : "${cPath}/targetGraduate/modifyAdminGraduateTarget.do",
+		method : "post",
+		data : JSON.stringify(graduateNos),
+		contentType : "application/json",
+		dataType : "json",
+		beforeSend : function(xhr) {
+			if (token && header) {
+				xhr.setRequestHeader(header, token);
+			}
+		},
+		success : function(resp) {
+			alert("'졸업'으로 학적 변경이 완료되었습니다.");
+			searchForm.submit();
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+	  
+}
+
+</script>
+
+

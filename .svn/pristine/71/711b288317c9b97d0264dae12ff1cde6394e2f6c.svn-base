@@ -1,0 +1,17 @@
+package kr.or.ddit.attendance.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AttabsEnrollVO;
+import kr.or.ddit.vo.LectureVO;
+
+public interface ProfessorAttendanceService {
+
+	public List<LectureVO> retrieveProLectureList(Map<String, Integer> paramMap);
+	
+	
+	public List<String> retrieveLecDateList(String lecId);
+	
+	public List<AttabsEnrollVO> retrieveAttabsStudentList(Map<String, Object> paramMap);
+}

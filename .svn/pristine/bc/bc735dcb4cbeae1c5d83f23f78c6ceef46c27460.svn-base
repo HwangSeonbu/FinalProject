@@ -1,0 +1,27 @@
+package kr.or.ddit.lecboard.controller;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.lecboard.service.LecBoardService;
+
+@Controller
+@RequestMapping("/lecBoard/notice")
+public class LecNoticeBoardRetrieveController {
+	@Inject
+	private LecBoardService service;
+	
+	@GetMapping
+	public String noticeView(
+			
+			) {
+		//권한 검증
+//		int result = service.retrieveLecAuthenUser(classVO);
+
+
+		return "lecBoard/lecBoardNotice";
+	}
+}

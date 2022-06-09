@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.commons.dao.FindMyInfoDAO">
+
+<select id="findMyId" parameterType="MemberVO" resultType="MemberVO">
+	SELECT USER_NO
+	FROM USERS
+	WHERE USER_NAME = #{userName}
+	AND USER_MAIL = #{userMail}
+	AND USER_REG1 = #{userReg1}
+
+</select>
+
+</mapper>

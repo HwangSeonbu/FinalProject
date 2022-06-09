@@ -1,0 +1,21 @@
+package kr.or.ddit.set.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/set")
+public class SetPeriodController {
+
+	@RequestMapping("setAstPeriodForm.do")
+	public String setAstPeriodForm() {
+		
+		return "set/adminSetAstPeriod";
+	}
+	
+	@RequestMapping("setCrdtPeriodForm.do")
+	public String setCrdtPeriodForm() {
+		
+		return "set/adminSetCrdtPeriod";
+	}
+}

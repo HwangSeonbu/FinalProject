@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 강의 공지 게시판 첨부파일 xml -->
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 17. 황선부     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecboard.dao.AttachDAO">
+	<select id="selectAttach" parameterType="Integer" resultType="AttchVO">
+	SELECT *
+	FROM ATTCH
+	WHERE ATTCH_NO = #{attchNo}
+	</select>
+
+	<insert id="insertAttach" parameterType="LecNoticeBoardVO">
+		<selectKey resultType="int" keyProperty="startAttNo" order="BEFORE">
+			SELECT NVL(MAX(ATTCH_NO), 0)+1
+			FROM ATTCH
+		</selectKey>
+	INSERT ALL
+	<foreach collection="attchList" item="attch" index="i">
+		INTO ATTCH		
+		(		
+				ATTCH_NO
+			   ,USER_NO
+			   ,ATTCH_FNAME
+			   ,ATTCH_SNAME
+			   ,ATTCH_MIME
+			   ,ATTCH_SIZE
+			   ,ATTCH_FSIZE
+			   ,ATTCH_DHIT
+			   ,LECBO_NO
+			   
+		)values(
+				 #{startAttNo} + #{i}
+				,#{userNo,jdbcType=NUMERIC}
+				,#{attch.attchFname,jdbcType=VARCHAR}
+				,#{attch.attchSname,jdbcType=VARCHAR}
+				,#{attch.attchMime,jdbcType=VARCHAR}
+				,#{attch.attchSize,jdbcType=NUMERIC}
+				,#{attch.attchFsize,jdbcType=VARCHAR}
+				,0
+				,#{lecboNo,jdbcType=NUMERIC}
+		)
+	</foreach>
+	SELECT * FROM DUAL
+	</insert>
+	
+		<insert id="insertQnaAttach" parameterType="LecqnaVO">
+
+		INSERT INTO ATTCH		
+		(		
+				ATTCH_NO
+			   ,ATTCH_FNAME
+			   ,ATTCH_SNAME
+			   ,ATTCH_MIME
+			   ,ATTCH_SIZE
+			   ,ATTCH_FSIZE
+			   ,ATTCH_DHIT
+			   ,LECQNA_NO
+			   
+		)values(
+				 (SELECT NVL(MAX(ATTCH_NO), 0)+1
+					FROM ATTCH)	
+				,#{attach.attchFname,jdbcType=VARCHAR}
+				,#{attach.attchSname,jdbcType=VARCHAR}
+				,#{attach.attchMime,jdbcType=VARCHAR}
+				,#{attach.attchSize,jdbcType=NUMERIC}
+				,#{attach.attchFsize,jdbcType=VARCHAR}
+				,0
+				,#{lecboNo,jdbcType=NUMERIC}
+		)
+	</insert>
+	
+	<delete id="deleteAttaches" parameterType="LecNoticeBoardVO">
+		DELETE FROM ATTCH
+		WHERE ATTCH_NO IN
+			<foreach collection="delAttNos" item="delAttNo" separator="," open="(" close=")">
+			#{delAttNo}
+			</foreach>
+	</delete>
+	
+	<delete id="deleteQnaAttach" parameterType="LecqnaVO">
+		DELETE FROM ATTCH
+		WHERE ATTCH_NO = #{delAttNo}
+
+	</delete>
+	
+
+</mapper>

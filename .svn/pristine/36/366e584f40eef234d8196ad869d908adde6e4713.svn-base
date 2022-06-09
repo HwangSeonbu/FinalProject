@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.room.dao.ProfessorRoomSetDAO">
+
+	<resultMap type="DepartLectureAssignVO" id="assignMap" autoMapping="true">
+		<id property="planNo" column="PLAN_NO"/>
+		<collection property="assignList" ofType="AssignVO" autoMapping="true">
+			<id property="assignNo" column="ASSIGN_NO"/>
+		</collection>
+	</resultMap>
+	<select id="selectDepartLecList" parameterType="PlanVO" resultMap="assignMap">
+		WITH PLANOKLIST AS (
+		    SELECT
+		        A.PLAN_NO, A.USER_NO, A.SJT_ID, A.PLAN_YEAR, A.PLAN_LIMIT, A.PLAN_TCNT, A.DEPT_ID
+		        , B.USER_NAME, C.SJT_NAME, C.SJT_MAJOR
+		    FROM PLAN A, USERS B, SJT C, PLANOK D
+		    WHERE A.PLAN_SEMS = #{planSems}
+		    AND A.DEPT_ID = #{deptId}
+		    AND A.PLAN_STS = 'B102'
+		    AND A.USER_NO = B.USER_NO
+		    AND A.SJT_ID = C.SJT_ID
+		    AND A.PLAN_NO = D.PLAN_NO
+		    AND D.ASSIGN_SUBMIT IS NULL
+		)
+		SELECT A.*
+		    , B.ASSIGN_NO, B.ASSIGN_DAY, B.ASSIGN_TIME, B.ROOM_NO, B.GWAN_NAME
+		FROM PLANOKLIST A
+		    LEFT OUTER JOIN LEC_ASSIGN B ON(A.PLAN_NO = B.PLAN_NO)
+	</select>
+	
+	<select id="selectDepartOne" parameterType="string" resultType="DepartmentVO">
+		SELECT A.*, B.COL_GWAN
+		FROM DEPARTMENT A, COLLEGE B
+		WHERE DEPT_ID = #{deptId}
+		    AND A.COL_NAME = B.COL_NAME
+	</select>
+	
+	<select id="selectGwanOne" parameterType="string" resultType="GwanVO">
+		SELECT *
+		FROM GWAN
+		WHERE GWAN_NAME = #{gwanName}
+	</select>
+	
+	<select id="selectRoomAssignList" parameterType="AssignVO" resultType="AssignVO">
+		SELECT A.*
+		    , A.ASSIGN_DAY||A.ASSIGN_TIME "ASSIGN_DT"
+		    , B.PRO_NAME, B.LEC_NAME
+		FROM LEC_ASSIGN A, (
+		    SELECT A.PLAN_NO, B.PRO_NAME, B.LEC_NAME
+		    FROM PLAN A 
+		        INNER JOIN PLANOK B ON(A.PLAN_NO = B.PLAN_NO)
+		    WHERE A.PLAN_SEMS = #{planSems}) B
+		WHERE A.GWAN_NAME = #{gwanName}
+		AND A.ROOM_NO = #{roomNo}
+		AND A.PLAN_NO = B.PLAN_NO
+	</select>
+	
+	<update id="updateLecAssignOne" parameterType="AssignVO">
+		UPDATE LEC_ASSIGN
+		    SET
+		        ASSIGN_DAY = #{assignDay}
+		        , ASSIGN_TIME = #{assignTime}
+		        , ROOM_NO = #{roomNo}
+		        , GWAN_NAME = #{gwanName}
+		WHERE
+		    ASSIGN_NO = #{assignNo}
+	</update>
+	
+	<select id="selectSubmitTargetList" parameterType="PlanVO" resultType="DepartLectureAssignVO">
+		SELECT C.PLAN_NO, C.USER_NO, C.SJT_ID, C.PLAN_YEAR, C.PLAN_LIMIT, C.PLAN_TCNT
+		    , C.DEPT_ID, C.USER_NAME, C.SJT_NAME, C.SJT_MAJOR
+		    , C.ROOM_NO, C.GWAN_NAME
+		    , LISTAGG(C.ASSIGN_DT, ',') WITHIN GROUP (ORDER BY ASSIGN_DT) ASSIGN_DT
+		FROM(
+		    WITH PLANOKLIST AS ( 
+		        SELECT A.PLAN_NO, A.USER_NO, A.SJT_ID, A.PLAN_YEAR, A.PLAN_LIMIT
+		            , A.PLAN_TCNT, A.DEPT_ID , B.USER_NAME
+		            , C.SJT_NAME, C.SJT_MAJOR
+		        FROM PLAN A, USERS B, SJT C, PLANOK D
+		        WHERE A.PLAN_SEMS = #{planSems} 
+		        AND A.DEPT_ID = #{deptId} 
+		        AND A.PLAN_STS = 'B102'
+		        AND A.USER_NO = B.USER_NO 
+		        AND A.SJT_ID = C.SJT_ID
+		        AND A.PLAN_NO = D.PLAN_NO
+                AND D.ASSIGN_SUBMIT IS NULL
+		    ) 
+		    SELECT A.PLAN_NO, A.USER_NO, A.SJT_ID, A.PLAN_YEAR, A.PLAN_LIMIT, A.PLAN_TCNT
+		        , A.DEPT_ID, A.USER_NAME, A.SJT_NAME, A.SJT_MAJOR
+		        , B.ASSIGN_DAY||B.ASSIGN_TIME "ASSIGN_DT",
+		        CASE 
+		        WHEN B.ASSIGN_DAY='월' THEN 1 
+		        WHEN B.ASSIGN_DAY='화' THEN 2 
+		        WHEN B.ASSIGN_DAY='수' THEN 3 
+		        WHEN B.ASSIGN_DAY='목' THEN 4 
+		        ELSE 5
+		        END "DAY_ORDER"
+		        , B.ROOM_NO, B.GWAN_NAME 
+		    FROM PLANOKLIST A LEFT OUTER JOIN LEC_ASSIGN B ON(A.PLAN_NO = B.PLAN_NO)
+		    ORDER BY A.PLAN_NO, DAY_ORDER
+		) C
+		GROUP BY C.PLAN_NO, C.USER_NO, C.SJT_ID, C.PLAN_YEAR, C.PLAN_LIMIT, C.PLAN_TCNT
+		    , C.DEPT_ID, C.USER_NAME, C.SJT_NAME, C.SJT_MAJOR
+		    , C.ROOM_NO, C.GWAN_NAME
+	</select>
+	
+	<select id="selectDuplicatedList" parameterType="int" resultType="DepartLectureAssignVO">
+		SELECT * 
+		FROM (WITH PLANOKLIST AS ( 
+		    SELECT A.PLAN_NO, A.USER_NO, A.SJT_ID, A.PLAN_YEAR, A.PLAN_LIMIT
+		        , A.PLAN_TCNT, A.DEPT_ID , B.USER_NAME
+		        , C.SJT_NAME, C.SJT_MAJOR 
+		    FROM PLAN A, USERS B, SJT C
+		    WHERE A.PLAN_SEMS = #{nextSems} 
+		    AND A.PLAN_STS = 'B102' 
+		    AND A.USER_NO = B.USER_NO 
+		    AND A.SJT_ID = C.SJT_ID 
+		) 
+		SELECT A.* , B.ASSIGN_NO, B.ASSIGN_DAY, B.ASSIGN_TIME, B.ROOM_NO, B.GWAN_NAME 
+			, B.ASSIGN_DAY||B.ASSIGN_TIME "ASSIGN_DT"
+		FROM PLANOKLIST A LEFT OUTER JOIN LEC_ASSIGN B ON(A.PLAN_NO = B.PLAN_NO)) A
+		<![CDATA[
+		WHERE (
+		    SELECT COUNT(*)
+		    FROM LEC_ASSIGN B
+		    WHERE A.ASSIGN_DAY = B.ASSIGN_DAY
+		    AND A.ASSIGN_TIME = B.ASSIGN_TIME
+		    AND A.ROOM_NO = B.ROOM_NO
+		    AND A.GWAN_NAME = B.GWAN_NAME
+		) > 1
+		]]>
+		AND A.PLAN_TCNT != 1
+	</select>
+	
+	<update id="updateAssignStatus" parameterType="int">
+		UPDATE PLANOK SET ASSIGN_SUBMIT = 'Y' WHERE PLAN_NO = #{planNo}
+	</update>
+</mapper>

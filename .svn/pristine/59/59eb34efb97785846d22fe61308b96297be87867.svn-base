@@ -1,0 +1,143 @@
+<%--강의 공지 게시판 리스트 조회
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 14.   황선부      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+<script type="text/javascript" src="${cPath }/resources/js/jquery.form.min.js"></script>
+<h3>공지 사항 게시글</h3>
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="#">home</a></li>
+    <li class="breadcrumb-item active" aria-current="page">목록</li>
+  </ol>
+</nav>
+<table class="table table-bordered">
+	<thead class="thead thead-dark">
+		<tr>
+			<th>글번호</th>
+			<th>글제목</th>
+			<th>작성자</th>
+			<th>작성일</th>
+			<th>조회수</th>
+		</tr>
+	</thead>
+	<tbody id="listBody">
+
+	</tbody>
+	  <security:authorize access="hasRole('ROLE_PROFESSOR')">
+          <li class="nav-item text-nowrap">
+            <button>ROLE_PROFESSOR</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="location.href='${cPath}/lecBoard/new'">글쓰기</button>
+          </li>
+       </security:authorize>
+	  <security:authorize access="hasRole('ROLE_STUDENT')">
+          <li class="nav-item text-nowrap">
+            <button>ROLE_STUDENT</button>
+          </li>
+       </security:authorize>
+	<tfoot>
+		<tr>
+			<td colspan="6">
+				<div id="pagingArea"></div>
+				<h4>검색용 UI</h4>
+				<div id="searchDIV" class="border border-warning form-inline">
+					<select name="searchType" class="form-control mr-2">
+						<option>전체</option>
+						<option value="TITLE">제목</option>
+						<option value="CONTENT">내용</option>
+					</select> <input type="text" name="searchWord" class="form-control mr-2" />
+					<input type="button" value="검색" id="searchBtn"
+						class="btn btn-primary" />
+				</div>
+			</td>
+		</tr>
+	</tfoot>
+</table>
+<div class="border border-primary">
+	<h4>Hidden Form</h4>
+	<form id="searchForm">
+		<input type="text" name="page" /> <input type="text" name="searchType" />
+		<input type="text" name="searchWord" />
+	</form>
+</div>
+<script type="text/javascript">
+// <c:if test="${not empty message }">
+// alert("${message}");
+// </c:if>
+	const VIEWURLPTRN = CONTEXTPATH+"/lecBoard/notice/%V";
+// 	let modalWindow = $("#exampleModal").on("hidden.bs.modal", function(){
+// 		$(this).find(".modal-body").empty();
+// 	});
+	let listBody = $("#listBody").on("click", "tr", function(){
+		let viewURL = $(this).data("href");
+		location.href=viewURL
+		
+		
+	}).css("cursor", "pointer");
+	
+	let pagingArea = $("#pagingArea");
+	
+	let searchForm = $("#searchForm").ajaxForm({
+		dataType:"json"		
+		, success:function(paging){
+			listBody.empty();
+			pagingArea.empty();
+			searchForm[0].page.value="";
+			
+			let boardList = paging.dataList;
+			let trTags = [];
+			if(boardList && boardList.length > 0){
+				$.each(boardList, function(idx, board){
+					let viewURL = VIEWURLPTRN.replace("%V", board.lecboNo);
+					let trTag = $("<tr>").data("href", viewURL)
+										.prop("id","TR_"+board.lecboNo)//아이디를 숫자로만하면 무시됨.영문자와 숫자를 혼합해야함.
+										.append(
+											$("<td>").html(board.lecboNo)	
+											, $("<td>").html(board.lecboTitle)	
+											, $("<td>").html(board.userName)	
+											, $("<td>").html(board.lecboDate)	
+											, $("<td>").html(board.lecboHit)	
+										);
+					trTags.push(trTag);
+				});
+			}else{
+				let trTag = $("<tr>").html(
+								$("<td>").attr("colspan", "6")
+										 .html("검색 조건에 맞는 게시글이 없음.")
+							);
+				trTags.push(trTag);
+			} // if end
+			
+			listBody.append(trTags);
+			pagingArea.html(paging.pagingHTMLBS)
+			
+		} // success end
+		, resetForm : false
+	}).submit();
+	
+	pagingArea.on("click", "a", function(event){
+		event.preventDefault();
+		let page = $(this).data("page");
+		searchForm.find("[name=page]").val(page);
+		searchForm.submit();
+		return false;
+	});
+	
+	let searchDIV = $("#searchDIV").on("click", "#searchBtn", function(){
+		let inputs = searchDIV.find("[name]");
+		$(inputs).each(function(index, ipt){
+	//			console.log(this.name)
+			let name = this.name;
+			let value = $(this).val();
+			searchForm.find("[name="+name+"]").val(value);
+		});
+		searchForm.submit();
+	});
+</script>

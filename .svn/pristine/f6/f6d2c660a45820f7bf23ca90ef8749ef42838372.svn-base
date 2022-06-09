@@ -1,0 +1,28 @@
+package kr.or.ddit.request.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/schoolReq")
+public class StudentSchoolRequestProcessController {
+
+	@RequestMapping("leaveSchoolForm.do")
+	public String leaveSchoolForm() {
+		
+		return "request/studentLeaveSchoolForm";
+	}
+	
+	
+	@RequestMapping("returnSchoolForm.do")
+	public String returnSchoolForm() {
+		
+		return "request/studentReturnSchoolForm";
+	}
+	
+	@RequestMapping("graduateDelayForm.do")
+	public String graduateDelayForm() {
+		
+		return "request/studentGraduateDelayForm";
+	}
+}

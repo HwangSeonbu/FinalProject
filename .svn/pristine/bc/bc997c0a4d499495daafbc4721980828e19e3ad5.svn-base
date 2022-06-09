@@ -1,0 +1,13 @@
+package kr.or.ddit.room.service;
+
+import java.util.List;
+
+import kr.or.ddit.vo.DepartLectureAssignVO;
+import kr.or.ddit.vo.DepartmentVO;
+import kr.or.ddit.vo.PlanVO;
+
+public interface ProfessorRoomSetService {
+
+	public List<DepartLectureAssignVO> retrieveDepartLecList(PlanVO vo);
+	public DepartmentVO retrieveDepartOne(String deptId);
+}

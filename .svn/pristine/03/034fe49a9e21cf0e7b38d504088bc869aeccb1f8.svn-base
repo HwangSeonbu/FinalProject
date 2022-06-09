@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 13.  이유정    최초작성          -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.FreeBoardDAO">
+<sql id="searchFrag">
+		 <where>
+        	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+        		<choose>
+        			<when test="simpleCondition.searchType eq 'NAME'">
+        				INSTR(BOARD_TITLE, #{simpleCondition.searchWord}) > 0
+        			</when>
+        			<when test="simpleCondition.searchType eq 'USERNAME'">
+        				INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+        			</when>
+        			<otherwise>
+        				INSTR(BOARD_TITLE, #{simpleCondition.searchWord}) > 0
+        				OR INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+        			</otherwise>
+        		</choose>
+        	</if>
+        </where>
+	</sql>
+<select id="selectTotalFRecord" parameterType="PagingVO" resultType="int">
+	SELECT COUNT(*)
+	FROM BOARD A
+			INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+			AND A.GROUP_ID = 'A2'
+	<include refid="searchFrag" />
+</select>
+<select id="selectFBoardList" parameterType="PagingVO" resultType="FreeBoardVO">
+	SELECT B.*
+	FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+				  SELECT 
+					A.BOARD_NO,
+			   		A.USER_NO,
+			    	A.BOARD_TITLE,
+			    	B.USER_NAME,
+			    	A.BOARD_HIT,
+			    	NVL(A.BOARD_LIKE, 0) "BOARD_LIKE",
+            		NVL(A.BOARD_DISLIKE, 0) "BOARD_DISLIKE",
+			    	A.BOARD_DATE
+			    	, (SELECT COUNT(*) FROM REPLY 
+                		WHERE BOARD_NO = A.BOARD_NO) "REPLY_CNT"
+			FROM BOARD A
+			INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+			AND A.GROUP_ID = 'A2'
+	        <include refid="searchFrag" />
+	       ORDER BY to_number(A.BOARD_NO)  DESC
+	    ) A
+	     ORDER BY RNUM
+	) B
+	<![CDATA[
+		WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+	]]>
+</select>
+<resultMap type="FreeBoardVO" id="fBoardMap" autoMapping="true">
+	<id property="boardNo" column="BOARD_NO"/>
+</resultMap>
+<select id="selectFBoard" parameterType="map" resultMap="fBoardMap">
+	SELECT
+		A.BOARD_NO,
+   		A.USER_NO,
+    	A.BOARD_TITLE,
+    	A.BOARD_CONTENT,
+    	B.USER_NAME,
+    	A.BOARD_HIT,
+    	A.BOARD_DATE,
+    	NVL(A.BOARD_LIKE, 0) "BOARD_LIKE",
+    	NVL(A.BOARD_DISLIKE, 0) "BOARD_DISLIKE",
+    	(SELECT BOLIKE_YN FROM BOLIKE WHERE BOARD_NO = #{boardNo} AND USER_NO = #{userNo}) "MY_RECOMMAND"
+	FROM BOARD A, USERS B
+	WHERE A.USER_NO = B.USER_NO
+	AND A.GROUP_ID = 'A2' 
+	AND BOARD_NO = #{boardNo}
+</select>
+<insert id="insertFBoard" parameterType="FreeBoardVO">
+	<selectKey resultType="string" keyProperty="boardNo" order="BEFORE">
+		SELECT BOARD_SEQ.NEXTVAL
+		FROM DUAL
+	</selectKey>
+	INSERT INTO BOARD
+	(
+		BOARD_NO,
+		GROUP_ID,
+		USER_NO,
+	    BOARD_TITLE,
+	    BOARD_CONTENT,
+	    BOARD_HIT,
+	    BOARD_DATE
+	) VALUES (
+		#{boardNo,jdbcType=VARCHAR}
+		,'A2'
+		,#{userNo,jdbcType=NUMERIC}
+		,#{boardTitle,jdbcType=VARCHAR}
+		,#{boardContent,jdbcType=VARCHAR}
+		,'0'
+		,SYSDATE
+	)
+</insert>
+<update id="incrementHit" parameterType="string">
+		UPDATE BOARD
+		SET 
+		BOARD_HIT = BOARD_HIT + 1
+		WHERE BOARD_NO = #{boardNo}
+</update>
+<update id="updateFBoard" parameterType="FreeBoardVO">
+	UPDATE BOARD
+	SET
+		BOARD_NO = #{boardNo,jdbcType=VARCHAR}
+		,BOARD_TITLE = #{boardTitle,jdbcType=VARCHAR}
+		,BOARD_CONTENT = #{boardContent,jdbcType=VARCHAR}
+		,BOARD_DATE = SYSDATE
+		WHERE BOARD_NO = #{boardNo}
+</update>
+<delete id="deleteFBoard" parameterType="string">
+	DELETE FROM BOARD
+	WHERE BOARD_NO = #{boardNo}
+</delete>
+
+
+<select id="selectBoLikeHistory" parameterType="BoLikeVO" resultType="BoLikeVO">
+	SELECT * FROM BOLIKE
+	WHERE BOARD_NO = #{boardNo} AND USER_NO = #{userNo}
+</select>
+<insert id="insertBoLike" parameterType="BoLikeVO">
+	INSERT INTO BOLIKE (BOLIKE_NO, BOARD_NO, USER_NO, BOLIKE_YN) 
+	VALUES (BOLIKE_SEQ.NEXTVAL, #{boardNo}, #{userNo}, #{bolikeYn})
+</insert>
+<update id="updateBoLike" parameterType="BoLikeVO">
+	UPDATE BOLIKE SET BOLIKE_YN = #{bolikeYn}
+	WHERE BOARD_NO = #{boardNo}
+    AND   USER_NO = #{userNo}
+</update>
+
+<update id="updateLikePlus" parameterType="BoLikeVO">
+	UPDATE BOARD SET BOARD_LIKE = (BOARD_LIKE+1)
+	WHERE GROUP_ID = 'A2'
+    AND BOARD_NO = #{boardNo}
+</update>
+<update id="updateDislikePlus" parameterType="BoLikeVO">
+	UPDATE BOARD SET BOARD_DISLIKE = (BOARD_DISLIKE+1)
+	WHERE GROUP_ID = 'A2'
+    AND BOARD_NO = #{boardNo}
+</update>
+<update id="updateLikePlusAndDislikeMinus" parameterType="BoLikeVO">
+	UPDATE BOARD SET BOARD_LIKE = (BOARD_LIKE+1), BOARD_DISLIKE = (BOARD_DISLIKE-1)
+	WHERE GROUP_ID = 'A2'
+    AND BOARD_NO = #{boardNo}
+</update>
+<update id="updateLikeMinusAndDislikePlus" parameterType="BoLikeVO">
+	UPDATE BOARD SET BOARD_LIKE = (BOARD_LIKE-1), BOARD_DISLIKE = (BOARD_DISLIKE+1)
+	WHERE GROUP_ID = 'A2'
+    AND BOARD_NO = #{boardNo}
+</update>
+
+
+
+
+
+
+
+</mapper>

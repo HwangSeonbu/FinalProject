@@ -1,0 +1,114 @@
+package kr.or.ddit.lecboard.controller;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import kr.or.ddit.lecboard.service.LecBoardService;
+import kr.or.ddit.vo.AttchVO;
+import kr.or.ddit.vo.ClassVO;
+import kr.or.ddit.vo.LecNoticeBoardVO;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.SimpleSearchVO;
+import lombok.extern.slf4j.Slf4j;
+
+/**강의 공지사항 게시판 조회(페이징)
+ * @author 황선부
+ * @since 2022. 5. 16.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 16.      황선부       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Slf4j
+@Controller
+@RequestMapping("/lecBoard/notice")
+public class LecNoticeBoardRetrieveController {
+	@Inject
+	private LecBoardService service;
+	
+	@GetMapping
+	public String noticeView(
+			Model model
+			,HttpSession session
+			) {		
+//		lecSems=${lec.SEMS_DATE}&lecId=${lec.LEC_ID}
+		//권한 검증
+//		int result = service.retrieveLecAuthenUser(classVO);
+		
+		
+		ClassVO classVO = (ClassVO) session.getAttribute("classVO");
+		
+		model.addAttribute("lecMap", service.retrieveOneLec(classVO.getLecId()));
+		model.addAttribute("lecId", classVO.getLecId());
+		model.addAttribute("lecSems",classVO.getLecSems());
+		
+		return "lecBoard/lecBoardNotice";
+	}
+	
+	@GetMapping(produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody
+	public PagingVO<LecNoticeBoardVO> boardListData(
+			@RequestParam(value="page",required=false, defaultValue="1") int currentPage
+			,@ModelAttribute("simpleCondition") SimpleSearchVO simpleCondition
+			,HttpServletRequest req
+			){
+			HttpSession session = req.getSession();
+			ClassVO classVO = (ClassVO) session.getAttribute("classVO");
+			
+			log.info("====================getLecSems : {}",classVO.getLecSems());
+			log.info("====================getLecId : {}",classVO.getLecId());
+			log.info("====================getUserNo : {}",classVO.getUserNo());
+			
+			LecNoticeBoardVO lecBoard = new LecNoticeBoardVO();
+			lecBoard.setLecSems(classVO.getLecSems());
+			lecBoard.setLecId(classVO.getLecId());
+//			lecBoard.setUserNo(classVO.getUserNo());
+			
+			PagingVO<LecNoticeBoardVO> paging = new PagingVO<>(10, 5);
+			paging.setDetailCondition(lecBoard);
+			
+			paging.setCurrentPage(currentPage);
+			paging.setSimpleCondition(simpleCondition);
+			service.retrieveLecBoard(paging);
+		return paging;
+	}
+	@GetMapping("{lecboNo}")
+	public String lecNoticeBoardView(@PathVariable int lecboNo
+			, Model model) {
+//		HttpSession session = req.getSession();
+//		ClassVO classVO = (ClassVO) session.getAttribute("classVO");
+		
+//		LecNoticeBoardVO lecBoardVO = new LecNoticeBoardVO();
+//		lecBoardVO.setLecboNo(lecboNo);
+//		lecBoardVO.setLecSems(classVO.getLecSems());
+//		lecBoardVO.setLecId(classVO.getLecId());
+		LecNoticeBoardVO lecNoticeBoard = service.retrieveOneLecBoard(lecboNo);
+		log.info("lecNoticeBoard=============={}",lecNoticeBoard);
+		model.addAttribute("board", lecNoticeBoard);
+		return "lecBoard/lecBoardView";
+	}
+//	/lecBoard/${board.lecboNo }/attach/${attach.attchNo }
+	@GetMapping("{lecboNo}/attach/{attchNo}")
+	public String downLoad(@PathVariable int attchNo, Model model) {
+		AttchVO attach = service.downloadAttach(attchNo);
+		model.addAttribute("attch", attach);
+		
+		return "boardDownloadView";
+	}
+}

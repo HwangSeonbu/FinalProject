@@ -1,0 +1,69 @@
+/* 가이드라인 */
+/*
+.redLine{border: 1px solid red;}
+.blueLine{border: 1px solid blue;}
+*/
+	/* 가이드 Area - div*/
+#searchArea{width: 95%;height:100px;}
+#btnArea{width: 95%;height:50px;text-align: right;}
+#pageArea{width: 95%;height: 50px; border-top: 2px solid black;padding-top: 10px;}
+#extraArea{width: 95%;height:300px;}
+
+/* 데이터 없음 이미지 */
+.div-imageWrap{position: relative; width: 70%; margin: 10px auto;}
+.div-imageInnerWrap{
+	width: 70%; vertical-align: middle;
+	opacity:0.2;
+}
+.div-textInnerImage{
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 100%;
+	color:#de7d0d;
+	transform: translate(-50%, -50%);
+	font-size: 40px;
+	text-align: center; font-weight: bold;
+}
+
+/* 셀렉션 */
+.select-search-long{width: 150px;}
+.select-search-short{width: 70px;}
+
+/* 타이틀 */
+.h3-title{font-weight: bold;}
+.hr-title{border : 0px; border-top: 7px solid #303138;}
+.text-left{text-align: left;}
+.text-right{text-align: right;}
+
+
+/* 테이블 */
+#dataDomination{
+	position: absolute;
+	border: 1px solid red;
+	width: 1500px;
+	height: 930px;
+}
+#dataListBody{
+	position: absolute;
+	top: 45px;
+	border: 1px solid blue;
+	width: 1490px;
+	height: 650px;
+	overflow-y: scroll;
+}
+#dataPageBody{
+	position: absolute;
+	top: 700px;
+	border: 1px solid blue;
+	width: 1490px;
+	height: 40px;
+}
+/*.btn-sm{font-size: 8px;}*/
+.tr-headLine{text-align: center;vertical-align: middle;background-color:#ebebeb;}
+.tr-targetHover:hover{background-color:#ededed;}
+.tr-pickTarget{background-color:#212f52;color:white;font-weight:bold;}
+.tr-pickTarget a{color:yellow;font-weight: bold;}
+
+
+/* */

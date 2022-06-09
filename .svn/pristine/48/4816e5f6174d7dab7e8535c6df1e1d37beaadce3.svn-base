@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.dao.MemberDAO">
+
+	<select id="selectMemberForAuth" parameterType="MemberVO" resultType="MemberVO">
+		WITH MEMBER AS ( 
+		    SELECT DISTINCT A.USER_NO, A.USER_PASS, A.USER_NAME,
+		         A.MEM_ROLE, B.DESCRIPTION AS USER_TYPE,
+		         A.USER_GENDER, A.USER_PHONE, A.USER_ADDR, A.USER_REG1, A.USER_REG2,
+		         A.USER_MAIL,A.USER_SAVENAME
+		    FROM USERS A 
+		    LEFT OUTER JOIN ROLES B ON A.USER_CODE = B.ROLE_ID 
+		    WHERE A.USER_NO = #{userNo}
+		)SELECT MEMBER.*
+		    , CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT S.DEPT_ID FROM STU S WHERE S.USER_NO = MEMBER.USER_NO)
+		    WHEN MEMBER.USER_TYPE = '교수' 
+		        THEN (SELECT P.DEPT_ID FROM PRO P WHERE P.PRO_NO = MEMBER.USER_NO)
+		    ELSE NULL
+		    END AS USER_DEPARTMENT
+		FROM MEMBER
+	</select>
+	
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,11 @@
+package kr.or.ddit.commons.dao;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.SemsVO;
+
+@Mapper
+public interface MainInformationDAO {
+
+	public SemsVO selectSemsData();
+}

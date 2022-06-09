@@ -1,0 +1,83 @@
+package kr.or.ddit.ast.controller;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.ast.service.AssessmentService;
+import kr.or.ddit.vo.AstResultVO;
+
+/**
+ * 관리자가 평가결과를 조회할 수 있는 컨트롤러
+ * @author 작성자명
+ * @since 2022. 4. 29.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 29.      김재웅       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@RequestMapping("/astResult")
+public class AssesmentResultRetrieveController {
+
+	@Inject
+	AssessmentService service;
+	
+	@RequestMapping("AstResultList.do")
+	public String AstResultList() {
+		return "admin/adminAstCompleteList";
+	}
+	
+	
+	@RequestMapping("proResData.do")
+	public String proResData(Model model) {
+		List<AstResultVO> resList = service.retrieveProAstResultList();
+		model.addAttribute("resList", resList);
+		return "jsonView";
+	}
+	
+	@RequestMapping("lecResData.do")
+	public String lecResData(Model model) {
+		List<AstResultVO> resList = service.retrieveLecAstResultList();
+		model.addAttribute("resList", resList);
+		return "jsonView";
+	}
+	
+	
+	
+	@RequestMapping("ProfessorAstResultList.do")
+	public String ProfessorAstResultList() {
+	
+		return "admin/adminProfessorAstResultList";
+	}
+	
+	@RequestMapping("LectureAstResultList.do")
+	public String LectureAstResultList() {
+	
+		return "admin/adminLectureAstResultList";
+	}
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

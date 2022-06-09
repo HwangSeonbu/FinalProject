@@ -1,0 +1,256 @@
+<%@page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>  
+<%@taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+<script src="${pageContext.request.contextPath }/resources/js/jquery-3.6.0.min.js"></script>
+<!--     stomp 통신 -->
+    <script	src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+	<script	src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<!--     stomp 통신 -->
+<style type="text/css">
+	.text-nowrap{
+		margin-left: 30px;
+	}
+</style>
+<security:authentication property="principal.realUser" 
+	var="authMember"/>
+
+	<nav class="navbar navbar-expand bg-light navbar-light" id="hermes_top_bar" style="height: 70px; ">
+
+		<div id="hermes-top-menu" class="navbar-nav align-items-center">
+			<ul class="navbar-nav px-3 py-3" id="subTopMenu">
+				<c:forEach items="${topMenuList}" var="topMenu">
+					<security:authorize access="hasRole('ROLE_MANAGER')">
+					<c:if test="${topMenu.topmenuType eq '학사관리자' }">
+					<li class="nav-item text-nowrap">
+						<a class="nav-link dropdown-item" href="javascript:void(0);" data-menu-no="${topMenu.topmenuId}">
+							${topMenu.topmenuText}</a>
+					</li>
+					</c:if>
+					</security:authorize>
+					
+					<security:authorize access="hasRole('ROLE_STUDENT')">
+					<c:if test="${topMenu.topmenuType eq '학생' }">
+					<li class="nav-item text-nowrap">
+						<a class="nav-link dropdown-item" href="javascript:void(0);" data-menu-no="${topMenu.topmenuId}">
+							${topMenu.topmenuText}</a>
+					</li>
+					</c:if>
+					</security:authorize>
+					
+					<security:authorize access="hasRole('ROLE_PROFESSOR')">
+					<c:if test="${topMenu.topmenuType eq '교수' }">
+					<li class="nav-item text-nowrap">
+						<a class="nav-link dropdown-item" href="javascript:void(0);" data-menu-no="${topMenu.topmenuId}">
+							${topMenu.topmenuText}</a>
+					</li>
+					</c:if>
+					</security:authorize>
+				</c:forEach>
+			</ul>
+
+	
+	
+		<div id="heremes-top-submenu" class="navbar-nav navbar-light bg-light position-absolute top-0 end-0" style="margin-top:0.5rem;">
+			<div class="nav-item dropdown">
+				<a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+					<img class="rounded-circle me-lg-2" src="${pageContext.request.contextPath }/resources/img/user.jpg" alt="" style="width: 40px; height: 40px;">
+					<span class="d-none d-lg-inline-flex">${authMember.userName }</span>
+				</a>
+				<div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                   <a href="${cPath }/myPage" class="dropdown-item">마이페이지</a>
+                   <a onclick="logoutFunc(event)" href="${pageContext.request.contextPath }/login/logout.do" class="dropdown-item">로그아웃</a>
+				<form id="logoutFrm" action="${pageContext.request.contextPath }/login/logout.do" method="post" hidden="hidden">
+				<security:csrfInput />
+				</form>
+                </div>
+			</div>
+			
+			<div class="nav-item dropdown">
+				<a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+					<i class="fa fa-envelope me-lg-2"></i>
+					<span class="d-none d-lg-inline-flex" id="messageHam">메시지함</span>
+				</a>
+			</div>
+			<div class="nav-item dropdown">
+				<a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+				<i class="fa fa-bell me-lg-2"></i>
+				<span class="d-none d-lg-inline-flex">새로운 알림</span>
+				</a>
+			</div>
+		</div>
+		</div>
+		<br>
+	</nav>
+	
+	
+
+
+<security:authentication property="principal" var="user"/>
+<script type="text/javascript">
+$(function(){
+// 	let sideMenuArea = $("#sideMenuArea");
+	let userType = "${user.realUser.userType}";
+// 	let sideMenuURL = "sideMenu.do";
+
+
+	let menuTop = "${menuTop}";
+	if(menuTop !=null && menuTop != ""){
+		let sideMenuArea = $("#sideMenuArea");
+		let sideMenuURL = "sideMenu.do";
+		let code = "";
+		$.ajax({
+			url : "${pageContext.request.contextPath}/"+sideMenuURL,
+			method : "get",
+			data : {menuTop : menuTop},
+			dataType : "json",
+			success : function(resp) {
+				
+				sideMenuArea.empty();
+				let sideMenuList = resp.sideMenuList;
+				
+				$.each(sideMenuList, function(idx, sideMenu){
+					code += "<div class='nav-item dropdown'>";
+					if(sideMenu.childList != null){
+						let childList = sideMenu.childList;
+						code += "<a href='#' class='nav-link dropdown-toggle' data-bs-toggle='dropdown'>";
+						code += "<i class='"+sideMenu.menuClasses+"' style='color:#0099FF'></i>";
+						code += sideMenu.menuText;
+						code += "</a>";
+						code += "<div class='dropdown-menu bg-transparent border-0 navmem' id='navmem'>";
+						for(var i = 0; i < childList.length; i++){
+							let childMenu = childList[i];
+							code += "<a href='";
+							code += "${pageContext.request.contextPath}/";
+		                     code += childMenu.menuUrl+"?name="+childMenu.menuId;
+							code += "' class='dropdown-item' id='"+childMenu.menuId+"'>";
+							code += childMenu.menuText;
+							code += "</a>";
+						}
+						code += "</div>";
+					}else{
+						code += "<a href='";
+						code += "${pageContext.request.contextPath}/"
+						code += sideMenu.menuUrl+"?name="+sideMenu.menuId;
+						code += "' class='nav-link dropdown-toggle' id='"+sideMenu.menuId+"' >";
+						code += "<i class='"+sideMenu.menuClasses+"' style='color:#0099FF'></i>";
+						code += sideMenu.menuText;
+						code += "</a>";
+					}
+					code += "</div>";
+				});
+				sideMenuArea.html(code);
+				let childMenuId = "${param.name}";
+
+				if(childMenuId !=null && childMenuId != ""){
+					
+				$('#'+childMenuId).parent().addClass('show');
+				$('#'+childMenuId).parent().prev().addClass('show');
+				$('#'+childMenuId).css('background-color','#cde4da');
+				
+				}
+			},
+			error : function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+			}
+		});
+	}
+	
+	$("#subTopMenu").on("click", ".nav-link", function(){
+		let menuTop = $(this).data("menuNo");
+		let sideMenuArea = $("#sideMenuArea");
+		let sideMenuURL = "sideMenu.do";
+		let code = "";
+		$.ajax({
+			url : "${pageContext.request.contextPath}/"+sideMenuURL,
+			method : "get",
+			data : {menuTop : menuTop},
+			dataType : "json",
+			success : function(resp) {
+				menuTop = "";
+				sideMenuArea.empty();
+				let sideMenuList = resp.sideMenuList;
+				
+				$.each(sideMenuList, function(idx, sideMenu){
+					code += "<div class='nav-item dropdown'>";
+					if(sideMenu.childList != null){
+						let childList = sideMenu.childList;
+						code += "<a href='#' class='nav-link dropdown-toggle' data-bs-toggle='dropdown'>";
+						code += "<i class='"+sideMenu.menuClasses+"' style='color:#0099FF'></i>";
+						code += sideMenu.menuText;
+						code += "</a>";
+						code += "<div class='dropdown-menu bg-transparent border-0 navmem' id='navmem'>";
+						for(var i = 0; i < childList.length; i++){
+							let childMenu = childList[i];
+							code += "<a href='";
+							code += "${pageContext.request.contextPath}/";
+		                     code += childMenu.menuUrl+"?name="+childMenu.menuId;
+							code += "' class='dropdown-item' id='"+childMenu.menuId+"'>";
+							code += childMenu.menuText;
+							code += "</a>";
+						}
+						code += "</div>";
+					}else{
+						code += "<a href='";
+						code += "${pageContext.request.contextPath}/"
+						code += sideMenu.menuUrl+"?name="+sideMenu.menuId;
+						code += "' class='nav-link dropdown-toggle' id='"+sideMenu.menuId+"'>";
+						code += "<i class='"+sideMenu.menuClasses+"' style='color:#0099FF'></i>";
+						code += sideMenu.menuText;
+						code += "</a>";
+					}
+					code += "</div>";
+				});
+				sideMenuArea.html(code);
+			},
+			error : function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+			}
+		});
+	});
+});
+
+
+
+
+
+
+//로그아웃 폼 전송
+function logoutFunc(event){
+event.returnValue=false;
+var frm = document.getElementById("logoutFrm");
+frm.submit();
+}
+
+
+// ㅡㅡㅡㅡㅡㅡㅡㅡstomp 통신시작ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+	let headers = {};
+function init(event) {
+	var sockJS = new SockJS("${cPath}/stomp/echo");
+	client = Stomp.over(sockJS);
+	client.connect(headers, function(connectFrame) {
+		client.subscribe("/user/queue/DM", function(messageFrame) {
+			//메시지 받았을때 하는일
+			console.log(messageFrame);
+			let messageBody = JSON.parse(messageFrame.body);
+			$('#messageHam').text('새로우메시지받음!!')
+		});
+	}, function(error) {
+		console.log(error);
+	});
+}
+
+function disconnect(event) {
+	if (!client || !client.connected)
+		throw "stomp 연결 수립 전";
+	client.disconnect();
+}
+$(document).ready(init);
+
+$(window).on("unload", disconnect);
+//ㅡㅡㅡㅡㅡㅡㅡㅡstomp 통신끝ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+</script> 

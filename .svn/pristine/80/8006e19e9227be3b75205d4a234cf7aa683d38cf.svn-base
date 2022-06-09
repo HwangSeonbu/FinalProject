@@ -1,0 +1,109 @@
+<%--
+	관리자의 개설강의현황조회
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 28.      김재웅      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<h3 class="h3-title">개설강의 현황 조회</h3><hr class="hr-title">
+<style>
+	.text-center{text-align: center;}
+	a {text-decoration-line: none;}
+	a:hover{font-weight: bold;}
+</style>
+
+<div id="dataDomination">
+	<div id="dataListBody">
+		<table class="table table-bordered" id="dataTable">
+			 <thead>
+			    <tr class="tr-headLine">
+			    	<th >강의번호</th>	
+			    	<th >상태</th>	
+			    	<th >강의명</th>	
+			    	<th >과목명</th>	
+			    	<th >강의<br>교수</th>	
+			    	<th >직책</th>	
+			    	<th >대상<br>학년</th>	
+			    	<th >정원</th>	
+			    	<th >수강<br>인원</th>	
+			    	<th >강의관</th>	
+			    	<th >강의실</th>	
+			    	<th >시수</th>	
+			    	<th >강의시간</th>	
+			    	<th >평가<br>기준</th>	
+			    </tr>
+			 </thead>
+			  <tbody class="text-center" id="dataListTbody">
+			 
+			 </tbody>
+		</table>
+	</div>
+	<div id="dataPageBody"></div>
+</div>
+
+
+<script>
+let dataListTbody = $("#dataListTbody");
+let dataPageBody= $("#dataPageBody");
+
+function completeList(){
+	$.ajax({
+		url : "${cPath}/lecComp/LectureCompleteListData.do",
+		method : "get",
+		dataType : "json",
+		success : function(resp) {
+			dataListTbody.empty();
+			dataPageBody.empty();
+			let paging = resp.pagingVo;
+			let completeList = paging.dataList;
+			let trTags = [];
+			if(completeList && completeList.length > 0){
+				$.each(completeList, function(idx, comp){
+					var tcnt = comp.planTcnt;
+					var dt = tcnt == 1?(comp.assignDt).split(',', 1):comp.assignDt;
+					let trTag = $("<tr>").attr("id", comp.lecId).addClass("tr-targetLine tr-targetHover")
+						.attr("data-plan-no", comp.planNo).append(
+							$("<td>").html(comp.lecId)
+							, $("<td>").html(comp.planSts)	
+							, $("<td>").append($("<a>").attr("href", "#").text(comp.planSmry))	
+							, $("<td>").html(comp.sjtName)	
+							, $("<td>").append($("<a>").attr("href", "#").text(comp.proName))
+							, $("<td>").html(comp.proJob)	
+							, $("<td>").html(comp.planYear)	
+							, $("<td>").html(comp.planLimit)	
+							, $("<td>").html(comp.lecPers)	
+							, $("<td>").html(comp.gwanName)	
+							, $("<td>").html(comp.roomNo)	
+							, $("<td>").html(tcnt)	
+							, $("<td>").html(dt)	
+							, $("<td>").html(comp.planEval)	
+					);
+					trTags.push(trTag);
+				});
+			}else{
+				let trTag = $("<tr>").html(
+								$("<td>").attr("colspan", "14").attr("rowspan", "5").addClass("text-center")
+										 .html("조건에 맞는 개설 강의가 없습니다.")
+							);
+				trTags.push(trTag);
+			} // if end
+			dataListTbody.append(trTags);
+			dataPageBody.html(paging.pagingHTMLBS);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+completeList();
+</script>
+
+
+
+
+

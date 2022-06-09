@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 6. 민진홍     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.sugang.dao.LectureApplyViewDAO">
+
+
+<select id="selectPlanList" resultType="map" parameterType="map">
+		WITH example as(
+	SELECT A.LEC_ID,
+	D.SJT_GRADE,
+	D.SJT_NAME,
+	D.SJT_MAJOR,
+	D.SJT_CREDIT,
+	E.USER_NAME,
+	A.LEC_PERS,
+	C.PLAN_LIMIT,
+	F.ASSIGN_DAY||F.ASSIGN_TIME as lec_time,
+	A.LEC_SEMS,
+    G.DEPT_NAME
+	FROM LEC A
+	INNER JOIN PLANOK B ON A.LEC_ID = B.LEC_ID
+	INNER JOIN PLAN C ON B.PLAN_NO = C.PLAN_NO
+	INNER JOIN SJT D ON C.SJT_ID = D.SJT_ID
+	INNER JOIN USERS E ON C.USER_NO = E.USER_NO
+	INNER JOIN LEC_ASSIGN F ON C.PLAN_NO = F.PLAN_NO
+    INNER JOIN DEPARTMENT G ON C.DEPT_ID = G.DEPT_ID
+	GROUP BY A.LEC_ID, D.SJT_GRADE, D.SJT_NAME, D.SJT_MAJOR, D.SJT_CREDIT, 
+E.USER_NAME, A.LEC_PERS, C.PLAN_LIMIT, F.ASSIGN_DAY||F.ASSIGN_TIME, F.ASSIGN_TIME, 
+F.ASSIGN_TIME, A.LEC_SEMS, G.DEPT_NAME
+	)
+	select A.LEC_ID,
+	A.SJT_GRADE,
+	A.SJT_NAME,
+	A.SJT_MAJOR,
+	A.SJT_CREDIT,
+	A.USER_NAME,
+	A.LEC_PERS,
+	A.PLAN_LIMIT,
+	LISTAGG(A.lec_time, ',') WITHIN GROUP (ORDER BY A.lec_time) AS lec_time,
+	A.LEC_SEMS,
+    A.DEPT_NAME,
+    (SELECT C.LEC_ID FROM CART C WHERE C.USER_NO = #{userNo} AND C.LEC_ID = A.LEC_ID) as CART_ID 
+    
+	from example A
+	where A.LEC_ID NOT IN (SELECT B.LEC_ID
+                             FROM CLS B
+                            WHERE B.USER_NO = #{userNo})
+    <if test="deptName neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(deptName)">
+	    		AND A.DEPT_NAME = #{deptName}
+<!--         AND A.DEPT_NAME = '컴퓨터공학과' -->
+	</if>
+	<if test="sjtMajor neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(sjtMajor)">
+	    		AND A.SJT_MAJOR = #{sjtMajor}
+<!--         AND A.SJT_MAJOR = '교양' -->
+	</if>                       
+	<if test="sjtGrade neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(sjtGrade)">
+	    		AND A.SJT_GRADE = #{sjtGrade}
+<!--         AND A.SJT_GRADE = 1 -->
+	</if>                       
+	<if test="sjtName neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(sjtName)">
+	    		AND INSTR(A.SJT_NAME,  #{sjtName}) > 0
+<!--         AND A.SJT_NAME LIKE '%컴퓨터%' -->
+	</if>                                         
+	GROUP BY
+	A.LEC_ID, A.SJT_GRADE, A.SJT_NAME, A.SJT_MAJOR, A.SJT_CREDIT, 
+    A.USER_NAME, A.LEC_PERS, A.PLAN_LIMIT, A.LEC_SEMS, A.DEPT_NAME
+</select>
+
+<update id="lectureApply" parameterType="String">
+	UPDATE LEC SET LEC_PERS = LEC_PERS+1 WHERE
+	 LEC_ID = #{lecId} AND LEC_PERS <![CDATA[ < ]]> (SELECT A.PLAN_LIMIT FROM PLAN A, (SELECT PLAN_NO FROM PLANOK WHERE LEC_ID = ${lecId}) B
+WHERE A.PLAN_NO = B.PLAN_NO)
+</update>
+
+<insert id="clsInsert" parameterType="map" >
+	INSERT INTO CLS (LEC_SEMS,LEC_ID,USER_NO) 
+VALUES (#{lecSems},#{lecId},#{userNo})
+</insert>
+
+<select id="alreadyAppliedList" parameterType="int" resultType="map">
+SELECT
+     D.plan_no,
+    D.user_no,
+    D.sjt_id,
+    D.plan_year,
+    D.plan_limit,
+    D.plan_tcnt,
+    D.plan_eval,
+    D.plan_smry,
+    D.plan_sems,
+    D.dept_id,
+    C.LEC_ID,
+    (SELECT F.LEC_ID FROM CART F WHERE F.USER_NO = #{userNo} AND F.LEC_ID = C.LEC_ID) as CART_ID 
+ FROM PLAN D,(
+ SELECT A.PLAN_NO,
+ A.LEC_ID
+ 
+ FROM PLANOK A,(
+ 
+ SELECT * FROM CLS A
+WHERE A.LEC_ID IN (SELECT B.LEC_ID FROM LEC B WHERE B.LEC_STS='개강') AND A.USER_NO =${userNo}
+
+) B
+WHERE A.LEC_ID = B.LEC_ID
+ )C
+ WHERE C.PLAN_NO = D.PLAN_NO
+
+</select>
+
+<select id="deptNameList" resultType="map">
+SELECT DEPT_NAME FROM DEPARTMENT
+</select>
+
+<!--  수강철회 -->	
+  <update id="lectureCancel" parameterType="String">
+	UPDATE LEC SET LEC_PERS = LEC_PERS-1 WHERE LEC_ID = #{lecId}
+</update>
+
+<delete id="clsDelete" parameterType="map" >
+	DELETE FROM CLS WHERE LEC_SEMS= #{lecSems} AND LEC_ID = #{lecId} AND USER_NO = #{userNo}
+</delete>
+
+<!-- 찜강의 -->
+<insert id="cartInsert" parameterType="map" >
+	INSERT INTO CART (CART_ID, LEC_SEMS, LEC_ID, USER_NO)
+ VALUES (CART_SEQ.NEXTVAL, #{lecSems}, #{lecId}, #{userNo})
+</insert>
+
+<delete id="cartDelete" parameterType="map" >
+	DELETE FROM CART WHERE LEC_SEMS = #{lecSems} AND LEC_ID = #{lecId} AND USER_NO = #{userNo}
+</delete>
+
+</mapper>

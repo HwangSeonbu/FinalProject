@@ -1,0 +1,27 @@
+package kr.or.ddit.vo;
+
+import java.util.List;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+//@NoArgsConstructor
+public class TempSideMenuVO {
+
+	private String sideMenuName;
+	private String sideMenuURI;
+	private List<TempFinalMenuVO> finalMenuList;
+	
+	public TempSideMenuVO(String sideMenuName, List<TempFinalMenuVO> finalMenuList) {
+		super();
+		this.sideMenuName = sideMenuName;
+		this.finalMenuList = finalMenuList;
+	}
+	
+	public TempSideMenuVO(String sideMenuName, String sideMenuURI) {
+		super();
+		this.sideMenuName = sideMenuName;
+		this.sideMenuURI = sideMenuURI;
+	}
+}

@@ -1,0 +1,52 @@
+package kr.or.ddit.lecture.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * 교수의 강의계획 관리
+ * <p>강의계획 작성 및 제출
+ * <p>강의계획 신청현황 목록조회
+ * @author 김재웅
+ * @since 2022. 4. 28.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 28.      작성자명       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@RequestMapping("/lecPlan")
+public class LecturePlanController {
+	
+	@RequestMapping("LecturePlanForm.do")
+	public String LecturePlanForm() {
+		
+		return "lecture/professorLecPlanForm";
+	}
+	
+	@RequestMapping("LecturePlanList.do")
+	public String LecturePlanList() {
+		
+		return "lecture/professorLecPlanList";
+	}
+
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

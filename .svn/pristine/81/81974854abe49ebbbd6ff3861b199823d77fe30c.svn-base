@@ -1,0 +1,18 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+
+@Data
+public class MenuParentVO {
+
+	private Integer level;
+	private String menuId;
+	private String menuText;
+	private String menuUrl;
+	private String menuClasses;
+	private String menuColor;
+	private String menuParent;
+	private String menuTop;
+	private String menuYn;
+	
+}

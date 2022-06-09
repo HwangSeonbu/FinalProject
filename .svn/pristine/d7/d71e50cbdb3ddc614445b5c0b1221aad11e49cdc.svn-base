@@ -1,0 +1,10 @@
+package kr.or.ddit.lecqna.service;
+
+import java.util.List;
+
+import kr.or.ddit.vo.LecqnaVO;
+import kr.or.ddit.vo.PagingVO;
+
+public interface LecQnaService {
+	public void retrieveBoardList(PagingVO<LecqnaVO>paging);
+}

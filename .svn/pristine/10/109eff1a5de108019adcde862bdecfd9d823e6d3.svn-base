@@ -1,0 +1,81 @@
+package kr.or.ddit.room.controller;
+
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.room.service.ProfessorRoomSetService;
+import kr.or.ddit.vo.DepartLectureAssignVO;
+import kr.or.ddit.vo.DepartRoomSetVO;
+import kr.or.ddit.vo.DepartmentVO;
+import kr.or.ddit.vo.MemberVO;
+import kr.or.ddit.vo.PlanVO;
+import kr.or.ddit.vo.SemsVO;
+import kr.or.ddit.vo.security.MemberVOWrapper;
+import lombok.extern.slf4j.Slf4j;
+
+@Controller
+@RequestMapping("/roomDetailSet")
+@Slf4j
+public class ProfessorRoomAssignController {
+
+	@Inject
+	ProfessorRoomSetService service;
+	
+	@RequestMapping("departLectureDataList.do")
+	public String departLectureDataList(Model model, Authentication authentication
+			, HttpSession session) {
+		
+		MemberVO loginProVo = ((MemberVOWrapper) authentication.getPrincipal()).getRealUser();
+		SemsVO semsVo = (SemsVO) session.getAttribute("semsVo");
+		PlanVO vo = new PlanVO();
+		
+		vo.setPlanSems(semsVo.getNextSems());
+		vo.setDeptId(loginProVo.getUserDepartment());
+		
+		List<DepartLectureAssignVO> departLecList = service.retrieveDepartLecList(vo);
+		
+		model.addAttribute("departLecList", departLecList);
+		
+		return "jsonView";
+	}
+	
+	//기본 페이지 단순이동
+	@RequestMapping("detailRoomForm.do")
+	public String detailRoomForm() {
+		return "room/professorSetDetailRoom";
+	}
+	
+	//최초 페이지에 대한 학과정보 데이터 세팅
+	@RequestMapping("departData.do")
+	public String departData(Model model, Authentication authentication) {
+		MemberVO loginProVo = ((MemberVOWrapper) authentication.getPrincipal()).getRealUser();
+		DepartmentVO department = service.retrieveDepartOne(loginProVo.getUserDepartment());
+		
+		model.addAttribute("department", department);
+		
+		return "jsonView";
+	}
+	
+	@RequestMapping("departRoomSet.do")
+	public String departRoomSet(Model model, @ModelAttribute DepartRoomSetVO vo) {
+		
+		service.modifyDepartRoomAssign(vo);
+		
+		return "jsonView";
+	}
+	
+	
+	
+	@RequestMapping("roomResultList.do")
+	public String roomResultList() {
+		return "room/professorEnrollRoom";
+	}
+}

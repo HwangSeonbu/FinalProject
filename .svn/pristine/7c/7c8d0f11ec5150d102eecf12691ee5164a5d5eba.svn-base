@@ -1,0 +1,251 @@
+package kr.or.ddit.homework.service;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.exception.PKNotFoundException;
+import kr.or.ddit.homework.dao.HomeworkDAO;
+import kr.or.ddit.lecboard.dao.AttachDAO;
+import kr.or.ddit.vo.AttchVO;
+import kr.or.ddit.vo.EvaStandardVO;
+import kr.or.ddit.vo.HwkVO;
+import kr.or.ddit.vo.LecHomeworkVO;
+import kr.or.ddit.vo.LecqnaVO;
+import kr.or.ddit.vo.PagingVO;
+import lombok.extern.slf4j.Slf4j;
+/**과제 게시판 ServiceImpl
+ * @author 황선부
+ * @since 2022. 5. 24.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 24.      황선부       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Slf4j
+@Service
+public class HomeworkServiceImpl implements HomeworkService {
+	@Inject
+	private HomeworkDAO dao;
+	@Inject
+	private AttachDAO attachDAO;
+	
+	@Autowired
+	private AttachDAO attachDao;
+	
+	@Value("#{appInfo.attatchPath}")
+	private File saveFolder;
+	
+	@Value("#{appInfo.homeworkPath}")
+	private File saveHwFolder;
+	
+	
+	@Override
+	public List<LecHomeworkVO> retrieveHomeworkList(PagingVO<LecHomeworkVO> paging) {
+		int totalRecord = dao.totalHomeworkList(paging);
+		paging.setTotalRecord(totalRecord);
+		List<LecHomeworkVO> dataList = dao.homeworkList(paging);
+		
+		paging.setDataList(dataList);;
+		log.info("dataList:{}",dataList);
+		return dataList;
+
+	}
+
+	@Override
+	public LecHomeworkVO retrieveHomework(Integer lechwkNo) {
+		LecHomeworkVO hw = dao.homework(lechwkNo);
+		log.info("homework>>>>>>>>>>>>>>>>>{}",hw);
+		if(hw==null)
+			throw new PKNotFoundException(lechwkNo+"에 해당하는 번호가 없습니다.");
+		dao.updateHit(lechwkNo);
+		
+		return hw;
+	}
+
+	@Override
+	public ServiceResult createHomework(LecHomeworkVO lecwhk) {
+		ServiceResult result = null;
+		int rowcnt = dao.insertHomework(lecwhk);
+		if(rowcnt>0) {
+			//평가기준 insert
+			dao.insertEva(lecwhk);
+			log.info("LecHomeworkVO{}",lecwhk);
+			//upload
+			uploadAttatches(lecwhk);
+			
+		}
+		return rowcnt>0?ServiceResult.OK:ServiceResult.FAIL;
+	}
+
+	private void uploadAttatches(LecHomeworkVO lecwhk) {
+		AttchVO attach= lecwhk.getAttach();
+		log.info("attach=======>>>>>{}",attach);
+		if(attach==null)
+			return;
+		attachDao.insertHwAttach(lecwhk);
+		try {
+			attach.saveTo(saveFolder);
+		}catch(IOException e) {
+			throw new RuntimeException(e);
+		}		
+	}
+	
+	@Override
+	public AttchVO downloadAttach(Integer attchNo) {
+		AttchVO attch = attachDAO.selectAttach(attchNo);
+		if(attch==null) 
+			throw new PKNotFoundException(String.format("%d 번 파일이 없음", attchNo));
+		return attch;
+	}
+
+	@Override
+	public ServiceResult modifyHomework(LecHomeworkVO hw) {
+		ServiceResult result=ServiceResult.FAIL;
+		int evaSize = hw.getEvaList().size();
+		log.info("evaSize=========={}",evaSize);
+		log.info("hw=========={}",hw);
+		int rowcnt1 = dao.updateHomework(hw);
+		int rowcnt2 = 0;
+		if(rowcnt1>0) {
+			deleteAttach(hw);
+			uploadAttatches(hw);
+			for(EvaStandardVO eva : hw.getEvaList()) {
+				rowcnt2 = dao.updateEva2(eva);
+				if(rowcnt2==0) {
+					result = ServiceResult.FAIL;
+					
+					return result;
+				}
+			}
+			if(rowcnt2>0) {
+				log.error("처리중 : {}", hw.getEvaList());
+				result = ServiceResult.OK;
+			}
+		}else {
+			result = ServiceResult.FAIL;
+		}			
+		return result;
+	}
+
+	private void deleteAttach(LecHomeworkVO hw) {
+		log.info("hw.getDelAttNo() : {}",hw.getDelAttNo());
+		if(hw.getDelAttNo()==null)return;
+		
+		attachDAO.deleteHwAttach(hw);	
+	}
+
+	@Override
+	public ServiceResult deleteHomwork(LecHomeworkVO hw) {
+		LecHomeworkVO homwork = dao.homework(hw.getLechwkNo());
+		ServiceResult result = null;
+		
+		log.info("LecHomeworkVO=>>>{}",homwork);
+//		List<AttchVO> attachList = new ArrayList<>();
+		homwork.setDelAttNo(hw.getDelAttNo());
+		
+		deleteAttach(homwork);
+		
+		int rowcnt = dao.deleteHomework(homwork);
+		if(rowcnt>0) {
+			int rcnt1 = dao.deleteHomework(homwork);
+			int rcnt2 = dao.deleteEva(homwork);
+		}
+		return rowcnt>0?ServiceResult.OK:ServiceResult.FAIL;
+	}
+
+	@Override
+	public HwkVO retrieveHwOne(Integer hwkNo) {
+		HwkVO hwk = dao.selectHw(hwkNo);
+		if(hwkNo==null)
+			throw new PKNotFoundException(hwkNo+"에 해당하는 번호가 없습니다.");
+		
+		return hwk;
+	}
+
+	@Override
+	public ServiceResult createHwk(HwkVO hwk) {
+		ServiceResult result = null;
+		int rowcnt = dao.insertHwk(hwk);
+		if(rowcnt>0) {
+			//upload
+			uploadHwkAttatch(hwk);		
+		}
+		return rowcnt>0?ServiceResult.OK:ServiceResult.FAIL;
+	}
+	//과제 제출 업로드
+	private void uploadHwkAttatch(HwkVO hwk) {
+		AttchVO attach= hwk.getAttach();
+		log.info("attach=======>>>>>{}",attach);
+		log.info("hwkVO:=======>{}",hwk);
+		if(attach==null)
+			return;
+		attachDao.insertHwkAttach(hwk);
+		try {
+			attach.saveTo(saveHwFolder);
+		}catch(IOException e) {
+			throw new RuntimeException(e);
+		}
+		
+	}
+
+	@Override//학번으로 과제제출 조회
+	public HwkVO retreiveHwOneByStuNo(HwkVO hwk) {
+		log.info("retreiveHwOneByStuNo..hwkVO====>{}",hwk);
+		HwkVO hwk2 = dao.selectHwByStuNo(hwk);
+		if(hwk==null)
+			throw new PKNotFoundException(hwk.getHwkNo()+"에 해당하는 학번은 없습니다.");
+		
+		return hwk2;
+	}
+
+	@Override
+	public ServiceResult modifyHwk(HwkVO hwk) {
+		ServiceResult result=null;
+		
+		int rowcnt = dao.updateHwk(hwk);
+		if(rowcnt>0) {
+			deleteHwkAttach(hwk);
+			uploadHwkAttatch(hwk);		
+			result = ServiceResult.OK;
+		}else {
+			result = ServiceResult.FAIL;
+		}			
+		
+		
+		
+		
+		return result;
+	}
+
+	private void deleteHwkAttach(HwkVO hwk) {
+		log.info("hwk.getDelAttNo() : {}",hwk.getDelAttNo());
+		if(hwk.getDelAttNo()==null)return;
+		
+		attachDAO.deleteHwkAttach(hwk);	
+		
+	}
+
+	@Override
+	public ServiceResult createGradingHwk(HwkVO hwk) {
+		
+		int rowcnt = dao.updateGradingHwk(hwk);
+		
+		return rowcnt>0? ServiceResult.OK:ServiceResult.FAIL;
+	}
+	
+
+
+}

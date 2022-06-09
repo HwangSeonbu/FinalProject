@@ -1,0 +1,118 @@
+<%--
+	관리자의 강의계획 개설처리
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 29.      김재웅      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    
+<style>
+	.col{
+		border: 1px solid black;
+		height: 40px;
+		padding-top: 5px;
+	}
+	.title{
+		text-align: center;
+		background-color: #dee2e6;
+		font-weight: bold;
+	}
+</style>
+    
+    
+<h2>관리자>강의개설처리</h2><hr>
+
+
+
+
+
+
+
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+  Launch demo modal
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        
+       <div class="container">
+       	  <div class="row">
+		    <div class="col col-2 title">계획번호</div>
+		    <div class="col col-2 cont" id="GplanNo">15</div>
+		    <div class="col col-2 title">교수명</div>
+		    <div class="col col-2 cont" id="GuserName">김재웅</div>
+		    <div class="col col-2 title">교수번호</div>
+		    <div class="col col-2 cont" id="GuserNo">64</div>
+		  </div>
+		  <div class="row">
+		    <div class="col col-2 title">분과대학</div>
+		    <div class="col col-4 cont" id="GcolName">공과대학</div>
+		    <div class="col col-2 title">소속학과</div>
+		    <div class="col col-4 cont" id="GdeptName">정보통신과</div>
+		  </div>
+		  <div class="row">
+		    <div class="col col-2 title">과목코드</div>
+		    <div class="col col-2 cont" id="GsjtId">s24</div>
+		    <div class="col col-2 title">과목명</div>
+		    <div class="col col-6 cont" id="GsjtName">현대북한의이해</div>
+		  </div>
+		  <div class="row">
+		    <div class="col col-2 title">대상학년</div>
+		    <div class="col col-1 cont" id="GplanYear">1</div>
+		    <div class="col col-2 title">정원</div>
+		    <div class="col col-1 cont" id="GplanLimit">80</div>
+		    <div class="col col-2 title">강의시수</div>
+		    <div class="col col-1 cont" id="GplanTcnt">2</div>
+		    <div class="col col-2 title">이수학점</div>
+		    <div class="col col-1 cont" id="GsjtCredit">3</div>
+		  </div>
+		  <div class="row">
+		    <div class="col col-2 title">평가구분</div>
+		    <div class="col col-2 cont" id="GplanEval">상대</div>
+		    <div class="col col-2 title">과목구분</div>
+		    <div class="col col-2 cont" id="GsjtMajor">전선</div>
+		    <div class="col col-2 title">제출상태</div>
+		    <div class="col col-2 cont" id="GplanSts">제출</div>
+		  </div>
+		  <div class="row">
+		    <div class="col col-2 title">강의요약</div>
+		    <div class="col col-10 cont" id="GplanSmry">무선통신시스템 기초 학습</div>
+		  </div>
+		  <div class="row">
+		    <div class="col col-12 title">주차설명</div>
+		  </div>
+		  <div class="row">
+		    <div class="col col-2 title">1주차</div>
+		    <div class="col col-10 cont" id="GwplanCont">111111111111111111111111111111111</div>
+		  </div>
+		</div>
+        
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+

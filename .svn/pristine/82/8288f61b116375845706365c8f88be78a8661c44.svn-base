@@ -1,0 +1,72 @@
+package kr.or.ddit.counsel.controller;
+
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.counsel.service.CounselService;
+import kr.or.ddit.vo.CounselVO;
+import kr.or.ddit.vo.ProCounselVO;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+@RequestMapping("counselLog")
+public class InsertCounselController {
+	
+	@Inject
+	private CounselService service;
+	
+	@ModelAttribute("divergence")//분기점
+	public String divergence() {
+		return "INSERT";
+	}
+	
+	@ModelAttribute("cLog")
+	public CounselVO counsel() {
+		return new CounselVO();
+	}
+	
+	@PostMapping
+	public String CounselOneStudent(//insertForm
+			@RequestParam("userNo") Integer userNo
+			,@RequestParam("cnslId") Integer cnslId
+			,Model model
+			) {//상담완료현황 조회
+		
+		log.info("==============userNo========================{}",userNo);
+		
+		ProCounselVO counselVO = service.retreiveOneCounselStudent(userNo);
+	
+		Map<String, Object> qaMap = service.retreiveOneReqCounsel(cnslId);
+		
+		model.addAttribute("counselVO", counselVO);
+		model.addAttribute("qaMap", qaMap);
+		for(int i=1;i<10;i++) {
+			log.info("==============={}=============={}","r"+i,qaMap.get("r"+i));	
+		}
+		return "counsel/counselOne";
+	}
+
+	@PostMapping
+	@RequestMapping("insert")
+	public String registerLog(
+			@Validated @ModelAttribute("cLog")CounselVO counsel
+			,BindingResult errors
+			,Model model
+			) {
+			
+		
+		return null;
+	}
+	
+}

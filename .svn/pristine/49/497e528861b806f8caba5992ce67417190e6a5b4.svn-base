@@ -1,0 +1,32 @@
+package kr.or.ddit.grade.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 교수가 성적을 입력하기 위한 컨트롤러
+ * @author 주창규
+ * @since 2022. 4. 27.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 4. 27.      주창규       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+
+@Controller
+@Slf4j
+public class GradeInsert {
+	@RequestMapping("/GradeInsert")
+	public String gradeInsert() {
+		log.info("===============test6===========");
+		return "grade/gradeInsert";
+		
+	}
+}

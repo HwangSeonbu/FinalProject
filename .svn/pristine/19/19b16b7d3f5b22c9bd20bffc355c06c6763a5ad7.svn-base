@@ -1,0 +1,14 @@
+package kr.or.ddit.lecqna.dao;
+
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
+public class LecQnaDAOTest {
+
+	@Test
+	public void testSelectTotalLecqnaRecord() {
+		fail("Not yet implemented");
+	}
+
+}

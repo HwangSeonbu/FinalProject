@@ -1,0 +1,17 @@
+package kr.or.ddit.vo;
+
+import java.util.List;
+import java.util.Map;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+@Data
+@EqualsAndHashCode(of= {"lecId","userNo"})
+public class StudentJ { // 한 학생의 한과목에 대한 수강정보
+	private int stuYear;
+	private String userNo;
+	private String userName;
+	private String deptName;
+	private String lecId;
+	private List<AttandJ> attList; //해당 학생의 해당과목의 출결사항
+}

@@ -1,0 +1,116 @@
+<%--
+ 학사관리자가 당학기 등록금을 부과하는 페이지
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 2.      김재웅      최초작성
+* 2022. 5. 6.      고성식      기본 ui 작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<h4>등록금부과</h4>
+<div class="container-fluid">
+	<br> <br>
+	<div class="card shadow mb-4">
+		<div class="card-header py-3">
+			<div id="content">
+				<div class="section_top"></div>
+				<div class="section_cont">
+					<div class="board_area">
+						<form id="joinapplication" method="post" overflow-x
+							style="overflow: auto;">
+							<input type="hidden" name="clubid" value="30000177"> <input
+								type="hidden" name="page" value="1"> <input
+								type="hidden" name="perPage" value="30">
+
+							<div class="board_action">
+								<div class="action_in">
+									선택 회원을&nbsp;
+									<button type="submit" class="btn btn-primary btn-sm"
+										onclick="agreeMem();" id="memberaccept">등록금부과</button>
+								</div>
+							</div>
+							<table border="1" cellspacing="0" class="tbl_lst_type"
+								style="width: 100%;">
+								<colgroup>
+									<col width="50">
+									<!-- 체크박스 -->
+									<col width="100">
+									<!-- 학번 -->
+									<col width="100">
+									<!-- 이름 -->
+									<col width="100">
+									<!-- 학과 -->
+									<col width="150">
+									<!-- 등록금액 -->
+									<col width="150">
+									<!-- 장학금액 -->
+									<col width="150">
+									<!-- 납부금액 -->
+									<col width="100">
+									<!-- 전화번호 -->
+									<col width="80">
+									<!-- 납부상태 번호 -->
+								</colgroup>
+								<thead style="text-align: center;">
+									<tr>
+										<th scope="col" class="frst"><input type="checkbox"
+											id="chkalltop" title="선택"
+											class="check _click(ManageJoinApplication|AllJoinMember)"
+											onclick="checkAll()"></th>
+										<th scope="col"><strong class="line_r">학번</strong></th>
+										<th scope="col"><strong class="line_r">이름</strong></th>
+										<th scope="col"><strong class="line_r">학과</strong></th>
+										<th scope="col"><strong class="line_r">등록금액</strong></th>
+										<th scope="col"><strong class="line_r">장학금액</strong></th>
+										<th scope="col"><strong class="line_r">납부금액</strong></th>
+										<th scope="col"><strong class="line_r">전화번호</strong></th>
+										<th scope="col"><strong class="line_r">납부상태</strong></th>
+
+									</tr>
+								</thead>
+
+								<!-- 								<tbody id="applymemberList" class="tc"> -->
+								<!-- 									<tr id="member1"> -->
+								<!-- 							<td class="tc"><input type="checkbox" -->
+								<%-- 								name="applyMemberCheck" value="<%=m.getUserId()%>" id="c1" title="선택" --%>
+								<!-- 								class="check _click"></td> -->
+								<%-- 							<td class="tc"><span class="img"><%=m.getUserId()%></span></td> --%>
+								<%-- 							<td class="tc"><span class="txt"><%=m.getUserName()%></span> --%>
+								<!-- 							</td> -->
+								<%-- 							<td class="tc"><span class="txt"><%=m.getGender()%></span></td> --%>
+								<%-- 							<td class="tc"><span class="num"><%=m.getEmail()%></span></td> --%>
+								<%-- 							<td class="tc"><span class="num"><%=m.getPhone()%></span></td> --%>
+								<%-- 							<td class="tc"><span class="num"><%=m.getAddress()%></span> --%>
+								<!-- 							</td> -->
+								<%-- 							<td class="tc"><span class="num"><%=m.getEnrolldate()%></span> --%>
+								<!-- 							</td> -->
+								<%-- 							<td class="tc"><span class="num"><%=m.getCno()%></span></td> --%>
+								<%-- 							<td class="tc"><span class="num"><%=m.getCname()%></span></td> --%>
+								<%-- 							<td class="tc"><span class="num"><%=m.getCbdate()%></span></td> --%>
+								<%-- 							<td class="tc"><span class="num"><%=m.getCgender()%></span> --%>
+								<!-- 							</td> -->
+								<%-- 							<td class="tc"><span class="num"><%=m.getCclass()%></span></td> --%>
+								<%-- 							<td class="tc"><span class="num"><%=m.getMstatus()%></span></td> --%>
+<!-- 								</tr> -->
+								</tbody>
+							</table>
+						</form>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+<script>
+	function checkAll() {
+		if ($("#chkalltop").is(':checked')) {
+			$("input[name=applyMemberCheck]").prop("checked", true);
+		} else {
+			$("input[name=applyMemberCheck]").prop("checked", false);
+		}
+	}
+</script>

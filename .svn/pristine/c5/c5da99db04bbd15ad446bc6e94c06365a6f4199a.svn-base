@@ -1,0 +1,39 @@
+<%--
+ 학생의 출결관련 통계를 종합하여 대시보드로 한눈에 보는 페이지
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 2.      김재웅      최초작성
+  2022. 5. 6.	 주창규	   실질적으로 사용하는 데이터 담기
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<h2>학생>나의출결대시보드</h2>
+<hr>
+<div class="p-2 w-80 bd-highlight">
+	<div class="card mb-3 " style="max-width: 540px;">
+		<div class="row g-0">
+			<div class="col-md-4" style="padding: 20px;">
+				<img src="${cPath }/resources/img/you.jpg"
+					class="img-fluid rounded-start" alt="...">
+			</div>
+			<div class="col-md-8">
+				<div class="card-body fw-bold">
+					<div class="col-xs-7 col-sm-7">
+						<ul class="myInfomation"
+							style="border-left: 3px solid #677794; list-style: none;">
+							<li><strong>학번 </strong>2022063</li>
+							<li><strong>성명 </strong>박광훈</li>
+							<li><strong>학부 </strong>영상</li>
+							<li><strong>전공 </strong>방영</li>
+							<li><strong>세부전공 </strong>촬영</li>
+							<li><strong>학년 </strong>3학년</li>
+							<li><strong>학적상태 </strong>재학</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

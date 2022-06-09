@@ -1,0 +1,32 @@
+<%--강의 게시판 메인페이지
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 13.      황선부      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="#">메인페이지</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="${cPath }/lecBoard/notice">강의 공지사항</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="${cPath }/lecBoard/qna">질문과 답변</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">강의자료실</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="${cPath }/homework">과제 게시판</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link disabled">etc</a>
+  </li>
+</ul>
+    <h1>lecboardMain</h1>

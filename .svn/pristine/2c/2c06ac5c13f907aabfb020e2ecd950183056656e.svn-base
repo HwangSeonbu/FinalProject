@@ -1,0 +1,21 @@
+package kr.or.ddit.attendance.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/applyAttabs")
+public class StudentAttabsApplyProcessController {
+
+	@RequestMapping("attabsApplyForm.do")
+	public String attabsApplyForm() {
+		
+		return "attendance/studentAttabsApplyForm";
+	}
+	
+	@RequestMapping("attabsApplyList.do")
+	public String attabsApplyList() {
+		
+		return "attendance/studentAttabsApplyList";
+	}
+}

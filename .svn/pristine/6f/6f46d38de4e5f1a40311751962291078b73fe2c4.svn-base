@@ -1,0 +1,201 @@
+<%--
+	학생이 성적을 종합적으로 볼수 있는 페이지
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      	수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 2.   김재웅      	최초작성
+* 2022. 5. 3. 	민진홍     	성적조회페이지 작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+
+<h5 class="fw-bold text-muted">성적총괄조회</h5>
+<br>
+<div class="d-flex bd-highlight border">
+  <div class="p-2 w-80 bd-highlight">
+  <div class="card mb-3 " style="max-width: 540px;">
+  <div class="row g-0">
+    <div class="col-md-4" style="padding:20px;">
+      <img src="${cPath }/resources/img/you.jpg" class="img-fluid rounded-start" alt="...">
+    </div>
+    <div class="col-md-8">
+      <div class="card-body fw-bold">
+       							<div class="col-xs-7 col-sm-7" >
+								<ul class="myInfomation" style="border-left:3px solid #677794; list-style: none;">
+									<li><strong>학번  </strong>2022063</li>
+									<li><strong>성명  </strong>박광훈</li>
+									<li><strong>학부  </strong>영상</li>
+									<li><strong>전공  </strong>방영</li>
+									<li><strong>세부전공  </strong>촬영</li>
+									<li><strong>학년  </strong>3학년</li>
+									<li><strong>학적상태  </strong>재학</li>
+								</ul>
+							</div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+  </div>
+  <!--   한칸 -->
+  <div class="p-2 flex-shrink-1 bd-highlight align-self-center">
+  <div class="card border-dark mb-3 text-center" style="width: 12rem;">
+  <div class="card-header fw-bold">총 취득학점</div>
+  <div class="card-body">
+    <h5 class="card-title text-primary">89</h5>
+  </div>
+</div>
+  </div>
+  <!--   한칸 -->
+  <div class="p-2 flex-shrink-1 bd-highlight align-self-center">
+  <div class="card border-dark mb-3 text-center" style="width: 12rem;">
+  <div class="card-header fw-bold">총 평점평균</div>
+  <div class="card-body">
+    <h5 class="card-title text-primary">3.34</h5>
+  </div>
+</div>
+  </div>
+<!--   한칸 -->
+  <div class="p-2 flex-shrink-1 bd-highlight align-self-center">
+  <div class="card border-dark mb-3 text-center" style="width: 12rem;">
+  <div class="card-header fw-bold">총 배점평균</div>
+  <div class="card-body">
+    <h5 class="card-title text-primary">82.3</h5>
+  </div>
+</div>
+  </div>
+  <!--   한칸 -->
+</div>
+<br>
+<div class="table-header">
+<h5>학기별 성적</h5>
+</div>
+
+	<div class="table-responsive">
+					<table class="table table-bordered border-5 table-hover table-list th-line table-center text-center">
+						<thead>
+							<tr>
+								<th rowspan="2">학년도</th>
+								<th rowspan="2">학년/학기</th>
+								<th rowspan="2">신청학점</th>
+								<th colspan="5">취득학점</th>
+								<th colspan="2">최종성적(재수강후)</th>
+								<th colspan="2">최초성적</th>
+								<th colspan="2">학사경고내역</th>
+								<th rowspan="2">학기별<br>상세조회</th>
+							</tr>
+							<tr>
+							    <th>교양</th>
+							    <th>세부전공(학선)</th>
+							    <th>타전공</th>
+							    <th>교직</th>
+							    <th>계</th>
+								<th>평점평균</th>
+								<th>배점평균</th>
+								<th>평점평균</th>
+								<th>배점평균</th>
+								<th>경고여부</th>
+								<th>연속횟수</th>
+							</tr>
+						</thead>
+						<tfoot>
+							<tr>
+								<td colspan="2">합계</td>
+								<td>86</td>
+								<td>11</td>
+								<td>59(3)</td>
+								<td>15</td>
+								<td>0</td>
+								<td>85</td>
+								<td>3.34</td>
+								<td>83.9</td>
+								<td>3.34</td>
+								<td>83.9</td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+						</tfoot>
+						<tbody>
+							<tr>
+										<td>2020</td>
+										<td>1-1</td>
+										<td>22</td>
+										<td>4</td>
+										<td>15(0)</td>
+										<td>0</td>
+										<td>0</td>
+										<td>19</td>
+										<td>2.89</td>
+										<td>73.9</td>
+										<td>2.89</td>
+										<td>73.9</td>
+										<td>
+											</td>
+										<td></td>
+										<td><button data-toggle="modal" class="btn btn-xs btn-primary" data-target="#summaryCheckModal" data-stnt-numb="2022063" data-schl-year="2020" data-schl-smst="11">보기</button></td>
+									</tr>
+								<tr>
+										<td>2020</td>
+										<td>1-2</td>
+										<td>22</td>
+										<td>2</td>
+										<td>15(3)</td>
+										<td>5</td>
+										<td>0</td>
+										<td>22</td>
+										<td>3.34</td>
+										<td>86.5</td>
+										<td>3.34</td>
+										<td>86.5</td>
+										<td>
+											</td>
+										<td></td>
+										<td><button data-toggle="modal" class="btn btn-xs btn-primary" data-target="#summaryCheckModal" data-stnt-numb="2022063" data-schl-year="2020" data-schl-smst="21">보기</button></td>
+									</tr>
+								<tr>
+										<td>2021</td>
+										<td>2-1</td>
+										<td>22</td>
+										<td>0</td>
+										<td>16(0)</td>
+										<td>6</td>
+										<td>0</td>
+										<td>22</td>
+										<td>3.52</td>
+										<td>86.7</td>
+										<td>3.52</td>
+										<td>86.7</td>
+										<td>
+											</td>
+										<td></td>
+										<td><button data-toggle="modal" class="btn btn-xs btn-primary" data-target="#summaryCheckModal" data-stnt-numb="2022063" data-schl-year="2021" data-schl-smst="11">보기</button></td>
+									</tr>
+								<tr>
+										<td>2021</td>
+										<td>2-2</td>
+										<td>20</td>
+										<td>5</td>
+										<td>13(0)</td>
+										<td>4</td>
+										<td>0</td>
+										<td>22</td>
+										<td>3.63</td>
+										<td>88.8</td>
+										<td>3.63</td>
+										<td>88.8</td>
+										<td>
+											</td>
+										<td></td>
+										<td><button data-toggle="modal" class="btn btn-xs btn-primary" data-target="#summaryCheckModal" data-stnt-numb="2022063" data-schl-year="2021" data-schl-smst="21">보기</button></td>
+									</tr>
+								</tbody>
+					</table>
+				</div>
+
+
+<!-- -- -->
+
+
+						

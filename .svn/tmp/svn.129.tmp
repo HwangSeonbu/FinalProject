@@ -1,0 +1,53 @@
+package kr.or.ddit.room.controller;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.room.service.AdminRoomSetService;
+import kr.or.ddit.room.service.ProfessorRoomSetService;
+import kr.or.ddit.vo.AssignVO;
+import kr.or.ddit.vo.GwanVO;
+import kr.or.ddit.vo.RoomVO;
+
+@Controller
+@RequestMapping("/roomSetSub")
+public class RoomAssignSubController {
+
+	@Inject
+	AdminRoomSetService service;
+	
+	@Inject
+	ProfessorRoomSetService pService;
+	
+	@RequestMapping("gwanFloorList.do")
+	public String gwanFloorList(Model model, @ModelAttribute GwanVO vo) {
+		vo = service.retrieveFloorList(vo);
+		model.addAttribute("gwanVo", vo);
+		return "jsonView";
+	}
+	
+	@RequestMapping("floorRoomList.do")
+	public String floorRoomList(Model model, @ModelAttribute GwanVO vo) {
+		
+		List<RoomVO> roomList = service.retrieveFloorRoomList(vo);
+		model.addAttribute("roomList", roomList);
+		
+		return "jsonView";
+	}
+	
+	@RequestMapping("roomTimeTable.do")
+	public String roomTimeTable(Model model, @ModelAttribute AssignVO vo) {
+		
+		List<AssignVO> roomAssignList = pService.retrieveRoomAssignList(vo);
+		model.addAttribute("roomAssignList", roomAssignList);
+		
+		return "jsonView";
+	}
+}

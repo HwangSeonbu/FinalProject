@@ -1,0 +1,148 @@
+package kr.or.ddit.board.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.inject.Inject;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.board.service.FreeBoardService;
+import kr.or.ddit.enumpkg.ServiceResult;
+import kr.or.ddit.vo.BoLikeVO;
+import kr.or.ddit.vo.FreeBoardVO;
+import kr.or.ddit.vo.MemberVO;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.SimpleSearchVO;
+import kr.or.ddit.vo.security.MemberVOWrapper;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Controller
+@RequestMapping("/board")
+public class FreeBoardController {
+	
+	@Inject
+	private FreeBoardService service;
+		
+	//게시판 목록 출력
+		@RequestMapping("/freeBoardList.do")
+		public String listHandler(
+			@RequestParam(value="page", required=false, defaultValue="1") int currentPage
+			, @ModelAttribute("simpleCondition") SimpleSearchVO simpleCondition
+			, Model model, Authentication authentication
+		){
+			MemberVO authMember = ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+			int userNo = authMember.getUserNo();
+			PagingVO<FreeBoardVO> paging = new PagingVO<>(10,5);
+			paging.setCurrentPage(currentPage);
+			paging.setSimpleCondition(simpleCondition);
+			paging.setUserNo(userNo);
+			
+			service.retrieveBoardList(paging);
+			
+			model.addAttribute("paging", paging);
+			
+			return "board/freeBoardList";
+		}
+		
+	//상세화면 뷰 
+	@RequestMapping("freeBoardView.do")
+	public String detailViewHandler(
+		@RequestParam(value="who", required=false, defaultValue="") String boardNo
+			, Model model, Authentication authentication
+	) {
+		MemberVO authMember = ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		int userNo = authMember.getUserNo();
+		Map<String, Object> paramMap = new HashMap<String, Object>();
+		paramMap.put("boardNo", boardNo);
+		paramMap.put("userNo", userNo);
+		FreeBoardVO fBoard = service.retrieveBoard(paramMap);
+		model.addAttribute("fBoard", fBoard);
+		
+		return "board/freeBoardView";
+	}	
+	
+	//글 작성 폼
+	@RequestMapping("/freeBoardWriteForm")
+	public String insertForm(
+			@ModelAttribute("fBoard") FreeBoardVO fBoard,
+			Authentication authentication,
+			Model model
+	) {
+		MemberVO authMember = ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		int userNo = authMember.getUserNo();
+		model.addAttribute("userNo", userNo);
+		return "board/freeBoardForm";
+	}
+	
+	// 글 저장
+	@RequestMapping(value="/freeSave", method = RequestMethod.POST)
+	public String saveForm(
+			@ModelAttribute("fBoard") FreeBoardVO fBoard
+			,Model model) {
+		service.createFBoard(fBoard);
+		return "redirect:/board/freeBoardList.do";
+	}
+	
+	//글 삭제
+	@RequestMapping(value="/freeBoardListView", method=RequestMethod.POST)
+	public String fBoardDelete(FreeBoardVO fBoardVO) {
+		service.removeFBoard(fBoardVO.getBoardNo());
+		
+		return "redirect:/board/freeBoardList.do";
+	}
+		
+	//글 수정 뷰
+	@RequestMapping(value="/freeBoardEditView", method = RequestMethod.POST)
+	public String updateView(FreeBoardVO fBoardVO, Model model) {
+		Map<String, Object> paramMap = new HashMap<>();
+		paramMap.put("boardNo", fBoardVO.getBoardNo());
+		model.addAttribute("fBoardVO", service.retrieveBoard(paramMap));
+		return "board/freeBoardEdit";
+	}
+		
+		//글 수정하고 리스트로 고~
+		@RequestMapping(value="/freeBoardView", method = RequestMethod.POST)
+		public String update(FreeBoardVO fBoardVO, Model model) {
+			service.modifyFBoard(fBoardVO);
+			model.addAttribute("who", fBoardVO.getBoardNo());
+			
+			return "redirect:/board/freeBoardView.do";
+		}
+		
+	@RequestMapping("boLikeMarkUp.do")
+	public String boLikeMarkUp(Model model, Authentication authentication
+			, @ModelAttribute BoLikeVO vo) {
+		MemberVO authMember = ((MemberVOWrapper)authentication.getPrincipal()).getRealUser();
+		int userNo = authMember.getUserNo();
+		vo.setUserNo(userNo);
+		ServiceResult result = service.retrieveBoLikeMarkUp(vo);
+		switch(result){
+		case NEWLIKE:vo.setResultMsg("추천했습니다.");vo.setResultNo(1);
+			break;
+		case NEWDISLIKE:vo.setResultMsg("비추천했습니다.");vo.setResultNo(2);
+			break;
+		case ALREADYLIKE:vo.setResultMsg("이미 추천했습니다.");vo.setResultNo(3);
+			break;
+		case ALREDYDISLIKE:vo.setResultMsg("이미 비추천했습니다.");vo.setResultNo(4);
+			break;
+		case CHANGETOLIKE:vo.setResultMsg("추천으로 변경했습니다.");vo.setResultNo(5);
+			break;
+		default:vo.setResultMsg("비추천으로 변경했습니다.");vo.setResultNo(6);
+			break;
+		}
+		model.addAttribute("bolikeVo", vo);
+		
+		return "jsonView";
+	}
+		
+		
+}

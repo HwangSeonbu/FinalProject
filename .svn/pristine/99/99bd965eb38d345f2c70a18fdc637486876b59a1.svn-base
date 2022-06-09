@@ -1,0 +1,18 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+
+@Data
+public class AstVO {
+
+	private Integer astNo;
+	private double astScore;
+	private String astDate;
+	private String astDiv;
+	private String lecId;
+	private Integer lecSems;
+	private Integer userNo;
+	private String astEtc;
+	private Integer proNo;
+	private String astAnswer;
+}

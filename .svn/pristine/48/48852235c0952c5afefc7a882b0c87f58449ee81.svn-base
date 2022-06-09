@@ -1,0 +1,367 @@
+<%--
+교수가  성적을 입력하는 jsp
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 27.      작성자명      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<?xml version="1.0" encoding="UTF-8" ?>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<pre>
+1. 년도, 학기, 강의명(강의코드)를 입력 후  조회를 누른다.
+2. 해당 조건에 맞는  과목에 대한 수강생들 목록이 테이블 형식으로 모두 조회가 된다.
+3. 중간/기말/과제 점수는 직접 입력 (비동기화)
+4. 출석 점수는  출석부의 데이터틑 조회하여 자동으로 점수로 계산되어 입력된다.
+5. 모든 입력 칸에 데이터 종합 점수로 학점을 부여한다.
+</pre>
+<select name="semsdataSelection" id="semsdataSelectionId">
+	<option>연도와 학기를 선택하세요</option>
+</select>
+<select name="lectureSelection" id="lectureSelectionId">
+	<option>과목을 선택하세요</option>
+</select>
+<div class="container mt-3">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>NO</th>
+        <th>강의명</th>
+        <th>학번</th>
+        <th>성명</th>
+        <th>학년</th>
+        <th>중간고사(비율점수)</th>
+        <th>기말고사(비율점수)</th>
+        <th>과제성적(비율점수)</th>
+        <th>출결성적(비율점수)</th>
+        <th>최종점수</th>
+        <th>등수</th>
+        <th>최종학점</th>
+      </tr>
+    </thead>
+    <tbody id ="gradeBody">
+    </tbody>
+  </table>   
+</div>
+<input type="button" value="입력" id="editBtn" />
+<script>
+let semsdataSelection = $("#semsdataSelectionId");
+let lectureSelection = $("#lectureSelectionId");
+let gradeBody = $("#gradeBody");
+let lecSems = "";
+let lecId = "";
+let clsMexam = "";
+let userNo = "";
+let sjtId = "";
+
+// 년도와 학기를 조회
+function startAjax(){
+	$.ajax({
+		url :"${pageContext.request.contextPath}/studentGrade/semsdataForm",
+		method : "get",
+		dataType : "json",
+		success : function(resp) {
+			semsdataSelection.empty();
+			let semsdataList = resp.semsdata;
+			
+			let options = [];
+			options.push($("<option>").attr("value","")
+					.attr("selected", false)
+					.text("연도와 학기 선택").css("color", "blue"));
+			
+			$(semsdataList).each(function(index,semsdata ){
+				let option = $("<option>").attr("value",semsdata)
+										  .text(semsdata.substr(0,4)+"년"+semsdata.substr(5,6)+"학기");
+				options.push(option);
+					});
+			
+			semsdataSelection.append(options);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+startAjax();
+
+
+semsdataSelection.on("change",function(){
+	let semsdata = $(this).val();
+	if(semsdata == ""){
+		alert("데이터가  존재하지 않습니다!");
+	}else{
+		lecture(semsdata); //년도 학기
+	}
+});
+
+function lecture(semsdata){
+	$.ajax({
+		url :"${pageContext.request.contextPath}/studentGrade/selectLecture",
+		method : "get",
+		data : {semsdata:semsdata},
+		dataType : "json",
+		success : function(resp) {
+			lectureSelection.empty();
+			let lectureList = resp.professorLecture;
+			let options = [];
+			options.push($("<option>").attr("value","")
+					.attr("selected", false)
+					.text("과목 선택").css("color", "blue"));
+			$(lectureList).each(function(index, lecture ){
+				
+				
+				let option = $("<option>").attr("value",lecture.PLAN_SEMS)
+										  .attr("class",lecture.LEC_ID)
+										  .attr("user-name",lecture.SJT_ID)
+										  .text(lecture.SJT_NAME);
+				options.push(option);
+					});
+			
+			lectureSelection.append(options);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+
+
+lectureSelection.on("change",function(){
+	lecSems = $("#semsdataSelectionId option:selected").val();
+	lecId = $("#lectureSelectionId option:selected").attr("class");
+	sjtId = $("#lectureSelectionId option:selected").attr("user-name");
+	if(lecSems =="" || lecId == "" || sjtId ==""){
+	
+	}else{
+		studentGrade(lecSems, lecId, sjtId); 
+	}
+});
+
+ function studentGrade(lecSems, lecId, sjtId ){
+	$.ajax({
+		url :"${pageContext.request.contextPath}/studentGrade/selectStudentGrade",
+		method : "get",
+		data : {lecSems:lecSems, lecId:lecId, sjtId:sjtId},
+		dataType : "json",
+		success : function(resp) {
+			gradeBody.empty();
+			let gradeList = resp.studentGrade;
+			let rateList = resp.lectureRate;
+			let trTags = [];
+			
+			if(gradeList && gradeList.length > 0){
+				let mrate = rateList.MRATE;
+				alert("여기");
+				$.each(gradeList, function(idx,grade){
+					
+					let trTag = $("<tr>").append(
+							$("<td>").html(grade.RNUM)
+							,$("<td>").html(grade.SJT_NAME)
+							,$("<td>").html(grade.USER_NO)
+							,$("<td>").html(grade.USER_NAME)
+							,$("<td>").html(grade.STU_YEAR)
+							,$("<td>").html(grade.CLS_MEXAM +"("+(grade.CLS_MEXAM / 100 * rateList.MRATE).toFixed(2)+")")
+								      .attr("class","clsMexam")
+								      .attr("data-id",grade.USER_NO)
+							,$("<td>").html(grade.CLS_FEXAM +"("+(grade.CLS_FEXAM / 100 * rateList.FRATE).toFixed(2)+")")
+								      .attr("class","clsFexam")
+								      .attr("data-id",grade.USER_NO)
+							,$("<td>").html(grade.CLS_HWK +"("+(grade.CLS_HWK / 100 * rateList.HWRATE).toFixed(2)+")")
+									  .attr("class","clsHwk")
+									  .attr("data-id",grade.USER_NO)
+									  
+// 									  if(grade.CLS_ATTABS == null){
+// 										 grade.CLS_ATTABS = 0;
+// 										 $("<td>").html(grade.CLS_ATTABS +"("+(grade.CLS_ATTABS / 100 * rateList.ATTRATE).toFixed(2)+")")
+// 									  }else{
+// 										$("<td>").html(grade.CLS_ATTABS +"("+(grade.CLS_ATTABS / 100 * rateList.ATTRATE).toFixed(2)+")")
+// 									  }
+						    ,$("<td>").html(grade.CLS_ATTABS +"("+(grade.CLS_ATTABS / 100 * rateList.ATTRATE).toFixed(2)+")")
+							,$("<td>").html(grade.CLS_PCT +"(" +(parseFloat(grade.CLS_RCT)).toFixed(2) + ")")
+							,$("<td>").html(grade.RANK)
+							,$("<td>").html(grade.CLS_CRDT)
+									
+
+					);
+				trTags.push(trTag);
+				});
+			
+			}else{
+				let trTag = $("<tr>").append($("<td>").attr("colspan", "11").text("검색자료가없습니다"));
+				trTags.push(trTag);
+			}
+			gradeBody.append(trTags);
+			
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+
+//중간고사 점수 입력
+gradeBody.on("dblclick",".clsMexam",function(e){
+	clsMexam  =$(this).text();
+	clsMexam = clsMexam.split("(");
+	clsMexam = clsMexam[0];
+	$(this).empty();
+	$(this).append($("<input>").attr("type","text")
+							   .val(clsMexam)
+							   .attr("onkeyup","enterkeyClsMexam($(this).val(),lecId,userNo,lecSems)"));
+	lecId = $("#lectureSelectionId option:selected").attr("class");
+	userNo = $(this).data("id");
+});
+
+function enterkeyClsMexam(clsMexam,lecId,userNo,lecSems){
+	if (window.event.keyCode == 13) {
+		if(clsMexam >= 101 ||clsMexam == "" || clsMexam < 0){
+			alert("잘못입력하셨습니다.");
+		}else{
+			$.ajax({
+				url : "${pageContext.request.contextPath}/studentGrade/dblclickClsMexam",
+				method : "get",
+				data : {clsMexam:clsMexam, lecId:lecId, userNo:userNo, lecSems:lecSems},
+				dataType : "json",
+				success : function(resp) {
+					studentGrade(lecSems, lecId, sjtId);
+				},
+				error : function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+				}
+			});
+		}
+	}
+}
+//기말고사점수입력
+gradeBody.on("dblclick",".clsFexam",function(e){
+	clsFexam  =$(this).text();
+	clsFexam = clsFexam.split("(");
+	clsFexam = clsFexam[0];
+	$(this).empty();
+	$(this).append($("<input>").attr("type","text")
+							   .val(clsFexam)
+							   .attr("onkeyup","enterkeyClsFexam($(this).val(),lecId,userNo,lecSems)"));
+	lecId = $("#lectureSelectionId option:selected").attr("class");
+	userNo = $(this).data("id");
+});
+
+function enterkeyClsFexam(clsFexam,lecId,userNo,lecSems){
+	if (window.event.keyCode == 13) {
+		if(clsFexam >= 101 || clsFexam < "" || clsFexam < 0 ){
+			alert("잘못입력하셨습니다.");
+		}else{
+			$.ajax({
+				url : "${pageContext.request.contextPath}/studentGrade/dblclickClsFexam",
+				method : "get",
+				data : {clsFexam:clsFexam, lecId:lecId, userNo:userNo, lecSems:lecSems },
+				dataType : "json",
+				success : function(resp) {
+					studentGrade(lecSems, lecId, sjtId);
+				},
+				error : function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+				}
+			});
+		}
+	}
+}
+
+// 과제점수입력
+gradeBody.on("dblclick",".clsHwk",function(e){
+	clsHwk  =$(this).text();
+	clsHwk = clsHwk.split("(");
+	clsHwk = clsHwk[0];
+	$(this).empty();
+	$(this).append($("<input>").attr("type","text")
+							   .val(clsMexam)
+							   .attr("onkeyup","enterkeyClsHwk($(this).val(),lecId,userNo,lecSems)"));
+	lecId = $("#lectureSelectionId option:selected").attr("class");
+	userNo = $(this).data("id");
+});
+
+function enterkeyClsHwk(clsHwk,lecId,userNo,lecSems){
+	if (window.event.keyCode == 13) {
+		if(clsHwk >= 101 ||  clsHwk == "" || clsHwk < 0){
+			alert("잘못입력하셨습니다.");
+		}else{
+			$.ajax({
+				url : "${pageContext.request.contextPath}/studentGrade/dblclickClsHwk",
+				method : "get",
+				data : {clsHwk:clsHwk, lecId:lecId, userNo:userNo, lecSems:lecSems },
+				dataType : "json",
+				success : function(resp) {
+					studentGrade(lecSems, lecId, sjtId);
+				},
+				error : function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+				}
+			});
+		}
+	}
+}
+
+
+
+function studentGradeForInput(lecSems, lecId ){
+	$.ajax({
+		url :"${pageContext.request.contextPath}/studentGrade/selectStudentGrade",
+		method : "get",
+		data : {lecSems:lecSems, lecId:lecId},
+		dataType : "json",
+		success : function(resp) {
+			gradeBody.empty();
+			let gradeList = resp.gradeList;
+			let trTags = [];
+			
+			if(gradeList && gradeList.length > 0){
+				$.each(gradeList, function(idx,grade){
+					let trTag = $("<tr>").append(
+							$("<td>").html(grade.rnum)
+							,$("<td>").html(grade.sjtName)
+							,$("<td>").html(grade.suserNo)
+							,$("<td>").html(grade.userName)
+							,$("<td>").html(grade.stuYear)
+							,$("<td>").append($("<input>").attr("type", "number")
+									.attr("value", grade.clsMexam))
+							,$("<td>").append($("<input>").attr("type", "number")
+									.attr("value", grade.clsFexam))
+							,$("<td>").append($("<input>").attr("type", "number")
+									.attr("value", grade.clsHwk))
+							,$("<td>").html(grade.clsAttabs)
+							,$("<td>").html(grade.clsPct)
+							,$("<td>").html(grade.clsCrdt)
+					);
+				trTags.push(trTag);
+				});
+			}else{
+				let trTag = $("<tr>").append($("<td>").attr("colspan", "11").text("검색자료가없습니다"));
+				trTags.push(trTag);
+			}
+			gradeBody.append(trTags);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+
+$("#editBtn").on("click", function(lecSems, lecId, sjtId){
+	studentGradeForInput(lecSems, lecId, sjtId);
+}); 
+<!-- </script> -->

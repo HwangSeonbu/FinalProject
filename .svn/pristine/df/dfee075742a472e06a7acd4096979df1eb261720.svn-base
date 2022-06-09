@@ -1,0 +1,128 @@
+<%--
+ 학생의 현재학기 수강현황을 시간표 형식으로 조회
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 2.      김재웅      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<style>
+	.target:hover{
+		cursor: pointer;
+		background-color: skyblue;
+	}
+</style>
+    
+    
+<h2>학생>수강시간표</h2><hr>
+
+<table class="table table-bordered ">
+ <thead >
+    <tr class="text-center">
+     <th scope="col" style="width:150px" >시간</th>
+     <th scope="col" style="width:300px">월</th>
+     <th scope="col" style="width:300px">화</th>
+     <th scope="col" style="width:300px">수</th>
+     <th scope="col" style="width:300px">목</th>
+     <th scope="col" style="width:300px">금</th>
+   </tr>
+ </thead>
+ <tbody class="text-center">
+   <tr>
+     <th scope="row">1교시</th>
+ 	<td id="월1"></td>
+ 	<td id="화1"></td>
+ 	<td id="수1"></td>
+ 	<td id="목1"></td>
+ 	<td id="금1"></td>
+   </tr>
+   <tr>
+     <th scope="row">2교시</th>
+ 	<td id="월2"></td>
+ 	<td id="화2"></td>
+ 	<td id="수2"></td>
+ 	<td id="목2"></td>
+ 	<td id="금2"></td>
+   </tr>
+   <tr>
+     <th scope="row">3교시</th>
+ 	<td id="월3"></td>
+ 	<td id="화3"></td>
+ 	<td id="수3"></td>
+ 	<td id="목3"></td>
+ 	<td id="금3"></td>
+   </tr>
+   <tr>
+     <th scope="row">4교시</th>
+ 	<td id="월4"></td>
+ 	<td id="화4"></td>
+ 	<td id="수4"></td>
+ 	<td id="목4"></td>
+ 	<td id="금4"></td>
+   </tr>
+   <tr>
+     <th scope="row">5교시</th>
+ 	<td id="월5"></td>
+ 	<td id="화5"></td>
+ 	<td id="수5"></td>
+ 	<td id="목5"></td>
+ 	<td id="금5"></td>
+   </tr>
+   <tr>
+     <th scope="row">6교시</th>
+ 	<td id="월6"></td>
+ 	<td id="화6"></td>
+ 	<td id="수6"></td>
+ 	<td id="목6"></td>
+ 	<td id="금6"></td>
+   </tr>
+ </tbody>
+</table>
+
+
+<script>
+$.ajax({
+	url : "${pageContext.request.contextPath}/sugang/timeTableDataView.do",
+	method : "get",
+	dataType : "json",
+	success : function(resp) {
+
+		let stuSugangList = resp.stuSugangList;
+		
+		if(stuSugangList && stuSugangList.length > 0){
+			$.each(stuSugangList, function(idx, sugang){
+				let assignDt = "#"+sugang.assignDt;
+				$(assignDt).append(sugang.lecName).append("<br>")
+						   .attr("class", "target").attr("idx", sugang.planNo);
+// 						   .css("background-color", "yellow");
+// 				let trTag = $("<tr>").addClass("linkBtn")
+// 									.attr("id", lecture.planNo)
+// 									.append(
+// 										$("<td>").html(lecture.lecName)	
+// 										, $("<td>").html(lecture.sjtCredit)	
+// 										, $("<td>").html(lecture.sjtMajor)	
+// 										, $("<td>").html(lecture.sjtGrade)	
+// 										, $("<td>").html(lecture.gwanName)	
+// 										, $("<td>").html(lecture.roomNo)	
+// 										, $("<td>").html(lecture.assignDt)	
+// 									);
+// 				trTags.push(trTag);
+			});
+		}else{} // if end
+	},
+	error : function(jqXHR, textStatus, errorThrown) {
+		console.log(jqXHR);
+		console.log(textStatus);
+		console.log(errorThrown);
+	}
+});
+
+$(document).on("click", ".target", function(){
+	let planNo = $(this).attr("idx");
+	alert(planNo);
+});
+
+</script>
+

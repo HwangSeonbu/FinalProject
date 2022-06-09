@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 13. 황선부     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecboard.dao.LecBoardDAO">
+
+	<sql id="searchFrag">
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND
+				<choose>
+					<when test="simpleCondition.searchType eq 'TITLE'">
+						INSTR(C.LECBO_TITLE, #{simpleCondition.searchWord})>0
+					</when>
+					<when test="simpleCondition.searchType eq 'CONTENT'">
+						INSTR(C.LECBO_CONTENT, #{simpleCondition.searchWord})>0
+					</when>
+					<otherwise>
+						(INSTR (C.LECBO_TITLE, #{simpleCondition.searchWord})>0
+						OR INSTR(C.LECBO_CONTENT, #{simpleCondition.searchWord})>0)
+					</otherwise>
+				</choose>
+			</if>
+		</sql>
+
+		<select id="selectLectureListOfStu" parameterType="int" resultType="Map" >
+			SELECT A.LEC_ID , E.SJT_NAME, E.SJT_CREDIT, B.USER_NAME,
+	        (SELECT SEMS_NO
+	        FROM SEMSDATA
+	       <![CDATA[
+	        WHERE SYSDATE >= SEMS_SDATE
+	        AND SYSDATE <= SEMS_EDATE) AS SEMS_DATE
+	        ]]>
+		      
+			FROM LEC A INNER JOIN USERS B ON(A.USER_NO = B.USER_NO)
+			           INNER JOIN PLANOK C ON(A.LEC_ID = C.LEC_ID)
+			           INNER JOIN PLAN D ON(C.PLAN_NO = D.PLAN_NO)
+			           INNER JOIN SJT E ON(D.SJT_ID = E.SJT_ID) 
+			           INNER JOIN CLS F ON(A.LEC_ID=F.LEC_ID AND A.LEC_SEMS=F.LEC_SEMS)
+			WHERE F.USER_NO=#{userNo} AND A.LEC_SEMS=      
+			        (SELECT SEMS_NO
+			        FROM SEMSDATA
+			        <![CDATA[
+			        WHERE SYSDATE >= SEMS_SDATE
+			        AND SYSDATE <= SEMS_EDATE)
+			        ]]>  
+		</select>
+	
+	<select id="selectLecUserList" parameterType="ClassVO" resultType="UserVO">
+		SELECT A.*
+		FROM USERS A INNER JOIN CLS B ON(A.USER_NO = B.USER_NO)
+		WHERE LEC_SEMS=#{lecSems} AND LEC_ID=#{lecId}
+	</select>
+	
+	<select id="selectAuthenLecUserNo" parameterType="ClassVO" resultType="int">
+	SELECT COUNT(*)
+	from(SELECT A.*
+		FROM USERS A INNER JOIN CLS B ON(A.USER_NO = B.USER_NO)
+		WHERE LEC_SEMS=#{lecSems} AND LEC_ID=#{lecId})
+	WHERE USER_NO=#{userNo}
+	</select>
+	
+	<select id="selectTotalLecBoardRecord" parameterType="PagingVO" resultType="int">
+	SELECT COUNT(*)
+	FROM LECBO C
+	WHERE LEC_SEMS=#{detailCondition.lecSems} AND LEC_ID=#{detailCondition.lecId}	
+	<include refid="searchFrag"/>
+	</select>
+	
+	
+	
+	
+	<select id="selectLecBoard" parameterType="PagingVO" resultType="LecNoticeBoardVO">
+		SELECT B.*	
+            FROM( SELECT ROWNUM RNUM, A.*
+				FROM(
+				select C.lecbo_no
+                       ,C.lecbo_info
+                       ,C.lecbo_title
+                       ,C.lecbo_content
+                       ,C.lecbo_hit
+                       ,TO_CHAR(C.lecbo_date, 'YYYY-MM-DD HH:MI:ss') as lecbo_date
+                       ,C.lec_sems
+                       ,C.lec_id
+                       ,C.user_no
+                       ,C.lec_div
+                       ,D.USER_NAME
+				FROM LECBO C INNER JOIN USERS D ON (C.USER_NO = D.USER_NO)
+				where C.LEC_SEMS=#{detailCondition.lecSems} 
+					AND C.LEC_ID=#{detailCondition.lecId} 
+                <include refid="searchFrag"/>
+                ORDER BY lecbo_no DESC
+					)A
+			)B            
+            <![CDATA[
+ 			WHERE RNUM >=#{startRow} AND RNUM <=#{endRow} 
+ 	 		]]>
+	</select>
+	<resultMap type="LecNoticeBoardVO" id="lecNotice" autoMapping="true">
+		<id property="lecboNo" column="bo_no"/>
+		<id property="userNo" column="usernoo"/>
+		<collection property="attchList" ofType="AttchVO" autoMapping="true"/>
+		
+	</resultMap>
+	<select id="selectOneLecBoard" parameterType="int" resultMap="lecNotice">
+		SELECT
+		    A.lecbo_no as bo_no
+		   ,A.lecbo_info
+		   ,A.lecbo_title
+		   ,A.lecbo_content
+		   ,A.lecbo_hit
+		   ,TO_CHAR(A.lecbo_date, 'YYYY-MM-DD HH:MI') AS LECBO_DATE
+		   ,A.lec_sems
+		   ,A.lec_id
+		   ,A.user_no as usernoo
+		   ,A.lec_div
+		   ,B.attch_no
+		   ,B.board_no
+		   ,B.notice_no
+		   ,B.attch_fname
+		   ,B.attch_sname
+		   ,B.attch_mime
+		   ,B.attch_size
+		   ,B.attch_fsize
+		   ,B.attch_dhit
+		   ,B.plan_no
+		   ,B.ojt_no
+		   ,B.user_no2
+		   ,C.USER_NAME
+		FROM
+		    LECBO A LEFT OUTER JOIN ATTCH B ON(A.LECBO_NO = B.LECBO_NO)
+		    		INNER JOIN USERS C ON(A.USER_NO = C.USER_NO)
+		WHERE A.lecbo_no=#{lecboNo} 
+	</select>
+	
+	<update id="incrementHit" parameterType="int">
+	UPDATE LECBO
+	SET LECBO_HIT = LECBO_HIT + 1
+	WHERE LECBO_NO = #{lecboNo}
+	</update>
+	
+	<select id="selectLectureListOfPro" parameterType="int" resultType="map">
+	SELECT distinct
+	    A.lec_sems
+	   ,A.lec_id
+	   ,A.user_no
+	   ,A.lec_pers
+	   ,A.lec_sts
+	   ,D.SJT_ID
+	   ,D.SJT_NAME
+	   ,D.SJT_CREDIT
+	   ,D.SJT_MAJOR
+	   ,D.SJT_GRADE
+	   ,E.ROOM_NO
+	   ,E.GWAN_NAME
+	   ,(SELECT SEMS_NO
+        FROM SEMSDATA
+       <![CDATA[
+        WHERE SYSDATE >= SEMS_SDATE
+        AND SYSDATE <= SEMS_EDATE) AS SEMS_DATE
+        ]]>
+	FROM LEC A INNER JOIN PLANOK B ON(A.LEC_ID = B.LEC_ID)
+	           INNER JOIN PLAN C ON(B.PLAN_NO = C.PLAN_NO)
+	           INNER JOIN SJT D ON(C.SJT_ID = D.SJT_ID)
+	           INNER JOIN LEC_ASSIGN E ON(C.PLAN_NO = E.PLAN_NO)
+	WHERE A.USER_NO=#{userNo} AND A.LEC_SEMS=(SELECT SEMS_NO
+									    FROM SEMSDATA
+									    <![CDATA[
+									    WHERE SYSDATE >= SEMS_SDATE
+									    AND SYSDATE <= SEMS_EDATE)
+									    ]]>
+	</select>
+	
+<!-- 	후에 INSERT ALL 리팩토링-->
+	<insert id="insertLecNoticeBoard" parameterType="LecNoticeBoardVO">
+			<selectKey resultType="int" keyProperty="lecboNo" order="BEFORE">
+				SELECT LECBO_SEQ.NEXTVAL
+				FROM DUAL
+			</selectKey>		
+		INSERT INTO LECBO (
+						    LECBO_NO
+						   ,LECBO_TITLE
+						   ,LECBO_CONTENT
+						   ,LECBO_HIT
+						   ,LECBO_DATE
+						   ,LEC_SEMS
+						   ,LEC_ID
+						   ,USER_NO
+<!-- 						   ,LECBO_PASS -->
+		) VALUES (
+				    #{lecboNo}
+				   ,#{lecboTitle}
+				   ,#{lecboContent}
+				   ,0
+				   ,SYSDATE
+				   ,(SELECT SEMS_NO
+				        FROM SEMSDATA
+				       <![CDATA[
+ 				        WHERE SYSDATE >= SEMS_SDATE 
+ 				        AND SYSDATE <= SEMS_EDATE)
+ 				        ]]> 
+				    ,#{lecId}
+				    ,#{userNo}
+<!-- 				    ,#{lecboPass} -->
+		)
+	</insert>
+	
+	<update id="updateLecNoticeboard" parameterType="LecNoticeBoardVO">
+		UPDATE LECBO
+		SET LECBO_TITLE = #{lecboTitle}
+			,LECBO_CONTENT = #{lecboContent}
+		WHERE LECBO_NO = #{lecboNo}
+	</update>
+	
+	<delete id="deleteBoard" parameterType="int">
+		DELETE FROM LECBO
+		WHERE LECBO_NO = #{lecboNo}
+	</delete>
+	
+	<select id="selectOneLec" parameterType="String" resultType="map">
+	SELECT *
+	FROM PLANOK
+	WHERE LEC_ID=#{lecId}
+	</select>
+
+</mapper>

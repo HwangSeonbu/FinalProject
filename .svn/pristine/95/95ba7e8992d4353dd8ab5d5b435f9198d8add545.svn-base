@@ -1,0 +1,56 @@
+package kr.or.ddit.room.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.room.dao.ProfessorRoomSetDAO;
+import kr.or.ddit.vo.AssignVO;
+import kr.or.ddit.vo.DepartLectureAssignVO;
+import kr.or.ddit.vo.DepartmentVO;
+import kr.or.ddit.vo.GwanVO;
+import kr.or.ddit.vo.PlanVO;
+
+@Service
+public class ProfessorRoomSetServiceImpl implements ProfessorRoomSetService {
+
+	@Inject
+	ProfessorRoomSetDAO dao;
+	
+	
+	@Override
+	public List<DepartLectureAssignVO> retrieveDepartLecList(PlanVO vo) {
+		
+		List<DepartLectureAssignVO> resultList = dao.selectDepartLecList(vo);
+		
+		for(DepartLectureAssignVO eachVo : resultList) {
+			List<AssignVO> assignList = eachVo.getAssignList();
+			for(AssignVO assignVo : assignList) {
+				String assignDay = assignVo.getAssignDay();
+				Integer assignTime = null;
+				if(assignVo.getAssignTime() != null){
+					assignTime = Integer.parseInt(assignVo.getAssignTime());
+				}
+				
+				if(assignDay != null && assignTime != null) {
+					assignVo.setAssignDt(assignDay+assignTime);
+				}
+			}
+		}
+		return resultList;
+	}
+
+	@Override
+	public DepartmentVO retrieveDepartOne(String deptId) {
+		DepartmentVO vo = dao.selectDepartOne(deptId);
+		String gwanName = vo.getColGwan();
+		GwanVO gwanVo = dao.selectGwanOne(gwanName);
+		
+		vo.setGwanVo(gwanVo);
+		
+		return vo;
+	}
+
+}

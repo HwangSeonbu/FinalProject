@@ -1,0 +1,161 @@
+package kr.or.ddit.request.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import kr.or.ddit.ast.service.AccessPeriodService;
+import kr.or.ddit.enumpkg.AccessActionEnum;
+import kr.or.ddit.grade.service.GradeService;
+import kr.or.ddit.request.service.RequestService;
+import kr.or.ddit.vo.PageAccessVO;
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.RequestVO;
+import kr.or.ddit.vo.security.MemberVOWrapper;
+
+/**
+ * 학생의 휴복학신청
+ * @author 고성식
+ * @since 2022. 5. 10.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 10.   고성식		       최초작성
+ * 2022. 5. 18.   김재웅                  복학신청 페이지 블로킹 테스트
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Controller
+@RequestMapping("/schoolReq")
+public class StudentSchoolRequestProcessController {
+
+	@Inject
+	private RequestService service;
+	@Inject
+	AccessPeriodService accessService;
+	@Inject
+	private GradeService Gservice;
+	
+	@RequestMapping("leaveSchoolForm.do")//휴학신청
+	public String leaveSchoolForm(
+			@RequestParam(value="lecSems", required=false) String lecSems
+			,Model model
+	) {
+		PageAccessVO accessVo = accessService.retrieveAccessPeriod(
+				AccessActionEnum.APPLYLEAVESCHOOL);
+		
+		if(accessVo.isAccess()) {
+			// 수강학기 리스트 조회( 성적입력 코드 활용 > 해당 로직 변경 시 확인 필요 )
+			List<String> semsdata = Gservice.retrieveSemsdata();
+			model.addAttribute("semsdata", semsdata);
+			
+			return "request/studentLeaveSchoolForm";
+		}else {
+			model.addAttribute("action", accessVo.getAction());
+			model.addAttribute("accessPeriod", accessVo.getAccessPeriod());
+			
+			return "temp/notPeriodPage";
+		}
+	}
+	
+	@RequestMapping(value="requestLeaveSchoolStu", produces=MediaType.APPLICATION_JSON_VALUE)
+	public String requestLeaveSchoolStu(@RequestBody RequestVO requestVO, Authentication authentication ,Model model) throws Exception {
+		
+		service.studentLeaveRequest(requestVO);
+		
+		return "jsonView";
+	}
+	
+	
+	
+	@RequestMapping("returnSchoolForm.do") //복학신청
+	public String returnSchoolForm(
+			@RequestParam(value="lecSems", required=false) String lecSems
+			,Model model) {
+		PageAccessVO accessVo = accessService.retrieveAccessPeriod(
+				AccessActionEnum.APPLYRETURNSCHOOL);
+		
+		if(accessVo.isAccess()) {
+			// 수강학기 리스트 조회( 성적입력 코드 활용 > 해당 로직 변경 시 확인 필요 )
+			List<String> semsdata = Gservice.retrieveSemsdata();
+			model.addAttribute("semsdata", semsdata);
+			
+			return "request/studentReturnSchoolForm";
+		}else {
+			model.addAttribute("action", accessVo.getAction());
+			model.addAttribute("accessPeriod", accessVo.getAccessPeriod());
+			
+			return "temp/notPeriodPage";
+		}
+	}
+	
+	@RequestMapping(value="requestReturnSchoolStu", produces=MediaType.APPLICATION_JSON_VALUE)
+	public String requestReturnSchoolStu(@RequestBody RequestVO requestVO, Authentication authentication ,Model model) throws Exception {
+		
+		service.studentReturnRequest(requestVO);
+		
+		return "jsonView";
+	}
+	
+	
+	
+	
+	/**
+	 * 진행상태 화면 이동
+	 * @return
+	 */
+	@RequestMapping("/leaveSchoolList.do")
+	public String leaveSchoolList() {
+
+		return "request/studentLeaveSchoolList";
+	}
+	
+	/**
+	 * 휴학 진행상태 리스트 조회
+	 * @return
+	 */
+	@RequestMapping("/selectStudentLeaveRequestList.do")
+	public String selectStudentLeaveRequestList(
+			@RequestParam(value="page", required=false, defaultValue="1") int currentPage 
+			, Authentication authentication
+			, Model model) {
+		
+		
+		int userNo =  Integer.parseInt( ((MemberVOWrapper)authentication.getPrincipal()).getUsername() );
+		
+		PagingVO<RequestVO> paging = new PagingVO<>();
+		
+		
+		Map<String, Object> param = new HashMap<String, Object>();
+		param.put("paging", paging);
+		param.put("userNo", userNo);
+		
+		List<RequestVO> list = service.selectStudentLeaveRequestList(param);
+		
+		model.addAttribute("list", list);
+
+		return "jsonView";
+	}
+	
+	
+	
+	
+	@RequestMapping("graduateDelayForm.do")
+	public String graduateDelayForm() {
+		
+		return "request/studentGraduateDelayForm";
+	}
+}

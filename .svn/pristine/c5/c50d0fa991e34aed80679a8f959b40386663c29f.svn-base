@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.request.dao.StudentRequestDAO">
+	<select id="selectStudentLeaveRequestList" parameterType="PagingVO" resultType="StudentRequestVO">
+		SELECT
+		   A.USER_NO
+		   ,B.USER_NAME
+		   ,A.REQ_SMS
+		   ,A.REQ_RSN
+		   ,TO_CHAR (A.REQ_START,'YYYY-MM-DD') AS REQ_START
+		   ,TO_CHAR (A.REQ_END,'YYYY-MM-DD') AS REQ_END
+		   ,A.REQ_DENL
+		   ,TO_CHAR (A.REQ_DATE,'YYYY-MM-DD') AS REQ_DATE
+		   ,A.REQ_DIV
+		FROM REQ A 
+		INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+		WHERE A.REQ_RSN = '휴학신청'
+	</select>
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM REQ A
+				INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+	</select>
+	
+	<select id="selectStudentReturnRequestList" parameterType="PagingVO" resultType="StudentRequestVO">
+		SELECT
+		   A.USER_NO
+		   ,B.USER_NAME
+		   ,A.REQ_SMS
+		   ,A.REQ_RSN
+		   ,TO_CHAR (A.REQ_START,'YYYY-MM-DD') AS REQ_START
+		   ,TO_CHAR (A.REQ_END,'YYYY-MM-DD') AS REQ_END
+		   ,A.REQ_DENL
+		   ,TO_CHAR (A.REQ_DATE,'YYYY-MM-DD') AS REQ_DATE
+		   ,A.REQ_DIV
+		FROM REQ A 
+		INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+		WHERE A.REQ_RSN = '복학신청'
+	</select>
+</mapper>

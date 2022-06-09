@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 학생이 자신의 출석 or 성적 인정신청현황을 보기위해 사용되는 xml  -->
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 4. 28.}     주창규     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.objection.dao.ObjectionDAO">
+
+<!-- 학생이 출석인정 신청을 조회 -->
+	<select id="selectStudentAttendanceObjection" parameterType="map" resultType="map">
+		SELECT  ROWNUM RNUM
+				, A.STU_YEAR
+				, B.LEC_SEMS
+				, A.USER_NO
+				, B.LEC_ID
+				, D.LEC_NAME
+				, D.PRO_NAME
+				, G.OJT_TITLE
+				, F.ATTABS_DATE
+				, G.OJT_DATE
+				,(SELECT STS_CODE1
+				    FROM    CODE
+				   WHERE   STS_ID = G.OJT_CODE) AS STATECODE
+		 FROM STU A INNER JOIN CLS B ON(A.USER_NO = B.USER_NO)
+				INNER JOIN LEC C ON (B.LEC_ID = C.LEC_ID)
+				INNER JOIN PLANOK D ON (C.LEC_ID = D.LEC_ID)
+				INNER JOIN ATTABS F ON (D.LEC_ID =F.LEC_ID)
+				INNER JOIN OJT G ON(F.OJT_NO =G.OJT_NO)
+		WHERE B.LEC_SEMS = #{lecSems}
+			  AND A.USER_NO = #{userNo}
+	</select>
+</mapper>

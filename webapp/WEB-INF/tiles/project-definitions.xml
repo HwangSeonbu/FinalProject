@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<!--  [[개정이력(Modification Information)]]        -->
+<!--  수정일        			수정자   		  수정내용                -->
+<!--  ==========   	==========    ============== -->
+<!--  2022. 4. 23.     고성식  		     최초작성          -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+
+<tiles-definitions>
+<!--   definition == page -->
+	<definition name="parent" template="/WEB-INF/views/template.jsp">
+		<put-attribute name="preScript" value="/includee/preScript.jsp" />
+		<put-attribute name="postScript" value="/includee/postScript.jsp" />
+		<put-attribute name="topMenu" value="/includee/topMenu.jsp" />
+		<put-attribute name="leftMenu" value="/includee/leftMenu.jsp" />
+	</definition>
+	
+	<definition name="empty" template="/WEB-INF/views/layout/empty.jsp">
+        <put-attribute name="content" value="/WEB-INF/views/index.jsp"/>  
+    </definition>
+    
+	<definition name="index" extends="empty">
+		<put-attribute name="content" value="/WEB-INF/views/index.jsp" />
+	</definition>
+	
+	<definition name="*/*" extends="parent">
+	    <put-attribute name="content" value="/WEB-INF/views/{1}/{2}.jsp" />
+	</definition>
+<!-- 	메인 -->
+	<definition name="index22" extends="parent">
+	    <put-attribute name="content" value="/WEB-INF/views/index22.jsp" />
+	</definition>
+
+
+	
+
+
+</tiles-definitions>
+
+
+
+
+
+
+
+

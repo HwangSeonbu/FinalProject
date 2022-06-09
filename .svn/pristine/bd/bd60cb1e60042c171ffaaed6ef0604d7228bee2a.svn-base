@@ -1,0 +1,44 @@
+package kr.or.ddit.enr.service;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.enr.dao.AdminEnrollDAO;
+import kr.or.ddit.vo.AdminEnrollVO;
+
+@Service
+public class AdminEnrollSerivceImpl implements AdminEnrollService{
+
+	@Inject
+	AdminEnrollDAO dao;
+	
+	@Override
+	public List<AdminEnrollVO> retrieveStudentEnrollList(Map<String, Object> param) {
+		return dao.selectEnrollList(param);
+	}
+
+	@Override
+	public int retrieveEnrollListTotalCount(Map<String, Object> param) {
+		return dao.selectEnrollTotalRecord(param);
+	}
+	
+	
+	@Override
+	public int adminCreatEnroll(List<AdminEnrollVO> list) throws Exception {
+		int result = 0;
+		
+		for(AdminEnrollVO vo : list) {
+			result += dao.insertEnroll(vo);
+		}
+		return result;
+	}
+
+
+
+
+
+}

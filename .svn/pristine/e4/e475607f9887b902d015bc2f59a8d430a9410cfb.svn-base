@@ -1,0 +1,41 @@
+package kr.or.ddit.adminLecture.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.adminLecture.dao.AdminLectureCompDAO;
+import kr.or.ddit.vo.LecCompTargetVO;
+import kr.or.ddit.vo.PagingVO;
+
+@Service
+public class AdminLectureCompServiceImpl implements AdminLectureCompService {
+
+	@Inject
+	AdminLectureCompDAO dao;
+
+	@Override
+	public PagingVO<LecCompTargetVO> retrieveLecCompTargetList(Integer nextSems) {
+		
+		PagingVO<LecCompTargetVO> vo = new PagingVO<>();
+		
+		List<LecCompTargetVO> dataList = dao.selectLecCompTargetList(nextSems);
+		
+		for(LecCompTargetVO eachVo : dataList) {
+			int tcnt = eachVo.getPlanTcnt();
+			String beforeDt = eachVo.getAssignDt();
+			String[] afterDt = beforeDt.split(",");
+			if(tcnt == 1) {
+				eachVo.setAssignDt1(afterDt[0]);
+				eachVo.setAssignDt2("-");
+			}else {
+				eachVo.setAssignDt1(afterDt[0]);
+				eachVo.setAssignDt2(afterDt[1]);
+			}
+		}
+		vo.setDataList(dataList);
+		return vo;
+	}
+}

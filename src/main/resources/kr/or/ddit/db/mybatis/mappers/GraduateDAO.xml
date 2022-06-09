@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.graduate.dao.GraduateDAO">
+	
+	<sql id="searchCompCondition">
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.colName)">
+				AND COL_NAME = #{detailCondition.colName}
+			</if>
+			<if test="detailCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(detailCondition.deptId)">
+				AND DEPT_ID = #{detailCondition.deptId}
+			</if>
+			<if test="simpleCondition neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+				AND 
+	    		<choose>
+	    			<when test="simpleCondition.searchType eq 'userName'">
+	    				INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<when test="simpleCondition.searchType eq 'userAddr'">
+	    				INSTR(USER_ADDR, #{simpleCondition.searchWord}) > 0
+	    			</when>
+	    			<otherwise>
+	    				INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+	    				OR INSTR(USER_ADDR, #{simpleCondition.searchWord}) > 0
+	    			</otherwise>
+	    		</choose>
+	    	</if>
+		</trim>
+	</sql>
+	
+	<select id="selectGraduateList" parameterType="PagingVO" resultType="GraduateVO">
+		SELECT V.*
+		FROM(
+		    SELECT 
+		        DEPT_ID, RNUM, USER_NO, USER_NAME, USER_GENDER, USER_PHONE, USER_ADDR, USER_MAIL
+		        , USER_CODE, STU_CODE, STU_GDU_DATE, COL_NAME, DEPT_NAME, STS_CODE1
+		    FROM (
+		               SELECT A.* , ROWNUM RNUM
+		               FROM
+		                    (SELECT
+		                         A.USER_NO
+		                       , A.USER_NAME
+		                       , A.USER_GENDER
+		                       , A.USER_PHONE
+		                       , A.USER_ADDR
+		                       , A.USER_MAIL
+		                       , A.USER_CODE
+		                       , B.STU_CODE
+		                       , TO_CHAR(B.STU_GDU_DATE,'YYYY-MM-DD') AS STU_GDU_DATE
+		                       , C.COL_NAME
+		                       , B.DEPT_ID
+		                       , C.DEPT_NAME
+		                       , D.STS_CODE1
+		                    FROM USERS A
+		                    INNER JOIN STU B ON A.USER_NO=B.USER_NO
+		                    INNER JOIN DEPARTMENT C ON C.DEPT_ID = B.DEPT_ID
+		                    INNER JOIN CODE D ON D.STS_ID=B.STU_CODE
+		                    AND B.STU_CODE = 'C104'
+		                    ORDER BY STU_GDU_DATE DESC, C.DEPT_ID, B.STU_YEAR, B.STU_CLASS, A.USER_NO
+		               )A
+		            )
+		            <include refid="searchCompCondition" />
+		)V 
+		<![CDATA[  
+				WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]> 
+	</select>
+	
+	<select id="selectTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM(
+		    SELECT 
+		        DEPT_ID,RNUM, USER_NO, USER_NAME, USER_GENDER, USER_PHONE, USER_ADDR, USER_MAIL
+		        , USER_CODE, STU_CODE, STU_GDU_DATE, COL_NAME, DEPT_NAME, STS_CODE1
+		    FROM (
+		               SELECT A.* , ROWNUM RNUM
+		               FROM
+		                    (SELECT
+		                         A.USER_NO
+		                       , A.USER_NAME
+		                       , A.USER_GENDER
+		                       , A.USER_PHONE
+		                       , A.USER_ADDR
+		                       , A.USER_MAIL
+		                       , A.USER_CODE
+		                       , B.STU_CODE
+		                       , TO_CHAR(B.STU_GDU_DATE,'YYYY-MM-DD') AS STU_GDU_DATE
+		                       , C.COL_NAME
+		                       , B.DEPT_ID
+		                       , C.DEPT_NAME
+		                       , D.STS_CODE1
+		                    FROM USERS A
+		                    INNER JOIN STU B ON A.USER_NO=B.USER_NO
+		                    INNER JOIN DEPARTMENT C ON C.DEPT_ID = B.DEPT_ID
+		                    INNER JOIN CODE D ON D.STS_ID=B.STU_CODE
+		                    AND B.STU_CODE = 'C104'
+		                    ORDER BY STU_GDU_DATE DESC, C.DEPT_ID, B.STU_YEAR, B.STU_CLASS, A.USER_NO
+		               )A
+		            )
+		            <include refid="searchCompCondition" />
+		) 
+	</select>
+	
+	
+	<select id="selectGraduateTargetList" parameterType="PagingVO" resultType="GraduateVO">
+		SELECT *	
+		FROM
+			(
+			SELECT *
+			FROM(
+			        SELECT 
+			            USER_NO, DEPT_ID, STU_YEAR, STU_CLASS, STU_CODE, STU_CDT_EARN
+			            , STU_GDU_CDT, USER_NAME, USER_GENDER, USER_PHONE, USER_ADDR
+			            , USER_REG1, USER_REG2, USER_MAIL, DEPT_NAME, COL_NAME
+			            , STS_CODE1
+			        FROM
+			            (
+			                SELECT A.* , ROWNUM RNUM
+			                FROM
+			                    (SELECT
+			                        A.USER_NO
+			                        ,A.DEPT_ID
+			                        ,A.STU_YEAR
+			                        ,A.STU_CLASS
+			                        ,A.STU_CODE
+			                        ,A.STU_CDT_EARN
+			                        ,A.STU_GDU_CDT
+			                        ,B.USER_NAME
+			                        ,B.USER_GENDER
+			                        ,B.USER_PHONE
+			                        ,B.USER_ADDR
+			                        ,B.USER_REG1
+			                        ,B.USER_REG2
+			                        ,B.USER_MAIL
+			                        ,C.DEPT_NAME
+			                        ,C.COL_NAME
+			                        ,D.STS_CODE1
+			                    FROM
+			                        STU A
+			                    INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+			                    INNER JOIN DEPARTMENT C ON A.DEPT_ID=C.DEPT_ID
+			                    INNER JOIN CODE D ON D.STS_ID= A.STU_CODE
+			                    WHERE A.STU_YEAR = 4
+			                    AND A.STU_CDT_EARN > A.STU_GDU_CDT
+			                    AND STU_CODE = 'C101'
+			                    ORDER BY USER_NO
+			                 )A
+			            )<![CDATA[  
+								WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+						]]> 
+			            
+			)
+		    <include refid="searchCompCondition" />
+		)		    
+	</select>
+	
+	<select id="selelctTargetTotalRecord" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		FROM(
+			SELECT *
+			FROM(
+			        SELECT 
+			            USER_NO, DEPT_ID, STU_YEAR, STU_CLASS, STU_CODE, STU_CDT_EARN
+			            , STU_GDU_CDT, USER_NAME, USER_GENDER, USER_PHONE, USER_ADDR
+			            , USER_REG1, USER_REG2, USER_MAIL, DEPT_NAME, COL_NAME
+			            , STS_CODE1
+			        FROM
+			            (
+			                SELECT A.* , ROWNUM RNUM
+			                FROM
+			                    (SELECT
+			                        A.USER_NO
+			                        ,A.DEPT_ID
+			                        ,A.STU_YEAR
+			                        ,A.STU_CLASS
+			                        ,A.STU_CODE
+			                        ,A.STU_CDT_EARN
+			                        ,A.STU_GDU_CDT
+			                        ,B.USER_NAME
+			                        ,B.USER_GENDER
+			                        ,B.USER_PHONE
+			                        ,B.USER_ADDR
+			                        ,B.USER_REG1
+			                        ,B.USER_REG2
+			                        ,B.USER_MAIL
+			                        ,C.DEPT_NAME
+			                        ,C.COL_NAME
+			                        ,D.STS_CODE1
+			                    FROM
+			                        STU A
+			                    INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+			                    INNER JOIN DEPARTMENT C ON A.DEPT_ID=C.DEPT_ID
+			                    INNER JOIN CODE D ON D.STS_ID= A.STU_CODE
+			                    WHERE A.STU_YEAR = 4
+			                    AND A.STU_CDT_EARN > A.STU_GDU_CDT
+			                    AND STU_CODE = 'C101'
+			                    ORDER BY USER_NO
+			                 )A
+			            )
+			)
+		)	
+		    <include refid="searchCompCondition" />
+	</select>
+	
+	<update id="updateGraduateSts" >
+	UPDATE STU
+	SET 
+		STU_CODE = 'C104'
+		,STU_GDU_DATE = SYSDATE
+	WHERE USER_NO = #{userNo}
+	</update>
+	
+</mapper>

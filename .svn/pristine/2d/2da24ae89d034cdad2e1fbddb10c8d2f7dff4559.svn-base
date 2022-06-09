@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 9.  이유정    최초작성          -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.QnABoardDAO">
+<sql id="searchFrag">
+		 <where>
+        	<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleCondition.searchWord)">
+        		<choose>
+        			<when test="simpleCondition.searchType eq 'NAME'">
+        				INSTR(BOARD_TITLE, #{simpleCondition.searchWord}) > 0
+        			</when>
+        			<when test="simpleCondition.searchType eq 'USERNAME'">
+        				INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+        			</when>
+        			<otherwise>
+        				INSTR(BOARD_TITLE, #{simpleCondition.searchWord}) > 0
+        				OR INSTR(USER_NAME, #{simpleCondition.searchWord}) > 0
+        			</otherwise>
+        		</choose>
+        	</if>
+        </where>
+	</sql>
+<select id="selectTotalQRecord" parameterType="PagingVO" resultType="int">
+	SELECT COUNT(*)
+	FROM BOARD A
+			INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+			AND A.GROUP_ID = 'A1'
+	<include refid="searchFrag" />
+</select>
+<select id="selectQBoardList" parameterType="PagingVO" resultType="QnABoardVO">
+	SELECT B.*
+	FROM (
+		    SELECT ROWNUM RNUM, A.*
+		    FROM (
+				  SELECT 
+					A.BOARD_NO,
+			   		A.USER_NO,
+			    	A.BOARD_TITLE,
+			    	B.USER_NAME,
+			    	A.BOARD_HIT,
+			    	A.BOARD_DATE
+			FROM BOARD A
+			INNER JOIN USERS B ON A.USER_NO=B.USER_NO
+			AND A.GROUP_ID = 'A1'
+	        <include refid="searchFrag" />
+	       ORDER BY to_number(A.BOARD_NO)  DESC
+	    ) A
+	     ORDER BY RNUM
+	) B
+	<![CDATA[
+		WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+	]]>
+</select>
+<resultMap type="QnABoardVO" id="qBoardMap" autoMapping="true">
+	<id property="boardNo" column="BOARD_NO"/>
+</resultMap>
+<select id="selectQBoard" parameterType="string" resultMap="qBoardMap">
+	SELECT
+		A.BOARD_NO,
+   		A.USER_NO,
+    	A.BOARD_TITLE,
+    	A.BOARD_CONTENT,
+    	B.USER_NAME,
+    	A.BOARD_HIT,
+    	A.BOARD_DATE
+	FROM BOARD A, USERS B
+	WHERE A.USER_NO = B.USER_NO
+	AND A.GROUP_ID = 'A1' 
+	AND BOARD_NO = #{boardNo}
+</select>
+<insert id="insertQBoard" parameterType="QnABoardVO">
+	<selectKey resultType="string" keyProperty="boardNo" order="BEFORE">
+		SELECT BOARD_SEQ.NEXTVAL
+		FROM DUAL
+	</selectKey>
+	INSERT INTO BOARD
+	(
+		BOARD_NO,
+		GROUP_ID,
+		USER_NO,
+	    BOARD_TITLE,
+	    BOARD_CONTENT,
+	    BOARD_HIT,
+	    BOARD_DATE
+	) VALUES (
+		#{boardNo,jdbcType=VARCHAR}
+		,'A1'
+		,#{userNo,jdbcType=NUMERIC}
+		,#{boardTitle,jdbcType=VARCHAR}
+		,#{boardContent,jdbcType=VARCHAR}
+		,'0'
+		,SYSDATE
+	)
+</insert>
+<update id="incrementHit" parameterType="string">
+		UPDATE BOARD
+		SET 
+		BOARD_HIT = BOARD_HIT + 1
+		WHERE BOARD_NO = #{boardNo}
+</update>
+<delete id="deleteQBoard" parameterType="string">
+	DELETE FROM BOARD
+	WHERE BOARD_NO = #{boardNo}
+</delete>
+<update id="updateQBoard" parameterType="QnABoardVO">
+	UPDATE BOARD
+	SET
+		BOARD_NO = #{boardNo,jdbcType=VARCHAR}
+		,BOARD_TITLE = #{boardTitle,jdbcType=VARCHAR}
+		,BOARD_CONTENT = #{boardContent,jdbcType=VARCHAR}
+		,BOARD_DATE = SYSDATE
+		WHERE BOARD_NO = #{boardNo}
+</update>
+</mapper>
+
+
+
+
+
+
+

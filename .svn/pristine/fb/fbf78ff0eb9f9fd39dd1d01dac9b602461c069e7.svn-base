@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.sugang.dao.StudentSugangDAO">
+
+	<select id="selectStuSugangTimeTableList" parameterType="int" resultType="kr.or.ddit.vo.StudentSugangVO">
+		WITH STUINFO AS(
+		    SELECT
+		        A.USER_NO, (SELECT STS_CODE1 FROM CODE WHERE STS_ID = B.USER_CODE) USER_TYPE
+		        , B.USER_NAME, B.USER_GENDER
+		        , A.STU_YEAR, A.STU_CODE, A.DEPT_ID
+		        , C.COL_NAME, C.DEPT_NAME
+		    FROM STU A 
+		        INNER JOIN USERS B ON(A.USER_NO = B.USER_NO)
+		        INNER JOIN DEPARTMENT C ON(A.DEPT_ID = C.DEPT_ID)
+		    WHERE A.USER_NO = #{stuNo}
+		    ORDER BY A.USER_NO
+		) SELECT A.*, B.LEC_ID
+		    , C.SJT_ID, C.PRO_NO, C.PRO_NAME, C.LEC_NAME, C.PLAN_NO
+		    , D.SJT_CREDIT, D.SJT_MAJOR
+		    , E.GWAN_NAME, E.ROOM_NO, E.ASSIGN_DAY||E.ASSIGN_TIME ASSIGN_DT
+		FROM STUINFO A
+		    LEFT OUTER JOIN (
+		        SELECT * FROM CLS WHERE LEC_SEMS = 202201
+		    ) B ON(A.USER_NO = B.USER_NO)
+		    LEFT OUTER JOIN PLANOK C ON(B.LEC_ID = C.LEC_ID)
+		    LEFT OUTER JOIN SJT D ON(C.SJT_ID = D.SJT_ID)
+		    LEFT OUTER JOIN LEC_ASSIGN E ON(C.PLAN_NO = E.PLAN_NO)
+		ORDER BY A.USER_NO
+	</select>
+</mapper>

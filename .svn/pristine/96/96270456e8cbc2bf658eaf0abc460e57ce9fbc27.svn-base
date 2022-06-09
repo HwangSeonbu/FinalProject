@@ -1,0 +1,321 @@
+<!--  학사관리자가 휴학 신청 리스트를 확인하는 페이지(승인,반려가능)  -->
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 5. 7.    고성식 	 	   최초작성          -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>   
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+<h2 class="h3-title">휴학 신청 현황</h2><hr class="hr-title">
+<script type="text/javascript" src="${cPath }/resources/js/jquery.form.min.js"></script>
+<style>
+#processBtnBody{
+		text-align: right;
+	}
+</style>
+
+<!-- 반려사유 모달 HTML START -->
+<div class="modal fade" id="denailModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="denailModalLabel">반려사유 입력</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="denailModalBody">
+      	<div class="form-floating">
+		  <textarea class="form-control"id="floatingTextarea" style="height: 300px"></textarea>
+		  <label for="floatingTextarea">반려사유 입력</label>
+		</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="denialBtn" class="btn btn-danger btn-sm" data-plan-no="">반려확정</button>
+        <button type="button" id="cancelBtn" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">취소</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 반려사유 모달 HTML END -->
+
+<div id="processBtnBody">
+	<button type="submit" class="btn btn-primary btn-sm" onclick="getCheckboxValue();">선택승인</button>&nbsp;
+	<button type="submit" class="btn btn-danger btn-sm" onclick="getCheckboxValue2();">선택반려</button>
+	<button style="visibility:hidden;" type="button" id="realDenialBtn" data-bs-toggle="modal" data-bs-target="#denailModal"></button>
+</div>
+<table class="table table-striped">
+	<thead class="thead-dark">
+		<tr>
+			<th scope="col" class="frst">
+			<input type="checkbox" id="chkalltop" title="선택" onclick="checkAll()"></th>
+			<th>요청번호</th>
+			<th>학번</th>
+			<th>이름</th>
+			<th>분과대학</th>
+			<th>전공</th>
+			<th>학년</th>
+			<th>반</th>
+			<th>휴학학기</th>
+			<th>휴학시작일</th>
+			<th>휴학종료일</th>
+			<th>진행상태</th>
+			<th>반려</th>
+		</tr>
+	</thead>		
+	<tbody id="listBody">
+	</tbody>
+	<tfoot>
+			<tr>
+				<td colspan="11">
+					<div id="pagingArea">
+					</div>
+					<div id="searchDIV">
+					</div>
+					<div>
+						<select name="searchType">
+							<option value>전체</option>
+							<option value="USERNAME">이름</option>
+							<option value="USERNO">학번</option>
+						</select>
+						<input type="text" name="searchWord" />
+						<input type="button" value="검색"/>
+					</div>					
+				</td>
+			</tr>
+	</tfoot>
+</table>
+
+<form id="searchForm">
+	<input type="hidden" name="page" />
+	<input type="hidden" name="searchType" />
+	<input type="hidden" name="searchWord" />
+	<security:csrfInput/>
+</form>
+<script type="text/javascript">
+$("#chkalltop").click(function() {
+	if($("#chkalltop").is(":checked")) $("input[name=chk]").prop("checked", true);
+	else $("input[name=chk]").prop("checked", false);
+});
+
+const VIEWURLPTRN = "${cPath}/req/leaveSchoolList.do";
+let listBody = $("#listBody");
+let pagingArea = $("#pagingArea");
+let token = $("meta[name='_csrf']").attr("content");
+let header = $("meta[name='_csrf_header']").attr("content");
+//버튼
+let searchBtn = $("#searchBtn");
+let checkBtn = $("#checkBtn");
+let cancelBtn = $("#cancelBtn");
+let allApproveBtn = $("#allApproveBtn");
+let allDenialBtn = $("#allDenialBtn");
+let realDenialBtn = $("#realDenialBtn");
+let denialBtn = $("denialBtn");
+
+
+let searchForm = $("#searchForm").ajaxForm({
+	dataType:"json"
+	, success:function(paging){
+		listBody.empty();
+		pagingArea.empty();
+		searchForm[0].page.value="";
+		
+		let stuLeaveRequestList = paging.dataList;
+		let trTags = [];
+		if(stuLeaveRequestList && stuLeaveRequestList.length > 0){
+			$.each(stuLeaveRequestList, function(idx, stuLeaveRequest){
+				let trTag =  "<tr id=" + stuLeaveRequest.userNo + ">";
+					trTag += "<td>";
+					// 대기인 경우만 체크박스 표시
+					if(stuLeaveRequest.reqStat == "B101"){
+						trTag += "<input type='checkbox' name='chk'>";
+					}
+					trTag += "</td>";
+					trTag += "<td>" + stuLeaveRequest.reqId + "</td>";
+					trTag += "<td>" + stuLeaveRequest.userNo + "</td>";
+					trTag += "<td>" + stuLeaveRequest.userName + "</td>";
+					trTag += "<td>" + stuLeaveRequest.colName + "</td>";
+					trTag += "<td>" + stuLeaveRequest.deptName + "</td>";
+					trTag += "<td>" + stuLeaveRequest.stuYear + "</td>";
+					trTag += "<td>" + stuLeaveRequest.stuClass + "</td>";
+					trTag += "<td>" + stuLeaveRequest.reqSms + "</td>";
+					trTag += "<td>" + stuLeaveRequest.semsSdate + "</td>";
+					trTag += "<td>" + stuLeaveRequest.semsEdate + "</td>";
+					trTag += "<td>" + stuLeaveRequest.stsCode1 + "</td>";
+					
+					trTag += "<td>";
+					// 대기인 경우만 반려 버튼 표시
+					if(stuLeaveRequest.reqStat == "B101"){
+						trTag += "<input type='button' class='btn btn-danger btn-sm denialBtn' data-user-no=" + stuLeaveRequest.userNo + 
+						" data-bs-toggle='modal' data-bs-target='#denailModal' value='반려'>";
+					}
+					trTag += "</td>";
+				trTags.push(trTag);
+			});
+		}else{
+			let trTag = $("<tr>").html(
+							$("<td>").attr("colspan", "11")
+									 .html("조건에 맞는 학생이 없음.")
+						);
+			trTags.push(trTag);
+		} // if end
+		
+		listBody.append(trTags);
+		pagingArea.html(paging.pagingHTMLBS)
+		
+	} // success end
+	, resetForm : false
+}).submit();	
+
+//페이징 버튼 이벤트
+pagingArea.on("click", "a", function(){
+	let page = $(this).data("page");
+	searchForm.find("[name=page]").val(page);
+	searchForm.submit();
+});
+
+
+//승인버튼 눌렀을때 이벤트
+function getCheckboxValue()  {
+	  // 선택된 목록 가져오기
+	let leaveNos = [];
+	let leaveNosList = {};
+	
+	let names = listBody.find('input[name="chk"]:checked');
+	
+	// 휴학승인 할 학생이 체크되었는지 확인
+	if(names.length ==0){
+		alert("승인 할 학생을 선택해 주세요.");
+		return false;
+	}
+	 
+	// 휴학을 승인할 학생을 추출
+	$.each(names, function(idx, name){
+		let thisName = $(this).parents("tr").attr("id");
+	  	
+	  	let jsonEle = {
+	  		"userNo" : thisName
+	  	};
+	  	
+	  	leaveNos.push(jsonEle);
+ 	});
+	//휴학처리
+	if(leaveNos.length > 0){
+		if(confirm("승인처리 후 변경할수 없습니다.\n"+leaveNos.length+"명의 학생의 휴학을 승인하시겠습니까?")){
+		}
+		$.ajax({
+			url : "${cPath}/req/modifyStuLeaveTarget.do",
+			method : "post",
+			data : JSON.stringify(leaveNos),
+			contentType : "application/json",
+			dataType : "json",
+			beforeSend : function(xhr){
+				if (token && header) {
+					xhr.setRequestHeader(header, token);
+				}
+			},
+			success : function(resp){
+				alert("승인되었습니다.");
+				searchForm.submit();
+			},
+			error : function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+			}
+		});
+	};
+	
+	  
+}	
+
+listBody.on("click", ".denialBtn", function(){
+	let pickReqNo = $(this).data("userNo");
+	$("#floatingTextarea").val("");
+	$("#denailModalLabel").text("[학번 : "+pickReqNo+"] 반려사유 입력");
+	$("#denialBtn").data("userNo", pickReqNo);
+});
+
+//선택반려 눌렀을때 이벤트
+function getCheckboxValue2(){
+	  // 선택된 목록 가져오기
+	let leaveNos = [];
+	let leaveNosList = {};
+	
+	let names = listBody.find('input[name="chk"]:checked');
+	
+	// 반려 할 학생이 체크되었는지 확인
+	if(names.length ==0){
+		alert("반려 할 학생을 선택해 주세요.");
+		return false;
+	}
+	 
+	// 반려할 승인할 학생을 추출
+	$.each(names, function(idx, name){
+		let thisName = $(this).parents("tr").attr("id");
+	  	
+	  	let jsonEle = {
+	  		"userNo" : thisName
+	  	};
+	  	
+	  	leaveNos.push(jsonEle);
+
+	  	if(leaveNos.length > 0){
+			$("#floatingTextarea").val("");
+			$("#denailModalLabel").text("반려사유를 일괄 입력합니다.");
+			$("#denialBtn").data("userNo", "일괄");
+			realDenialBtn.trigger("click");
+		};
+
+ 	});
+	
+	
+	//반려처리
+	$.ajax({
+		url : "${cPath}/req/modifyStuReferLeaveTarget.do",
+		method : "post",
+		data : JSON.stringify(leaveNos),
+		contentType : "application/json",
+		dataType : "json",
+		beforeSend : function(xhr){
+			if (token && header) {
+				xhr.setRequestHeader(header, token);
+			}
+		},
+		success : function(resp){
+			denialBtn.on("click", function(){
+				let pickReqNo = $(this).data("userNo");
+				let reqDenlrsn = $("#floatingTextarea").val().trim();
+			if(reqDenlrsn == null || reqDenlrsn == ""){
+				alert("반려사유 입력해주세요.");
+				return false;
+			}
+			if(confirm("반려 확정하시겠습니까?")){
+				cancelBtn.trigger("click");
+			}else{
+				return false;
+			}
+			if(pickPlanNo == "일괄"){
+				denialUpdate(leaveNos, reqDenlrsn);
+			}else{
+				denialUpdate(pickReqNo, reqDenlrsn);
+			}
+			alert("반려되었습니다.");
+			searchForm.submit();
+			});
+
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+	
+}
+
+
+
+
+	
+</script>

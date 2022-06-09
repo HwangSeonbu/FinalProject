@@ -1,0 +1,56 @@
+package kr.or.ddit.enr.dao;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.AdminEnrollVO;
+import kr.or.ddit.vo.PagingVO;
+
+@Mapper
+public interface AdminEnrollDAO {
+
+	/**
+	 * 등록금부과 시킬 학생조회
+	 * @param paging
+	 * @return
+	 */
+	public List<AdminEnrollVO> selectEnrollList(PagingVO<AdminEnrollVO> paging);
+	
+	/**
+	 * 검색 조건에 맞는 등록금부과리스트 조회
+	 * @param paging
+	 * @return
+	 */
+	public int selectEnrollTotalRecord(PagingVO<AdminEnrollVO> paging);
+	
+	/**
+	 * 등록금 납부 시키면 enr 테이블에 insert
+	 * @param vo
+	 * @return
+	 */
+	public int insertEnroll(AdminEnrollVO vo);
+	
+	/**
+	 * 등록금 납부 확인 시킬 학생 조회
+	 * @param param
+	 * @return
+	 */
+	public List<AdminEnrollVO> selectFinalEnrollList(Map<String, Object> param);
+	
+	/**
+	 * 검색 조건에 맞는 등록금납부 확인 리스트 조회
+	 * @param param
+	 * @return
+	 */
+	public int selectFinalEnrollTotalRecord(Map<String, Object> param);
+	
+	/**
+	 * 등록금납부 확인되면 금액,납부일자 업데이트
+	 * @param vo
+	 * @return
+	 */
+	public int updateFinalEnroll(AdminEnrollVO vo);
+	
+}

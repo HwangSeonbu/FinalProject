@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.stomp.dao.MessageDAO">
+
+<!-- 	========================================================= -->
+	<insert id="messageSendInsert" parameterType="Map">
+		INSERT INTO MEMO
+		VALUES(MEMO_SEQ.NEXTVAL,#{senderNo},SYSDATE,#{message})
+	</insert>
+	
+	<insert id="messageReceiverInsert" parameterType="Map">
+		INSERT INTO RECEIVER (MEMO_NO,USER_NO)
+		VALUES(MEMO_SEQ.CURRVAL,#{receiver})
+	</insert>
+<!-- 	=====================받은메시지======================== -->
+	
+	<select id="messageList" parameterType="int" resultType="Map">
+	select b.*,c.user_name,c.user_no,a.view_date,TO_CHAR(b.memo_date,'YYYY-MM-DD HH24:MI') AS send_date
+	from receiver a
+	left outer join memo b on a.memo_no = b.memo_no
+	left outer join users c on b.user_no = c.user_no
+	where a.user_no = #{userNo}
+	order by b.MEMO_DATE DESC
+	</select>
+	
+	<select id="messageCount" parameterType="int" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		RECEIVER
+		WHERE USER_NO = #{userNo}
+		AND VIEW_DATE IS NULL
+	</select>
+	
+	<update id="messageReadFlag">
+		UPDATE RECEIVER SET VIEW_DATE = SYSDATE
+		WHERE MEMO_NO = #{memoNo} AND USER_NO = #{userNo}
+	</update>
+	
+	<!-- 	=================보낸메시지함================================ -->
+	
+	<select id="sendMessageList" parameterType="int" resultType="map">
+		select a.memo_no, a.memo_content, TO_CHAR(a.memo_date,'YYYY-MM-DD HH24:MI') AS send_date,
+		 LISTAGG(c.user_name,',') WITHIN GROUP (ORDER BY c.user_name ) AS memberList
+		from memo a 
+		left outer join receiver b on a.memo_no = b.memo_no
+		left outer join users c on b.user_no = c.user_no
+		where a.USER_NO = #{userNo} 
+		group by a.memo_no,a.memo_date, a.memo_content,TO_CHAR(a.memo_date,'YYYY-MM-DD HH24:MI')
+		order by a.memo_date desc
+	</select>
+	
+	<!-- 	========================================================= -->
+	
+	
+	
+<!-- 	==================받은메시지함 삭제======================== -->
+
+	<delete id="messageDelete">
+		delete from receiver
+		where memo_no = #{memoNo} and user_no = #{userNo} 
+	</delete>
+
+<!-- 	========================================================= -->
+
+	<select id="messageUserList" parameterType="int" resultType="MemberVO">
+	WITH MEMBER AS ( 
+		    SELECT DISTINCT A.USER_NO, A.USER_NAME,
+		         A.MEM_ROLE, B.DESCRIPTION AS USER_TYPE,
+		         A.USER_GENDER, A.USER_PHONE,
+		         A.USER_MAIL,A.USER_SAVENAME
+		    FROM USERS A 
+		    LEFT OUTER JOIN ROLES B ON A.USER_CODE = B.ROLE_ID 
+		    WHERE A.USER_NO != #{userNo}
+		)SELECT MEMBER.*
+		    , CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT S.DEPT_ID FROM STU S WHERE S.USER_NO = MEMBER.USER_NO)
+		    WHEN MEMBER.USER_TYPE = '교수' 
+		        THEN (SELECT P.DEPT_ID FROM PRO P WHERE P.PRO_NO = MEMBER.USER_NO)
+		    ELSE NULL
+		    END AS USER_DEPARTMENT ,
+		    CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT S.STU_YEAR FROM STU S WHERE S.USER_NO = MEMBER.USER_NO)
+		    ELSE NULL
+		    END AS STU_YEAR ,
+		     CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT C.STS_CODE1 FROM STU S,CODE C WHERE S.USER_NO = MEMBER.USER_NO AND S.STU_CODE = C.STS_ID)
+		    ELSE NULL
+		    END AS STU_CODE
+		    , CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT S.STU_CLASS FROM STU S WHERE S.USER_NO = MEMBER.USER_NO)
+		    ELSE NULL
+		    END AS STU_CLASS
+		    , CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT D.DEPT_NAME FROM STU S, DEPARTMENT D WHERE S.USER_NO = MEMBER.USER_NO AND S.DEPT_ID = D.DEPT_ID)
+		    WHEN MEMBER.USER_TYPE = '교수' 
+		        THEN (SELECT D.DEPT_NAME FROM PRO P, DEPARTMENT D WHERE P.PRO_NO = MEMBER.USER_NO AND P.DEPT_ID = D.DEPT_ID)
+		    ELSE NULL
+		    END AS USER_DEPARTMENT_NAME 
+		    
+		FROM MEMBER
+	</select>	
+	
+	<!-- 	========================================================= -->
+<!-- 	학생만,교수만,학사관리자만 -->
+	<select id="messageUserListSearch" parameterType="map" resultType="MemberVO">
+	WITH MEMBER AS ( 
+		    SELECT DISTINCT A.USER_NO, A.USER_NAME,
+		         A.MEM_ROLE, B.DESCRIPTION AS USER_TYPE,
+		         A.USER_GENDER, A.USER_PHONE,
+		         A.USER_MAIL,A.USER_SAVENAME
+		    FROM USERS A 
+		    LEFT OUTER JOIN ROLES B ON A.USER_CODE = B.ROLE_ID 
+		    WHERE A.USER_NO != #{userNo}
+		    <if test="userType neq null">
+		    AND A.MEM_ROLE = #{userType}
+		    </if>
+		),
+	MEMBER2 AS(	
+		SELECT MEMBER.*
+		    , CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT S.DEPT_ID FROM STU S WHERE S.USER_NO = MEMBER.USER_NO)
+		    WHEN MEMBER.USER_TYPE = '교수' 
+		        THEN (SELECT P.DEPT_ID FROM PRO P WHERE P.PRO_NO = MEMBER.USER_NO)
+		    ELSE NULL
+		    END AS USER_DEPARTMENT ,
+		    CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT S.STU_YEAR FROM STU S WHERE S.USER_NO = MEMBER.USER_NO)
+		    ELSE NULL
+		    END AS STU_YEAR ,
+		     CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT C.STS_CODE1 FROM STU S,CODE C WHERE S.USER_NO = MEMBER.USER_NO AND S.STU_CODE = C.STS_ID)
+		    ELSE NULL
+		    END AS STU_CODE
+		    , CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT S.STU_CLASS FROM STU S WHERE S.USER_NO = MEMBER.USER_NO)
+		    ELSE NULL
+		    END AS STU_CLASS
+		    , CASE
+		    WHEN MEMBER.USER_TYPE = '학생' 
+		        THEN (SELECT D.DEPT_NAME FROM STU S, DEPARTMENT D WHERE S.USER_NO = MEMBER.USER_NO AND S.DEPT_ID = D.DEPT_ID)
+		    WHEN MEMBER.USER_TYPE = '교수' 
+		        THEN (SELECT D.DEPT_NAME FROM PRO P, DEPARTMENT D WHERE P.PRO_NO = MEMBER.USER_NO AND P.DEPT_ID = D.DEPT_ID)
+		    ELSE NULL
+		    END AS USER_DEPARTMENT_NAME 
+		    
+		FROM MEMBER
+		)
+		SELECT MEMBER2.*
+        FROM MEMBER2
+        
+<!--         	두개다 있을때 -->
+        <where>
+	    	<if test="deptName neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(deptName) and searchName neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchName)">
+					MEMBER2.USER_DEPARTMENT_NAME = #{deptName}
+					AND MEMBER2.USER_NAME LIKE #{searchName}||'%'
+	    	</if>
+	    
+<!-- 	    deptname만 있을때 -->
+	    	<if test="deptName neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(deptName) and searchName eq null and @org.apache.commons.lang3.StringUtils@isBlank(searchName)">
+					MEMBER2.USER_DEPARTMENT_NAME = #{deptName}
+	    	</if>
+	    
+<!-- 	    searchName만 있을때 -->
+	    	<if test="searchName neq null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchName) and @org.apache.commons.lang3.StringUtils@isBlank(deptName)">
+					MEMBER2.USER_NAME LIKE #{searchName}||'%'
+					
+	    	</if>
+	    </where>
+  
+	</select>	
+	
+	<select id="messageDeptNameList" resultType="map">
+		SELECT DEPT_NAME FROM DEPARTMENT
+	</select>
+	
+</mapper>

@@ -1,0 +1,34 @@
+/* 타이틀 */
+.h3-title{font-weight: bold;}
+.hr-title{border : 0px; border-top: 5px solid #D7CCC8;}
+
+/* 테이블 */
+#dataDomination{
+	position: absolute;
+	border: 1px solid red;
+	width: 1500px;
+	height: 930px;
+}
+#dataListBody{
+	position: absolute;
+	top: 45px;
+	border: 1px solid blue;
+	width: 1490px;
+	height: 650px;
+	overflow-y: scroll;
+}
+#dataPageBody{
+	position: absolute;
+	top: 700px;
+	border: 1px solid blue;
+	width: 1490px;
+	height: 40px;
+}
+.btn-sm{font-size: 8px;}
+.tr-headLine{text-align: center;vertical-align: middle;background-color:#ebebeb;}
+.tr-targetHover:hover{background-color:#ededed;}
+.tr-pickTarget{background-color:#212f52;color:white;font-weight:bold;}
+.tr-pickTarget a{color:yellow;font-weight: bold;}
+
+
+/* */

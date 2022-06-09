@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.ast.dao.AssessmentDAO">
+	<select id="selectAstTargetLecList" parameterType="map" resultType="AstLecVO">
+		SELECT A.LEC_ID
+		    , B.USER_NO
+		    , C.PLAN_NO, C.PRO_NAME, P.DEPT_ID
+		    , E.COL_NAME, E.DEPT_NAME, C.LEC_NAME
+		    , D.PLAN_SMRY, D.SJT_ID, D.PLAN_TCNT, D.PLAN_EVAL
+		    , F.SJT_CREDIT, F.SJT_MAJOR
+		    , (SELECT COUNT(*) FROM AST
+		        WHERE AST_DIV = '강의'
+		        AND LEC_ID = A.LEC_ID
+		        AND USER_NO = 1) "AST_CNT"
+		FROM CLS A, LEC B, PRO P, PLANOK C, PLAN D, DEPARTMENT E
+		    , SJT F
+		WHERE A.LEC_SEMS = #{lecSems}
+		AND A.USER_NO = #{userNo}
+		AND A.LEC_ID = B.LEC_ID
+		AND B.LEC_STS != '폐강'
+		AND B.USER_NO = P.PRO_NO
+		AND A.LEC_ID = C.LEC_ID
+		AND C.PLAN_NO = D.PLAN_NO
+		AND P.DEPT_ID = E.DEPT_ID
+		AND D.SJT_ID = F.SJT_ID
+		ORDER BY SJT_MAJOR DESC	
+	</select>
+	
+	<select id="selectAstTargetProList" parameterType="map" resultType="AstProVO">
+		SELECT E.*
+		    , (SELECT COUNT(*) FROM AST
+		        WHERE AST_DIV = '교수'
+		        AND PRO_NO = E.USER_NO
+		        AND USER_NO = #{userNo}) "AST_CNT"
+		FROM(
+		    SELECT USER_NO, DEPT_ID, COL_NAME, DEPT_NAME, PRO_JOB, USER_GENDER, USER_NAME
+		        , LISTAGG(LEC_NAME, ' | ') WITHIN GROUP (ORDER BY LEC_NAME) LEC_NAME
+		    FROM(
+		        SELECT B.USER_NO
+		            , P.DEPT_ID
+		            , D.COL_NAME, D.DEPT_NAME
+		            , P.PRO_JOB, U.USER_GENDER
+		            , C.LEC_NAME
+		            , U.USER_NAME
+		        FROM CLS A, LEC B, PRO P, PLANOK C, DEPARTMENT D, USERS U
+		        WHERE A.LEC_SEMS = #{lecSems} 
+		        AND A.USER_NO = #{userNo}
+		        AND A.LEC_ID = B.LEC_ID
+		        AND B.LEC_STS != '폐강'
+		        AND B.USER_NO = P.PRO_NO
+		        AND A.LEC_ID = C.LEC_ID
+		        AND B.USER_NO = U.USER_NO
+		        AND P.DEPT_ID = D.DEPT_ID
+		    )
+		    GROUP BY USER_NO, DEPT_ID, COL_NAME, DEPT_NAME, PRO_JOB, USER_GENDER, USER_NAME
+		) E
+	</select>
+</mapper>

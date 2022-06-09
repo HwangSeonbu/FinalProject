@@ -1,0 +1,167 @@
+package kr.or.ddit.room.service;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+
+import kr.or.ddit.room.dao.ProfessorRoomSetDAO;
+import kr.or.ddit.vo.AssignVO;
+import kr.or.ddit.vo.DepartLectureAssignVO;
+import kr.or.ddit.vo.DepartRoomSetVO;
+import kr.or.ddit.vo.DepartmentVO;
+import kr.or.ddit.vo.GwanVO;
+import kr.or.ddit.vo.LecCompTargetVO;
+import kr.or.ddit.vo.LectureVO;
+import kr.or.ddit.vo.PlanEditVO;
+import kr.or.ddit.vo.PlanVO;
+import kr.or.ddit.vo.SemsVO;
+
+@Service
+public class ProfessorRoomSetServiceImpl implements ProfessorRoomSetService {
+
+	@Inject
+	ProfessorRoomSetDAO dao;
+	
+	
+	@Override
+	public List<DepartLectureAssignVO> retrieveDepartLecList(PlanVO vo) {
+		
+		List<DepartLectureAssignVO> resultList = dao.selectDepartLecList(vo);
+		
+		for(DepartLectureAssignVO eachVo : resultList) {
+			List<AssignVO> assignList = eachVo.getAssignList();
+			String roomNoStr;
+			for(AssignVO assignVo : assignList) {
+				String assignDay = assignVo.getAssignDay();
+				Integer assignTime = null;
+				if(assignVo.getRoomNo() == null) {
+					roomNoStr = "미정";
+				}else {
+					roomNoStr = String.valueOf(assignVo.getRoomNo());
+				}
+				eachVo.setRoomNoStr(roomNoStr);
+				if(assignVo.getAssignTime() != null){
+					assignTime = Integer.parseInt(assignVo.getAssignTime());
+				}
+				
+				if(assignDay != null && assignTime != null) {
+					assignVo.setAssignDt(assignDay+assignTime);
+				}else {
+					assignVo.setAssignDt("미정");
+				}
+			}
+		}
+		return resultList;
+	}
+
+	@Override
+	public DepartmentVO retrieveDepartOne(String deptId) {
+		DepartmentVO vo = dao.selectDepartOne(deptId);
+		String gwanName = vo.getColGwan();
+		GwanVO gwanVo = dao.selectGwanOne(gwanName);
+		
+		vo.setGwanVo(gwanVo);
+		
+		return vo;
+	}
+
+	@Override
+	public List<AssignVO> retrieveRoomAssignList(AssignVO vo) {
+		
+		return dao.selectRoomAssignList(vo);
+	}
+
+	@Override
+	public int modifyDepartRoomAssign(DepartRoomSetVO vo) {
+		AssignVO assignVo = new AssignVO();
+		int result = 0;
+		Integer tcnt = vo.getPickTcnt();
+		String assignNo1 = vo.getAssignNo1();
+		String assignNo2 = vo.getAssignNo2();
+		String assignDt1 = vo.getAssignDt1();
+		String assignDt2 = vo.getAssignDt2();
+		Integer roomNo = vo.getRoomNo();
+		String gwanName = vo.getGwanName();
+		
+		if(tcnt == 1) {
+			assignVo.setAssignNo(assignNo1);
+			assignVo.setAssignDay(String.valueOf(assignDt1.charAt(0)));
+			assignVo.setAssignTime(String.valueOf(assignDt1.charAt(1)));
+			assignVo.setRoomNo(roomNo);
+			assignVo.setGwanName(gwanName);
+			result = dao.updateLecAssignOne(assignVo);
+			assignVo.setAssignNo(assignNo2);
+			result += dao.updateLecAssignOne(assignVo);
+		}else {
+			assignVo.setAssignNo(assignNo1);
+			assignVo.setAssignDay(String.valueOf(assignDt1.charAt(0)));
+			assignVo.setAssignTime(String.valueOf(assignDt1.charAt(1)));
+			assignVo.setRoomNo(roomNo);
+			assignVo.setGwanName(gwanName);
+			result = dao.updateLecAssignOne(assignVo);
+			assignVo.setAssignNo(assignNo2);
+			assignVo.setAssignDay(String.valueOf(assignDt2.charAt(0)));
+			assignVo.setAssignTime(String.valueOf(assignDt2.charAt(1)));
+			result += dao.updateLecAssignOne(assignVo);
+		}
+		
+		return result;
+	}
+
+	@Override
+	public List<DepartLectureAssignVO> retrieveSubmitTargetList(PlanVO vo) {
+		List<DepartLectureAssignVO> dataList = dao.selectSubmitTargetList(vo);
+		for(DepartLectureAssignVO eachVo : dataList) {
+			String assignSts = "배정";
+			int tcnt = eachVo.getPlanTcnt();
+			Integer roomNo = eachVo.getRoomNo();
+			String assigngDt = eachVo.getAssignDt();
+			if(roomNo == null || assigngDt == null) {
+				assignSts = "미배정";
+			}else {
+				String[] afterDt = assigngDt.split(",");
+				if(tcnt == 1) {
+					eachVo.setAssignDt1(afterDt[0]);
+					eachVo.setAssignDt2("-");
+				}else {
+					eachVo.setAssignDt1(afterDt[0]);
+					eachVo.setAssignDt2(afterDt[1]);
+				}
+			}
+			eachVo.setAssignSts(assignSts);
+		}
+		return dataList;
+	}
+
+	@Override
+	public List<DepartLectureAssignVO> retrieveDuplicationResult(List<Integer> planNoList) {
+		SemsVO semsVo = (SemsVO) RequestContextHolder.getRequestAttributes()
+                .getAttribute("semsVo", RequestAttributes.SCOPE_SESSION);
+		int nextSems = semsVo.getNextSems();
+		
+		List<DepartLectureAssignVO> dupleList = dao.selectDuplicatedList(nextSems);
+		
+		if(dupleList == null || dupleList.size() == 0) {
+			return null;
+		}else {
+			return dupleList;
+		}
+	}
+
+	@Override
+	public int modifyAssignToSubmit(List<Map<String, Object>> planNoList) {
+		int resCnt = 0;
+		for(Map<String, Object> planNo : planNoList) {
+			resCnt += dao.updateAssignStatus(Integer.parseInt(String.valueOf(planNo.get("planNo"))));
+		}
+		
+		return resCnt;
+	}
+
+}

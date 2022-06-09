@@ -1,0 +1,40 @@
+package kr.or.ddit.homework.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.exception.PKNotFoundException;
+import kr.or.ddit.homework.dao.HomeworkDAO;
+import kr.or.ddit.vo.LecHomeworkVO;
+import kr.or.ddit.vo.PagingVO;
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
+@Service
+public class HomeworkServiceImpl implements HomeworkService {
+	@Inject
+	private HomeworkDAO dao;
+
+	@Override
+	public List<LecHomeworkVO> retrieveHomeworkList(PagingVO<LecHomeworkVO> paging) {
+		int totalRecord = dao.totalHomeworkList(paging);
+		paging.setTotalRecord(totalRecord);
+		List<LecHomeworkVO> dataList = dao.homeworkList(paging);
+		
+		paging.setDataList(dataList);;
+		log.info("dataList:{}",dataList);
+		return dataList;
+
+	}
+
+	@Override
+	public LecHomeworkVO retrieveHomework(Integer lechwkNo) {
+		LecHomeworkVO hw = dao.homework(lechwkNo);
+		if(hw==null)
+			throw new PKNotFoundException(lechwkNo+"에 해당하는 번호가 없습니다.");
+		return hw;
+	}
+
+}

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+
+
+	<bean id="messageSources"
+		class="org.springframework.security.core.SpringSecurityMessageSource"
+		p:basename="org.springframework.security.messages" />
+
+	<bean id="passwordEncoder"
+		class="org.springframework.security.crypto.factory.PasswordEncoderFactories"
+		factory-method="createDelegatingPasswordEncoder" />
+
+
+	<bean id="daoAuthenticationProvider"
+		class="org.springframework.security.authentication.dao.DaoAuthenticationProvider"
+		p:hideUserNotFoundExceptions="false"
+		p:messageSource-ref="messageSources"
+		p:passwordEncoder-ref="passwordEncoder"
+		p:userDetailsService-ref="authencticateServiceImpl"/>
+
+	<security:authentication-manager
+		erase-credentials="true" id="authenticationManager">
+		<security:authentication-provider
+			ref="daoAuthenticationProvider" />
+	</security:authentication-manager>
+
+
+
+
+
+
+	<!-- p:hierarchy-ref="hierarchyString" -->
+
+	<bean id="accessDecisionManager"
+		class="org.springframework.security.access.vote.AffirmativeBased"
+		p:allowIfAllAbstainDecisions="false">
+		<!--SecurityExpressionRoot 의 securityEL 을 사용한 접근제어를 위해 필요한 AccessDecisionVoter -->
+		<constructor-arg name="decisionVoters">
+			<list>
+				<!-- IS_AUTHENTICATED_ANONYMOUS, IS_REMEMBERME 등의 접근에 대한 결정자 -->
+				<bean
+					class="org.springframework.security.access.vote.AuthenticatedVoter" />
+				<!-- 계층형 권한 처리를 위한 결정자 -->
+				<bean
+					class="org.springframework.security.access.vote.RoleVoter"  />
+				<!-- SpringExpressionRoot 의 securityEL(built-in) 메소드를 사용하는 결정자 -->
+				<bean
+					class="org.springframework.security.web.access.expression.WebExpressionVoter" />
+			</list>
+		</constructor-arg>
+	</bean>
+
+	<!-- 데이터베이스내의 보호된 리소스-권한 매핑 정보를 조회한후 관리할 map 을 생성하는 factory bean -->
+	<bean id="requestMap"
+		class="kr.or.ddit.security.RequestMapFactoryBean"
+		p:dataSource-ref="dataSource" />
+
+	<bean id="filterInvocationSecurityMetadataSource"
+		class="org.springframework.security.web.access.intercept.DefaultFilterInvocationSecurityMetadataSource"
+		c:requestMap-ref="requestMap" />
+
+	<!-- 리퀘스트를 가로챈 interceptor 가 Http 리소스에 대한 보호를 수행하기 위해 요청url-권한에 대한 정보를 가진 
+		SecurityMetadataSource 가 필요함 -->
+	<bean id="filterSecurityInterceptor"
+		class="org.springframework.security.web.access.intercept.FilterSecurityInterceptor"
+		p:authenticationManager-ref="authenticationManager"
+		p:accessDecisionManager-ref="accessDecisionManager"
+		p:securityMetadataSource-ref="filterInvocationSecurityMetadataSource" />
+	
+	<!-- CustomAuthenticationSuccessHandler로 defaultUrl 보냈음 -->
+	<!-- 로그인 후처리 핸들러 사용할 시. -->
+<!-- 	<bean id="authenticationSuccessHandler" -->
+<!-- 		class="kr.or.ddit.security.handler.CustomAuthenticationSuccessHandler"> -->
+<!-- 		<property name="defaultUrl" value="/main.do" /> -->
+<!-- 		<property name="alwaysUseDefaultTargetUrl" value="true"/> -->
+<!-- 	</bean> -->
+
+	<bean id="customLogoutSuccessHandler"
+		class="kr.or.ddit.security.handler.CustomLogoutSuccessHandler"
+		p:defaultTargetUrl="/login/loginForm.do"
+		p:alwaysUseDefaultTargetUrl="false" />
+<!-- 			authentication-success-handler-ref="authenticationSuccessHandler" -->
+
+	<security:http auto-config="true" use-expressions="true"
+		authentication-manager-ref="authenticationManager">
+		<security:form-login
+			login-page="/login/loginForm.do"
+			login-processing-url="/login/loginProcess.do"
+			username-parameter="memId" password-parameter="memPass"
+			default-target-url="/main.do"
+			always-use-default-target="true"
+			authentication-failure-url="/login/loginForm.do?error=true"
+			 />
+		<security:logout logout-url="/login/logout.do"
+			invalidate-session="true"
+			success-handler-ref="customLogoutSuccessHandler" 
+			delete-cookies="JSESSIONID"
+			/>
+		<security:intercept-url
+			pattern="/myPage" access="isAuthenticated()" />
+
+	
+		<security:custom-filter
+			ref="filterSecurityInterceptor" before="FILTER_SECURITY_INTERCEPTOR" />
+
+<!-- 		<security:intercept-url -->
+<!-- 			pattern="/board/**" access="hasAnyRole('ROLE_MANAGER','ROLE_STUDENT','ROLE_PROFESSOR')"  />			 -->
+				
+	</security:http>
+</beans>

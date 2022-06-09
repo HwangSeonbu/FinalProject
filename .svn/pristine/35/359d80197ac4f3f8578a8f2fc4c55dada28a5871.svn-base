@@ -1,0 +1,46 @@
+package kr.or.ddit.vo;
+
+import java.io.Serializable;
+import java.util.List;
+
+import org.springframework.web.util.HtmlUtils;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+/**강의 과제 게시판 vo
+ * @author 황선부
+ * @since 2022. 5. 23.
+ * @version 1.0
+ * @see javax.servlet.http.HttpServlet
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일                          수정자               수정내용
+ * --------     --------    ----------------------
+ * 2022. 5. 23.      황선부       최초작성
+ * Copyright (c) 2022 by DDIT All right reserved
+ * </pre>
+ */
+@Data
+@EqualsAndHashCode(of="leckwkNo")
+public class LecHomeworkVO implements Serializable {
+	private Integer lechwkNo;
+	private Integer lecSems;
+	private String lecId;
+	private String userNo;
+	private String lechwkName;
+	private String lechwkCont;
+	private String lechwkDate;
+	private String lechwkCode;
+	private String registDate;
+	private int hit;
+	//homework List
+	private List<HwkVO> hwkList;
+	//evaluation List
+	private List<EvaStandardVO> evaList;
+	
+	public String getHtmlContent(String lechwkCont) {
+		return HtmlUtils.htmlUnescape(this.lechwkCont);		
+	}
+}
+

@@ -1,0 +1,16 @@
+package kr.or.ddit.ast.dao;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import kr.or.ddit.vo.AstLecVO;
+import kr.or.ddit.vo.AstProVO;
+
+@Mapper
+public interface AssessmentDAO {
+	public List<AstLecVO> selectAstTargetLecList(Map<String, Integer> paramMap);
+	
+	public List<AstProVO> selectAstTargetProList(Map<String, Integer> paramMap);
+}

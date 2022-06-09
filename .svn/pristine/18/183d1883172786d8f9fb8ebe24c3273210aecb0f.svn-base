@@ -1,0 +1,43 @@
+package kr.or.ddit.sugang.controller;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import kr.or.ddit.sugang.service.StudentSugangService;
+import kr.or.ddit.vo.StudentSugangVO;
+
+@Controller
+@RequestMapping("/sugang")
+public class StudentTimeTableController {
+
+	@Inject
+	StudentSugangService service;
+	
+	@RequestMapping("timeTableView.do")
+	public String timeTableView() {
+		
+		return "sugang/studentLecTimeTable";
+	}
+	
+	
+	@RequestMapping("timeTableDataView.do")
+	public String timeTableDataView(Model model) {
+		
+		List<StudentSugangVO> stuSugangList = service.retrieveStuSugangTimeTable(14);
+		
+		model.addAttribute("stuSugangList", stuSugangList);
+		return "jsonView";
+	}
+	
+	
+	@RequestMapping("preTimeTableView.do")
+	public String preTimeTableView() {
+		
+		return "sugang/studentLecPreTimeTable";
+	}
+}

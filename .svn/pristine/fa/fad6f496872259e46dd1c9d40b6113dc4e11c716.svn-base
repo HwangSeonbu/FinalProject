@@ -1,0 +1,245 @@
+<%--
+	관리자의 강의계획 개설처리
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 29.      김재웅      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<h3 class="h3-title">강의개설 처리</h3><hr class="hr-title">
+<style>
+	.col{
+		border: 1px solid black;
+		height: 40px;
+		padding-top: 5px;
+	}
+	.title{
+		text-align: center;
+		background-color: #dee2e6;
+		font-weight: bold;
+	}
+	#planContainer{
+		position: absolute;
+		border: 1px solid red;
+		width: 1500px;
+		height: 930px;
+	}
+	#planListBody{
+		position: absolute;
+		top: 45px;
+		border: 1px solid blue;
+		width: 1490px;
+		height: 530px;
+		overflow-y: scroll;
+	}
+	#planPageBody{
+		position: absolute;
+		top: 580px;
+		border: 1px solid blue;
+		width: 1380px;
+		height: 40px;
+	}
+	.pagination{
+		padding-left: 500px;
+	}
+	.tr-headLine{
+		text-align: center;
+		vertical-align: middle;
+		background-color:#ebebeb;
+	}
+	.tr-targetHover:hover{
+		background-color:#ededed;
+	}
+	.enrollBtn{font-size: 8px;}
+	#searchForm{
+		position: absolute;
+		top: 900px;
+	}
+	a {
+  		text-decoration-line: none;
+	}
+	
+	.tr-pickTarget{
+		background-color: #212f52;
+		color:white;
+	}
+	.tr-pickTarget a{
+		color:yellow;
+		font-weight: bold;
+	}
+	.td-leftAlign{
+		text-align: left;
+	}
+	.btn-sfont{
+		margine:2px;
+	}
+</style>
+
+<div id="planContainer">
+	<div id="planListBody">
+		<table class="table table-bordered" id="planTable">
+			 <thead>
+			    <tr class="tr-headLine">
+			    	<th ><input id="checkAll" type="checkbox" /></th>	
+			    	<th >계획<br>번호</th>	
+			    	<th >분과대학</th>	
+			    	<th >소속학과</th>	
+			    	<th >학과<br>교수</th>	
+			    	<th >강의<br>교수</th>	
+			    	<th >강의과목</th>	
+			    	<th >강의요약</th>	
+			    	<th >시수</th>	
+			    	<th >강의관</th>	
+			    	<th >강의실</th>	
+			    	<th >시간1</th>	
+			    	<th >시간2</th>
+			    	<th >배정<br>상태</th>
+			    	<th >배정<br>제출</th>
+			    	<th >개설</th>
+			    </tr>
+			 </thead>
+			 <tbody class="text-center" id="planListTbody">
+			 </tbody>
+			</table>
+	</div>
+	<div id="planPageBody"></div>
+</div>
+
+<div id="divView"></div>
+
+<script>
+
+let planListTbody = $("#planListTbody");
+let planPageBody = $("#planPageBody");
+let page = "";
+
+function compTargetList(){
+	$.ajax({
+		url : "${cPath}/lecComp/LectureCompleteFormData.do",
+		method : "get",
+		data : {page:page},
+		dataType : "json",
+		success : function(resp) {
+			planListTbody.empty();
+			planPageBody.empty();
+			
+			let paging = resp.pagingVo;
+			let planList = paging.dataList;
+			
+			let trTags = [];
+			if(planList && planList.length > 0){
+				$.each(planList, function(idx, plan){
+					let roomNo = plan.roomNo;
+					let assignSubmit = plan.assignSubmit;
+					if(roomNo == null || roomNo == ""){
+						roomNo = "미정";
+					}
+					
+					let trTag = $("<tr>").attr("data-plan-no", plan.planNo).addClass("tr-targetLine tr-targetHover");
+					if(assignSubmit == "미제출"){
+						trTag.append($("<td>"));
+					}else{
+						trTag.append($("<td>").append($("<input>").attr("type", "checkbox")
+								.attr("id", plan.planNo).addClass("checkEach")));
+					}
+					trTag.append(
+							$("<td>").html(plan.planNo)
+							, $("<td>").html(plan.colName)	
+							, $("<td>").html(plan.deptName)	
+							, $("<td>").append($("<a>").attr("href", "#")
+									.addClass("nameClick").text(plan.headproName).attr("data-user-no", plan.proNo))
+							, $("<td>").append($("<a>").attr("href", "#")
+									.addClass("nameClick").text(plan.proName).attr("data-user-no", plan.userNo))
+							, $("<td>").html(plan.sjtName).addClass("td-leftAlign")
+							, $("<td>").html(plan.planSmry).addClass("td-leftAlign")
+							, $("<td>").html(plan.planTcnt)	
+							, $("<td>").html(plan.gwanName)	
+							, $("<td>").html(roomNo)	
+							, $("<td>").html(plan.assignDt1)	
+							, $("<td>").html(plan.assignDt2)	
+							, $("<td>").html(plan.assignSts)
+							, $("<td>").html(plan.assignSubmit));
+						if(assignSubmit == "미제출"){
+							trTag.append($("<td>").append($("<input>").attr("type", "button").attr("disabled", true)
+									.attr("value", "불가").addClass("btn btn-secondary btn-sm btn-sfont")));
+						}else{
+							trTag.append($("<td>").append($("<input>").attr("type", "button")
+									.attr("value", "개설").addClass("btn btn-primary btn-sm detailBtn btn-sfont").attr("data-plan-no", plan.planNo)
+									.attr("data-bs-toggle", "modal").attr("data-bs-target", "#detailModal")));
+						}
+					trTags.push(trTag);
+				});
+			}else{
+				let trTag = $("<tr>").html(
+								$("<td>").attr("colspan", "16")
+										 .html("조건에 맞는 개설 대상 강의가 없습니다.")
+							);
+				trTags.push(trTag);
+			} // if end
+			planListTbody.append(trTags);
+			planPageBody.html(paging.pagingHTMLBS);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+compTargetList();
+
+
+planListTbody.on("click", ".nameClick", function(e){
+	let userNo = $(this).data("userNo");
+	//alert(userNo);
+	var divTop = e.clientY-40;	//상단 좌표 위치 안맞을시 e.pageY 
+	var divLeft = e.clientX;	//좌측 좌표 위치 안맞을시 e.pageX 
+	
+	var pickNo = userNo;
+	var pickName = $(this).text(); 
+	
+	divView.empty();
+	divView.append($("<div>").css({"position":"absolute", "top":"5px", "right":"5px"})
+						.append($("<span>").attr("id", "close").css({"cursor":"pointer", "font-size":"1.5em"})
+								.text("X"))
+				, $("<br>"), $("<a>").attr("href", "#").text(pickNo), $("<br>"), $("<a>").attr("href", "#").text(pickName)
+	);
+	divView.css({"top":divTop, "left":divLeft , "position":"absolute"}).show(); 
+	
+	$("#close").click(function(){
+		divView.hide();
+	}); 
+});
+
+//페이지네이션 클릭시
+planPageBody.on("click", "a", function(){
+	page = $(this).data("page");
+	compTargetList();
+});
+
+planListTbody.on("click", ".tr-targetLine", function(){
+	$(".tr-targetLine").addClass("tr-targetHover");
+	if($(this).hasClass("tr-pickTarget")){
+		$(this).addClass("tr-targetHover");
+		$(this).removeClass("tr-pickTarget");
+	}else{
+		$(".tr-targetLine").removeClass("tr-pickTarget");
+		$(this).addClass("tr-pickTarget");
+		$(this).removeClass("tr-targetHover");
+	}
+});
+
+planListTbody.on("click", ".checkEach", function(e){
+	
+});
+</script>
+
+
+
+
+
+
+
+

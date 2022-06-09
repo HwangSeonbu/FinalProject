@@ -1,0 +1,16 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+
+@Data
+public class DepartRoomSetVO {
+
+	private Integer planNo;
+	private String assignNo1;
+	private String assignNo2;
+	private String assignDt1;
+	private String assignDt2;
+	private Integer roomNo;
+	private String gwanName;
+	private Integer pickTcnt;
+}

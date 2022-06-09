@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 학생이 자신의 출석 or 성적 인정신청현황을 보기위해 사용되는 xml  -->
+<!--  [[개정이력(Modification Information)]]       -->
+<!--  수정일        수정자     수정내용               -->
+<!--  ==========   ======    ==============        -->
+<!--  2022. 4. 28.}     주창규     최초작성               -->
+<!--  Copyright (c) 2022 by DDIT All right reserved -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.objection.dao.ObjectionDAO">
+
+<!-- 		테스트 버전이라 바꿔야함  -->
+	<select id="selectStudentAttendanceObjection" parameterType="StudentVO" resultType="ObjectionVO">
+		SELECT DISTINCT B.LEC_SEMS 
+		       , A.USER_NO 
+		       , A.USER_NAME
+		       , LEC_NAME
+		       , PRO_NAME 
+		       , ATTABS_DATE 
+		       , ATTABS_CODE 
+		FROM   USERS A INNER JOIN ATTABS B ON(A.USER_NO = B.USER_NO)
+		             INNER JOIN CLS C ON(B.LEC_ID = C.LEC_ID)
+		             INNER JOIN LEC D ON(C.LEC_ID = D.LEC_ID)
+		             INNER JOIN PLANOK E ON(D.LEC_ID = E.LEC_ID)
+		WHERE A.USER_NO = #{userNo}
+		ORDER BY B.ATTABS_DATE
+	</select>
+</mapper>

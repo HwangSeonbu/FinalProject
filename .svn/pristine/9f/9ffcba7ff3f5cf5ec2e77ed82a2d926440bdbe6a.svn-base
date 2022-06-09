@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" 
+		p:driverClassName="${driverClassName}"
+		p:url="${url}"
+		p:username="${user}"
+		p:password="${password}"
+		p:initialSize="${initialSize}"
+		p:maxTotal="${maxTotal}"
+		p:maxWaitMillis="${maxWait}"
+	/>
+	
+	
+	<!-- 	JDBCTYPE이 널이면 VARCHAR -->
+	<bean id="configuration" class="org.apache.ibatis.session.Configuration" 
+		p:mapUnderscoreToCamelCase="true"
+		p:jdbcTypeForNull="VARCHAR"
+		p:multipleResultSetsEnabled="true"
+	/>
+	<!-- 	https://mybatis.org/mybatis-3/ko/configuration.html 에서 참조하면됨. -->
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" 
+		p:configuration-ref="configuration"
+		p:dataSource-ref="dataSource"
+		p:typeAliasesPackage="kr.or.ddit.vo"
+		p:mapperLocations="classpath:kr/or/ddit/db/mybatis/mappers/*.xml"
+	>
+	</bean>
+	
+	
+	
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate" 
+		c:sqlSessionFactory-ref="sqlSessionFactory"
+	/>
+	
+	<mybatis-spring:scan base-package="kr.or.ddit.**.dao" 
+		annotation="org.apache.ibatis.annotations.Mapper"
+	/>
+	
+	<!-- Jasypt -->
+	<bean id="environmentVariablesConfiguration" class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+		<property name="algorithm" value="PBEWITHMD5ANDDES" />
+		<property name="password" value="team3"/>
+	</bean>
+		
+	<bean id="configurationEncryptor" class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+		<property name="config" ref="environmentVariablesConfiguration" />
+	</bean>
+		
+	<bean id="propertyConfig" class="org.jasypt.spring31.properties.EncryptablePropertyPlaceholderConfigurer">
+		<constructor-arg ref="configurationEncryptor"/>
+		<property name="location" value="classpath:kr/or/ddit/db/dbInfo.properties"/>
+	</bean>
+	
+</beans>
+
+
+
+
+
+
+
+
+

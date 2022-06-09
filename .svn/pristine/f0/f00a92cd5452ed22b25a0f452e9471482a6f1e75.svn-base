@@ -1,0 +1,12 @@
+<%--
+교수의 강의계획성 입력 양식 
+(제목을 클릭하면 점수 비중을 설정하는 jsp로 이동한다)
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 28.      김재웅      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<h2>교수>강의계획서작성</h2><hr>

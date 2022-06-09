@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.attendance.dao.ProfessorAttendanceDAO">
+
+	<select id="selectProLectureList" parameterType="map" resultType="LectureVO">
+		SELECT A.LEC_SEMS, A.LEC_ID, A.USER_NO
+		    , B.PLAN_NO, B.LEC_NAME
+		FROM LEC A, PLANOK B
+		WHERE A.LEC_SEMS = #{lecSems}
+		AND A.USER_NO = #{userNo}
+		AND A.LEC_ID = B.LEC_ID
+	</select>
+
+	<select id="selectLecDateList" parameterType="AttabsEnrollVO" resultType="string">
+		SELECT ATTABS_DATE
+		FROM (
+		    SELECT A.ASSIGN_NO, A.PLAN_NO, A.ASSIGN_DAY
+		    FROM LEC_ASSIGN A, PLANOK B
+		    WHERE B.LEC_ID = #{lecId}
+		    AND A.PLAN_NO = B.PLAN_NO
+		) ASSIGNBASE, 
+		(
+		    SELECT 
+		        TO_CHAR(ATTABS_DATE, 'YYYYMMDD') ATTABS_DATE
+		        , TO_CHAR(ATTABS_DATE, 'DY') ATTABS_DAY
+		    FROM (
+		        SELECT 
+		            TO_DATE(#{openLec}, 'YYYYMMDD')+LEVEL-1 "ATTABS_DATE"    
+		        FROM DUAL
+		        <![CDATA[  
+				CONNECT BY LEVEL <= (TO_DATE(#{closeLec}, 'YYYYMMDD')-TO_DATE(#{openLec}, 'YYYYMMDD')+1)
+				]]>
+		    ) DATEBASE
+		) DATEBASE
+		WHERE ASSIGNBASE.ASSIGN_DAY IN DATEBASE.ATTABS_DAY
+		ORDER BY ATTABS_DATE
+	</select>
+	
+	<select id="selectAttabsStudentList" parameterType="AttabsEnrollVO" resultType="AttabsEnrollVO">
+		WITH ASSIGNBASE AS (
+			SELECT ASSIGN_NO, ASSIGN_DAY
+			FROM
+			(
+			    SELECT 
+			        TO_CHAR(ATTABS_DATE, 'YYYYMMDD') ATTABS_DATE
+			        , TO_CHAR(ATTABS_DATE, 'DY') ATTABS_DAY
+			    FROM (
+			        SELECT 
+			            TO_DATE(#{openLec}, 'YYYYMMDD')+LEVEL-1 "ATTABS_DATE"    
+			        FROM DUAL
+			        <![CDATA[  
+			        CONNECT BY LEVEL <= (TO_DATE(#{closeLec}, 'YYYYMMDD')-TO_DATE(#{openLec}, 'YYYYMMDD')+1)
+			        ]]>
+			    ) DATEBASE
+			    WHERE ATTABS_DATE = #{attabsDate}
+			) A, LEC_ASSIGN B
+			WHERE B.ASSIGN_DAY = A.ATTABS_DAY
+			AND B.PLAN_NO = #{planNo}
+			)
+			SELECT STU.*
+			    , NVL(D.ATTABS_NO, 0) ATTABS_NO, D.ATTABS_DATE, D.ATTABS_CODE
+			    , ASSIGNBASE.ASSIGN_NO, D.OJT_NO
+			FROM (
+			    SELECT A.LEC_SEMS, A.LEC_ID, A.USER_NO
+			        , B.USER_NAME, C.PLAN_NO
+			    FROM CLS A, USERS B, PLANOK C
+			    WHERE A.LEC_SEMS = #{lecSems}
+			    AND A.LEC_ID = #{lecId}
+			    AND A.USER_NO = B.USER_NO
+			    AND A.LEC_ID = C.LEC_ID) STU
+			    LEFT OUTER JOIN (SELECT *
+			    FROM ATTABS
+			    WHERE ATTABS_DATE = #{attabsDate} ORDER BY USER_NO) D 
+			    ON(STU.USER_NO = D.USER_NO AND STU.PLAN_NO = D.PLAN_NO)
+			    , ASSIGNBASE
+			ORDER BY STU.USER_NAME
+	</select>
+	
+	<update id="updateOrInsertAttabs" parameterType="AttabsEnrollVO">
+		MERGE INTO ATTABS A
+		    USING DUAL ON (A.ATTABS_NO = #{attabsNo})
+		WHEN MATCHED THEN
+		    UPDATE SET A.ATTABS_CODE = #{attabsCode}
+		WHEN NOT MATCHED THEN
+		    INSERT (ATTABS_NO, ATTABS_DATE, ATTABS_CODE, LEC_SEMS, LEC_ID
+		        , USER_NO, ASSIGN_NO, PLAN_NO)
+		    VALUES (ATTABS_SEQ.NEXTVAL, #{attabsDate}, #{attabsCode}, #{lecSems}, #{lecId}
+		        , #{userNo}, #{assignNo}, #{planNo})
+	</update>
+	
+	<select id="selectOpenCloseLecDate" parameterType="int" resultType="map">
+		SELECT 
+		    (SELECT TO_CHAR(ACADSC_START, 'YYYYMMDD') 
+		        FROM ACADSC 
+		        WHERE ACADSC_DIV = 'B3'
+		        AND ACADSC_SEMS = #{thisSems} AND ACADSC_CONT LIKE '개강') "OPEN_LEC"
+		    , (SELECT TO_CHAR(ACADSC_START, 'YYYYMMDD') 
+		        FROM ACADSC 
+		        WHERE ACADSC_DIV = 'B3'
+		        AND ACADSC_SEMS = #{thisSems} AND ACADSC_CONT LIKE '종강') "CLOSE_LEC"
+		FROM DUAL
+	</select>
+	
+	<!-- 교수가 자신의 강의를 수강 중인 학생들의 출석을 조회  EXCEL  jck-->
+	<resultMap type="LectureJ" id="lectureMap" autoMapping="true">
+		<id property="lecId" column="LEC_ID"/>
+		<collection property="students" ofType="StudentJ" autoMapping="true">
+			<id property="userNo" column="USER_NO"/>
+			<id property="lecId" column="CLEC_ID"/>
+			<collection property="attList" ofType="AttandJ" >
+				<id property="attabsDate" column="ATTABS_DATE"/>
+				<id property="lecId" column="ATTCLE_ID"/>
+				<id property="userNo" column="ATTUSER_NO"/>
+				<result property="attabsCode" column="ATTABS_CODE"/>
+				<result property="period" column="PERIOD"/>
+			</collection>
+		</collection>
+	</resultMap>
+<select id="selectAttendanceLectureExcel" parameterType="map" resultMap="lectureMap">
+	SELECT ceil(count(*)/7) AS PERIOD
+	        , B.LEC_SEMS 
+	        , B.LEC_NAME 
+	        , B.STU_YEAR 
+	        , B.USER_NO
+	        , B.USER_NAME 
+	        , B.ATTABS_DATE 
+	        , (SELECT STS_CODE1 FROM CODE WHERE STS_ID = ATTABS_CODE) AS ATTABS_CODE
+	        , B.LEC_ID
+	        , B.DEPT_NAME
+	        , ATTLEC_ID
+	        , ATTUSER_NO
+	        , CLEC_ID
+	FROM CALENDAR A, 
+	    (
+	        SELECT DISTINCT ATTABS_DATE AS ATTABS_DATE
+	                , LEC_SEMS
+	                , ATTABS_NO
+	                , ATTABS_CODE
+	                , E.LEC_NAME
+	                , E.LEC_ID
+	                , B.LEC_ID AS ATTLEC_ID
+	                , H.STU_YEAR
+	                , H.USER_NO 
+	                , B.USER_NO AS ATTUSER_NO 
+	                , A.USER_NAME
+	                , DEPT_NAME
+	                , C.LEC_ID AS CLEC_ID
+	        FROM    USERS A INNER JOIN ATTABS B ON(A.USER_NO = B.USER_NO)
+	                INNER JOIN CLS C ON(B.LEC_ID = C.LEC_ID)
+	                INNER JOIN LEC D ON(C.LEC_ID = D.LEC_ID)
+	                INNER JOIN PLANOK E ON(D.LEC_ID = E.LEC_ID)
+	                INNER JOIN PLAN F ON(E.PLAN_NO = F.PLAN_NO)
+	                INNER JOIN PLANOK G ON(D.LEC_ID = E.LEC_ID)
+	                INNER JOIN STU H ON(B.USER_NO = H.USER_NO)
+	                INNER JOIN DEPARTMENT I ON(H.DEPT_ID =I.DEPT_ID)
+	        WHERE 
+	               E.LEC_ID = #{lecId}
+	               AND LEC_SEMS = #{lecSems}
+	        ORDER BY B.ATTABS_DATE
+	    )B
+	where A.solar_date between #{startDate}
+	      and B.ATTABS_DATE group by B.ATTABS_DATE, B.ATTABS_NO, B.ATTABS_CODE
+	                                 , B.LEC_NAME, B.LEC_ID, B.LEC_SEMS, B.STU_YEAR, B.USER_NO
+	                                 , B.USER_NAME, B.DEPT_NAME,ATTLEC_ID,ATTUSER_NO,CLEC_ID
+	      ORDER BY USER_NO,ATTABS_DATE
+</select>
+<!-- 교수가 자신의 강의를 수강 중인 학생들의 출석을 조회  jck-->
+<select id="selectAttendanceLecture" parameterType="map" resultType="map">
+   SELECT ceil(count(*)/7) as period
+           , B.LEC_SEMS 
+           , B.LEC_NAME 
+           , B.STU_YEAR 
+           , B.USER_NO
+           , B.USER_NAME 
+           , B.ATTABS_DATE 
+           , (SELECT STS_CODE1 FROM CODE WHERE STS_ID = ATTABS_CODE) AS ATTABS_CODE
+           , B.LEC_ID
+   FROM CALENDAR A, 
+       (
+           SELECT DISTINCT ATTABS_DATE AS ATTABS_DATE
+                   , LEC_SEMS
+                   , ATTABS_NO
+                   , ATTABS_CODE
+                   , E.LEC_NAME
+                   , E.LEC_ID
+                   , H.STU_YEAR
+                   , H.USER_NO 
+                   , A.USER_NAME
+           FROM    USERS A INNER JOIN ATTABS B ON(A.USER_NO = B.USER_NO)
+                   INNER JOIN CLS C ON(B.LEC_ID = C.LEC_ID)
+                   INNER JOIN LEC D ON(C.LEC_ID = D.LEC_ID)
+                   INNER JOIN PLANOK E ON(D.LEC_ID = E.LEC_ID)
+                   INNER JOIN PLAN F ON(E.PLAN_NO = F.PLAN_NO)
+                   INNER JOIN PLANOK G ON(D.LEC_ID = E.LEC_ID)
+                   INNER JOIN STU H ON(B.USER_NO = H.USER_NO)
+           WHERE 
+                  E.LEC_ID = #{lecId}
+                  AND LEC_SEMS = #{lecSems}
+           ORDER BY B.ATTABS_DATE
+       )B
+   where A.solar_date between #{startDate}
+         and B.ATTABS_DATE group by B.ATTABS_DATE, B.ATTABS_NO, B.ATTABS_CODE
+                                    , B.LEC_NAME, B.LEC_ID, B.LEC_SEMS, B.STU_YEAR, B.USER_NO
+                                    , B.USER_NAME
+         ORDER BY USER_NO,ATTABS_DATE
+
+</select>
+
+
+</mapper>

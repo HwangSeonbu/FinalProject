@@ -1,0 +1,14 @@
+package kr.or.ddit.ast.service;
+
+import java.util.List;
+import java.util.Map;
+
+import kr.or.ddit.vo.AstLecVO;
+import kr.or.ddit.vo.AstProVO;
+
+public interface AssessmentService {
+
+	public List<AstLecVO> retrieveAstTargetLecList(Map<String, Integer> paramMap);
+	
+	public List<AstProVO> retrieveAstTargetProList(Map<String, Integer> paramMap);
+}

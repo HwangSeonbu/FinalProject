@@ -1,0 +1,241 @@
+<%--
+  성적입력기간 설정
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 4. 29.      김재웅      최초작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<h3 class="h3-title">성적 입력기간 설정</h3><hr class="hr-title">
+<style>
+	li{margin-bottom: 15px;}
+	#semsSelection{width: 200px;}
+	.label-main{width: 150px; font-style: bold !important; font-size:20px;}
+	.markLabel{width: 100px; text-align: right;}
+	.date-one{width: 300px; display: inline-block;}
+	.date-two{width: 200px; display: inline-block;}
+	.span-setYes{color:green; font-style: italic; font-weight: bold;}
+	.span-setNo{color:red; font-style: italic; font-weight: bold;}
+</style>
+<select class="form-select form-select-lg mb-3" id="semsSelection">
+	<c:if test="${not empty semsList }">
+		<c:forEach items="${semsList }" var="sems">
+			<option value="${sems.semsNo }">${sems.semester }</option>
+		</c:forEach>
+	</c:if>
+</select>
+<br><br>
+<div>
+  <ul style="list-style: none;">
+  	<li id="S101">
+  		<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">개강일</label>
+		<input type="date" class="form-control date-one" name="acadscStart" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="개강" value="설정" />
+  	</li>
+  	<li id="S102">
+  		<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">종강일</label>
+		<input type="date" class="form-control date-one" name="acadscStart" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="종강" value="설정" />
+  	</li>
+  	<br><br>
+  	<li id="S103">
+  	<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">성적입력</label>
+		<label class="dateLabel markLabel">시작일</label>
+		<input type="date" class="form-control date-two" name="acadscStart" value="" />
+		<label class="dateLabel markLabel">종료일</label>
+		<input type="date" class="form-control date-two" name="acadscEnd" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="성적입력" value="설정" />
+  	</li>
+  	<li id="S104">
+  	<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">평가입력</label>
+		<label class="dateLabel markLabel">시작일</label>
+		<input type="date" class="form-control date-two" name="acadscStart" value="" />
+		<label class="dateLabel markLabel">종료일</label>
+		<input type="date" class="form-control date-two" name="acadscEnd" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="평가입력" value="설정" />
+  	</li>
+  	<li id="S105">
+  	<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">수강신청</label>
+		<label class="dateLabel markLabel">시작일</label>
+		<input type="date" class="form-control date-two" name="acadscStart" value="" />
+		<label class="dateLabel markLabel">종료일</label>
+		<input type="date" class="form-control date-two" name="acadscEnd" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="수강신청" value="설정" />
+  	</li>
+  	<li id="S106">
+  	<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">휴학신청</label>
+		<label class="dateLabel markLabel">시작일</label>
+		<input type="date" class="form-control date-two" name="acadscStart" value="" />
+		<label class="dateLabel markLabel">종료일</label>
+		<input type="date" class="form-control date-two" name="acadscEnd" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="휴학신청" value="설정" />
+  	</li>
+  	<li id="S107">
+  	<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">복학신청</label>
+		<label class="dateLabel markLabel">시작일</label>
+		<input type="date" class="form-control date-two" name="acadscStart" value="" />
+		<label class="dateLabel markLabel">종료일</label>
+		<input type="date" class="form-control date-two" name="acadscEnd" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="복학신청" value="설정" />
+  	</li>
+  	<li id="S108">
+  	<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">장학금신청</label>
+		<label class="dateLabel markLabel">시작일</label>
+		<input type="date" class="form-control date-two" name="acadscStart" value="" />
+		<label class="dateLabel markLabel">종료일</label>
+		<input type="date" class="form-control date-two" name="acadscEnd" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="장학금신청" value="설정" />
+  	</li>
+  	<li id="S109">
+  	<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">성적이의신청</label>
+		<label class="dateLabel markLabel">시작일</label>
+		<input type="date" class="form-control date-two" name="acadscStart" value="" />
+		<label class="dateLabel markLabel">종료일</label>
+		<input type="date" class="form-control date-two" name="acadscEnd" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="성적이의신청" value="설정" />
+  	</li>
+  	<li id="S110">
+  	<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">등록금납부</label>
+		<label class="dateLabel markLabel">시작일</label>
+		<input type="date" class="form-control date-two" name="acadscStart" value="" />
+		<label class="dateLabel markLabel">종료일</label>
+		<input type="date" class="form-control date-two" name="acadscEnd" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="등록금납부" value="설정" />
+  	</li>
+  	<li id="S111">
+  	<i class="bi bi-gear-fill" style="color:#de7d0d"></i>
+		<label class="label-main dateLabel">강의실배정</label>
+		<label class="dateLabel markLabel">시작일</label>
+		<input type="date" class="form-control date-two" name="acadscStart" value="" />
+		<label class="dateLabel markLabel">종료일</label>
+		<input type="date" class="form-control date-two" name="acadscEnd" value="" />
+		<input type="button" class="btn btn-primary btn-sm setBtn" data-acadsc-cont="강의실배정" value="설정" />
+  	</li>
+  </ul>	
+</div>
+<div id=extraArea></div>
+<script>
+const thisSems = ${thisSems};
+let pickSemsNo = "";
+
+let semsSelection = $("#semsSelection");
+
+function periodData(pickSemsNo){
+	$.ajax({
+		url : "${cPath}/set/periodData.do",
+		method : "get",
+		data : {pickSemsNo : pickSemsNo},
+		dataType : "json",
+		success : function(resp) {
+			let acadscList = resp.acadscList;
+			$.each(acadscList, function(idx, acadsc){
+				let stsId = acadsc.stsId;
+				$("#"+stsId).attr("idx", acadsc.acadscNo);
+				$("#"+stsId).find("input[name=acadscStart]").val(acadsc.startDate);
+				$("#"+stsId).find("input[name=acadscEnd]").val(acadsc.endDate);
+				$("#"+stsId).find("span").remove();
+				$("#"+stsId).append($("<span>").addClass(acadsc.stsClass).text(acadsc.setSts));
+			});
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+
+
+
+semsSelection.on("change", function(){
+	pickSemsNo = $(this).val();
+	periodData(pickSemsNo);
+});
+
+
+//설정 버튼 클릭 시
+$(".setBtn").on("click", function(){
+	let checkFlag = false;
+	
+	let acadscCont = $(this).data("acadscCont");
+	let acadscStart = $(this).siblings("input[name=acadscStart]").val();
+	let acadscEnd = $(this).siblings("input[name=acadscEnd]").val();
+	let acadscNo = $(this).parent("li").attr("idx");
+	
+	if(!(acadscEnd == null || acadscEnd == "")){
+		if(acadscStart > acadscEnd){
+			alert("종료일은 시작일 이전이 될 수 없습니다.");
+		}else{
+			let jsonEle = { acadscNo:acadscNo, acadscCont:acadscCont
+				, acadscStart:acadscStart, acadscEnd:acadscEnd, acadscSems:pickSemsNo
+			};
+			console.log(jsonEle);
+			periodSet(jsonEle);
+		}
+	}else{
+		acadscEnd = acadscStart;
+		let jsonEle = { acadscNo:acadscNo, acadscCont:acadscCont
+				, acadscStart:acadscStart, acadscEnd:acadscEnd, acadscSems:pickSemsNo
+		};
+		console.log(jsonEle);
+		periodSet(jsonEle);
+	}
+})
+
+
+function periodSet(jsonEle){
+	console.log(jsonEle);
+	$.ajax({
+		url : "${cPath}/set/periodSet.do",
+		method : "get",
+		data : jsonEle,
+		dataType : "json",
+		success : function(resp) {
+			alert("일정이 저장되었습니다.");
+			periodData(pickSemsNo);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};
+
+
+
+
+
+
+
+//페이지 온로드
+$(function(){
+	if(pickSemsNo == "" || pickSemsNo == null){
+		semsSelection.val(thisSems).trigger("change");
+		pickSemsNo = thisSems;
+		periodData(pickSemsNo);
+	}else{
+		periodData(pickSemsNo);
+	}
+});
+
+
+</script>
+
+
+
+
+

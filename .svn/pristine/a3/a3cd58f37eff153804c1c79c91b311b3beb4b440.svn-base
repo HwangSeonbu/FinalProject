@@ -1,0 +1,27 @@
+package kr.or.ddit.lecqna.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Service;
+
+import kr.or.ddit.exception.PKNotFoundException;
+import kr.or.ddit.lecqna.dao.LecQnaReplyDAO;
+import kr.or.ddit.vo.LecQnaReplyVO;
+@Service
+public class LecQnaReplyServiceImpl implements LecQnaReplyService {
+	@Inject
+	private LecQnaReplyDAO dao;
+	
+	@Override
+	public List<LecQnaReplyVO> retrieveLecQnaReplyList(Integer lecboNo) {
+		List<LecQnaReplyVO> result = dao.lecqnaReplyList(lecboNo);
+		
+		if(result == null)
+			throw new PKNotFoundException(lecboNo+"에 해당하는 게시글 번호가 없음");
+		
+		return result;
+	}
+
+}

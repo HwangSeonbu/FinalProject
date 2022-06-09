@@ -1,0 +1,36 @@
+package kr.or.ddit.vo;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+public class ProCounselVO {	
+	private Integer userNo;
+	private String userPass;
+	private String userName;
+	private String userGender;
+	private String userPhone;
+	private String userAddr;
+	private String userReg1;
+	private String userReg2;
+	private String userMail;
+	private String userSavename;
+	private String userDate;
+	private String userCode;
+	
+	private Integer stuYear;
+	private String stuClass;
+	private String stuCode;
+	private String stuCdtEarn;
+	private String stuGduCdt;
+	private String stuGduDate;
+	
+	private String cnslId;
+	private String deptId;
+	private String deptName;
+	private String cnslDate;
+	private String dyDate;
+	private String cnslDay;
+  
+}

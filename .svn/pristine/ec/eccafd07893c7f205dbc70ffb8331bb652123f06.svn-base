@@ -1,0 +1,211 @@
+<%--
+ 학사관리자가 당학기 등록금을 부과하는 페이지
+* [[개정이력(Modification Information)]]
+* 수정일                 수정자      수정내용
+* ----------  ---------  -----------------
+* 2022. 5. 2.      김재웅      최초작성
+* 2022. 5. 6.      고성식      기본 ui 작성
+* Copyright (c) 2022 by DDIT All right reserved
+ --%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="security" %>
+<script type="text/javascript" src="${cPath }/resources/js/jquery.form.min.js"></script>    	
+<h3 class="h3-title">등록금부과</h3><hr class="hr-title">
+<style>
+th{
+	border-bottom: 1px solid #444444;
+}
+
+#action_in{
+	text-align: right;
+}
+
+.pagination{
+		justify-content: center;
+}
+</style>
+<div class="action_in">
+	<button type="submit" class="btn btn-primary btn-sm" onclick="confirmCreditEnrollStudent();">등록금부과</button>
+</div>
+<br>
+<table class="table table-hover table-sm">
+	<thead>
+		<tr>
+			<th scope="col" class="frst">
+			<input type="checkbox" id="chkalltop" title="선택" class="check _click"></th>
+			<th>학번</th>
+			<th>이름</th>
+			<th>분과대학</th>
+			<th>학과</th>
+			<th>학년</th>
+			<th>학반</th>
+			<th>등록금액</th>
+			<th>전화번호</th>
+			<th>이메일</th>
+		</tr>
+	</thead>
+	<tbody id="listBody">
+	</tbody>
+	<tfoot>
+		<tr>
+			<td colspan="10">
+				<div id="pagingArea">
+				</div>
+				<div id="searchDIV">
+					<select name="sarchType">
+						<option value>전체</option>
+						<option value="USERNAME">이름</option>
+						<option value="DEPTNAME">학과</option>
+						<option value="USERNO">학번</option>
+					</select>
+					<input type="text" name="searchWord" />
+					<input type="button" value="검색" />
+				</div>
+			</td>
+		</tr>
+	</tfoot>
+</table>
+<form id="searchForm">
+	<input type="hidden" name="page" />
+	<input type="hidden" name="searchType" />
+	<input type="hidden" name="searchWord" />
+	<security:csrfInput/>
+</form>
+
+<script>
+let token = $("meta[name='_csrf']").attr("content");
+let header = $("meta[name='_csrf_header']").attr("content");
+let listBody = $("#listBody");
+let page = "1";
+
+// 이벤트 Funtion
+let eventFunction = function(){
+	$("#chkalltop").click(function() {
+		if($("#chkalltop").is(":checked")) $("input[name=chk]").prop("checked", true);
+		else $("input[name=chk]").prop("checked", false);
+	});
+	
+	// 페이징 클릭 이벤트
+	$("#pagingArea").on("click", "a", function(){
+		page = $(this).data("page");
+		selectList(page);
+	});
+	
+	$("#confrimBtn").click(function(){
+		confirmCreditEnrollStudent();
+	});
+}
+
+function selectList(page){
+	var param = {
+			page : page
+	}
+	
+	$.ajax({
+		url : "${cPath}/setEnroll/setCreditEnrollStudentList.do",
+		method : "post",
+		data : param,
+		dataType : "json",
+		beforeSend : function(xhr) {
+			if (token && header) {
+				xhr.setRequestHeader(header, token);
+			}
+		},
+		success : function(data) {
+			$("#listBody").empty();
+			
+			let enrollList = data.list;
+			let trTags = [];
+			if(enrollList && enrollList.length > 0){
+				$.each(enrollList, function(idx, enroll){
+					var visibility = enroll.reqStat == null ? "visibile": "hidden"
+					let trTag = $("<tr>").attr("id", enroll.userNo)
+										.append(
+													$("<td>").append($("<input>")
+															.attr("type", "checkbox").attr("name", "chk")
+															.attr("class","${enroll.userNo},${enroll.deptEnr}").css("visibility", visibility)
+													)
+													, $("<td>").html(enroll.userNo)
+													, $("<td>").html(enroll.userName) 
+													, $("<td>").html(enroll.colName)
+													, $("<td>").html(enroll.deptName)
+													, $("<td>").html(enroll.stuYear)
+													, $("<td>").html(enroll.stuClass) 
+													, $("<td>").html(enroll.deptEnr)
+													, $("<td>").html(enroll.userPhone)
+													, $("<td>").html(enroll.userMail)
+										);
+					trTags.push(trTag);
+				});
+			}else{
+				let trTag = $("<tr>").html($("<td>").attr("colspan", "10").html("조건에 맞는 학생이 없음."));
+				trTags.push(trTag);
+			}
+			
+			$("#listBody").append(trTags);
+			$("#pagingArea").html(data.paging.pagingHTMLBS);
+			$("#chkalltop").prop("checked", false);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});
+};	
+
+function confirmCreditEnrollStudent(){
+	let enrNos = []
+	let enrNoList = {};
+	let names = listBody.find('input[name="chk"]:checked');
+	
+	if(names.length == 0){
+		alert("등록금을 부과할 학생을 선택해주세요");
+		return false;
+	}
+	
+	$.each(names, function(idx, name){
+		let thisName = $(this).parents("tr").attr("id");
+		let thisEnr = $(this).parents('tr').children().eq(7).text();
+		let jsonEle = {
+			"userNo" : thisName
+			,"enrAmt" : thisEnr
+		};
+		
+		enrNos.push(jsonEle);
+	});
+	
+	// 등록금 부과 처리
+	$.ajax({
+		url : "${cPath}/setEnroll/adminAppointEnroll.do",
+		method : "post",
+		data : JSON.stringify(enrNos),
+		contentType : "application/json",
+		dataType : "json",
+		beforeSend : function(xhr) {
+			if (token && header) {
+				xhr.setRequestHeader(header, token);
+			}
+		},
+		success : function(resp) {
+			alert(enrNos.length+"명에게 등록금부과 완료");
+			selectList(1);
+		},
+		error : function(jqXHR, textStatus, errorThrown) {
+			console.log(jqXHR);
+			console.log(textStatus);
+			console.log(errorThrown);
+		}
+	});  
+	
+}
+
+
+
+$(function(){
+	eventFunction();
+	selectList(1);
+});
+</script>

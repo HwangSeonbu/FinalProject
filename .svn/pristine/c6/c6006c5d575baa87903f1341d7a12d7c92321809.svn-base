@@ -1,0 +1,15 @@
+package kr.or.ddit.attendance.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/templateAttabs")
+public class AttabsTemplateController {
+
+	@RequestMapping("templateView.do")
+	public String templateView() {
+		
+		return "attendance/professorAttabsTemplate";
+	}
+}

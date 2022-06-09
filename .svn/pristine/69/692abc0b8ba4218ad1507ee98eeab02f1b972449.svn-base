@@ -1,0 +1,11 @@
+package kr.or.ddit.adminLecture.service;
+
+import kr.or.ddit.vo.PagingVO;
+import kr.or.ddit.vo.PlanEditVO;
+
+public interface AdminLecturePlanService {
+
+	public PagingVO<PlanEditVO> retrieveSubmitPlanList(PagingVO<PlanEditVO> vo);
+	
+	public PlanEditVO retrieveSubmitPlanOne(Integer planNo);
+}
